@@ -321,7 +321,7 @@ EOF
 # ----------------------------------------------------------------------------
 
 (
-  sleep "$((MAX_SESSION_HOURS * 3600))"
+  sleep "$(awk "BEGIN{print int($MAX_SESSION_HOURS * 3600)}")"
   echo "max session duration reached at $(date -u +%Y-%m-%dT%H:%M:%SZ)" \
     > "$WORKTREE/.claude/WATCHDOG_TIMEOUT"
   pkill -TERM -f "claude.*$TIMESTAMP" 2>/dev/null || true
