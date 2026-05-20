@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env -S bash
 # apogee-autonomous.sh — launch an autonomous Claude Code session in an
 # isolated git worktree.
 #
@@ -23,6 +23,22 @@
 #   The worktree is NOT auto-deleted. You decide post-hoc:
 #     - Merge the branch (apogee-resume.sh handles review/merge)
 #     - Discard with: git worktree remove <path> && git branch -D <branch>
+#
+# Requires bash 4+. macOS ships bash 3.2 (which lacks `declare -g`), so the
+# shebang uses `env -S bash` to pick up a modern bash (e.g. Homebrew's) ahead
+# of /bin/bash on PATH. Bash 4+ features used in this file:
+#   - none currently (guarded for parity with apogee-resume.sh and the shared
+#     _compose-settings.sh, and to fail fast if run under bash 3.2)
+# Keep this list current if you add declare -g/-A, mapfile/readarray, ${var,,}/
+# ${var^^}, |&, coproc, or negative array indices (${arr[-1]}).
+
+# --- bash version guard (must run before any bash 4+ feature) ---------------
+if [ -z "${BASH_VERSINFO:-}" ] || [ "${BASH_VERSINFO[0]}" -lt 4 ]; then
+  echo "apogee-autonomous: requires bash 4+, but found ${BASH_VERSION:-non-bash shell}." >&2
+  echo "  macOS ships bash 3.2. Install a modern bash and put it ahead of /bin on PATH:" >&2
+  echo "    brew install bash" >&2
+  exit 1
+fi
 
 set -euo pipefail
 

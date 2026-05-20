@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env -S bash
 # apogee-resume.sh — review or resume an autonomous Claude Code session.
 #
 # Usage:
@@ -23,6 +23,21 @@
 #   [x] Discard — remove worktree and delete branch (asks twice)
 #   [s] Shell — drop into the worktree to poke around
 #   [q] Quit (default; leaves worktree untouched)
+#
+# Requires bash 4+. macOS ships bash 3.2 (which lacks `declare -g`), so the
+# shebang uses `env -S bash` to pick up a modern bash (e.g. Homebrew's) ahead
+# of /bin/bash on PATH. Bash 4+ features used in this file:
+#   - declare -ga (global array in a function; bash 4.2+) — session picker
+# Keep this list current if you add mapfile/readarray, declare -A, ${var,,}/
+# ${var^^}, |&, coproc, or negative array indices (${arr[-1]}).
+
+# --- bash version guard (must run before any bash 4+ feature) ---------------
+if [ -z "${BASH_VERSINFO:-}" ] || [ "${BASH_VERSINFO[0]}" -lt 4 ]; then
+  echo "apogee-resume: requires bash 4+, but found ${BASH_VERSION:-non-bash shell}." >&2
+  echo "  macOS ships bash 3.2. Install a modern bash and put it ahead of /bin on PATH:" >&2
+  echo "    brew install bash" >&2
+  exit 1
+fi
 
 set -euo pipefail
 
