@@ -116,6 +116,14 @@ ok "required commands present"
 [[ -d "$PRODUCT_REPO/.git" ]]  || die "product repo is not a git repo: $PRODUCT_REPO"
 ok "apogee, shared config, and product repo found"
 
+# Shared settings-composition routine (same one apogee-sync-settings.sh uses,
+# so the launcher and the sync command can never drift out of sync).
+COMPOSE_LIB="$APOGEE_HOME/scripts/_compose-settings.sh"
+[[ -f "$COMPOSE_LIB" ]] || die "compose library not found: $COMPOSE_LIB"
+# shellcheck source=/dev/null
+source "$COMPOSE_LIB"
+ok "loaded shared compose routine"
+
 [[ ! -e "$WORKTREE" ]] || die "worktree path already exists: $WORKTREE"
 
 if git -C "$PRODUCT_REPO" show-ref --verify --quiet "refs/heads/$BRANCH"; then
@@ -157,54 +165,34 @@ hdr "Claude config"
 mkdir -p "$WORKTREE/.claude"
 
 # Compose the worktree's effective project settings from the apogee Verve
-# baseline plus the product's own delta (if it commits one). The personal
-# layer (~/.claude/settings.json) is loaded separately by Claude Code as the
-# user layer — it is NOT part of this merge.
+# baseline plus the product's committed delta (.claude/settings.delta.json),
+# using the SAME shared routine as apogee-sync-settings.sh. The personal layer
+# (~/.claude/settings.json) is loaded separately by Claude Code as the user
+# layer — it is NOT part of this merge.
 BASELINE_SETTINGS="$SHARED_CLAUDE_DIR/settings.json"
 PRODUCT_SETTINGS="$WORKTREE/.claude/settings.json"
-[[ -f "$BASELINE_SETTINGS" ]] || die "apogee baseline settings not found: $BASELINE_SETTINGS"
-jq empty "$BASELINE_SETTINGS" 2>/dev/null || die "apogee baseline settings.json is not valid JSON"
+PRODUCT_DELTA="$WORKTREE/.claude/settings.delta.json"
 
-COMPOSED="$(mktemp)"
-DELTA_TRACKED=0
-
-if [[ -f "$PRODUCT_SETTINGS" ]]; then
-  # Product ships a delta. Recursive-merge it over the baseline (delta wins on
-  # scalar conflicts), THEN explicitly union the safety-critical arrays so a
-  # product can only ADD to allow/deny/readonly — never silently drop a
-  # baseline entry. This is the safety guarantee: denies survive composition.
-  jq empty "$PRODUCT_SETTINGS" 2>/dev/null || die "product .claude/settings.json is not valid JSON"
-  jq -s '
-    .[0] as $base | .[1] as $delta
-    | ($base * $delta)
-    | .permissions.allow                 = (( ($base.permissions.allow                 // []) + ($delta.permissions.allow                 // [])) | unique)
-    | .permissions.deny                  = (( ($base.permissions.deny                  // []) + ($delta.permissions.deny                  // [])) | unique)
-    | .permissions.alwaysApproveReadonly = (( ($base.permissions.alwaysApproveReadonly // []) + ($delta.permissions.alwaysApproveReadonly // [])) | unique)
-    | .permissions.alwaysApproveTool     = (( ($base.permissions.alwaysApproveTool     // []) + ($delta.permissions.alwaysApproveTool     // [])) | unique)
-    | .permissions.alwaysDenyTool        = (( ($base.permissions.alwaysDenyTool        // []) + ($delta.permissions.alwaysDenyTool        // [])) | unique)
-  ' "$BASELINE_SETTINGS" "$PRODUCT_SETTINGS" > "$COMPOSED" \
-    || die "failed to compose settings (jq merge)"
-  # Is the delta a git-tracked file? (so we know whether to hide our overwrite)
-  git -C "$WORKTREE" ls-files --error-unmatch .claude/settings.json >/dev/null 2>&1 && DELTA_TRACKED=1
-  ok "composed apogee baseline ⊔ product delta"
-else
-  # No product delta — install the baseline verbatim.
-  cp "$BASELINE_SETTINGS" "$COMPOSED"
-  ok "installed apogee baseline (no product delta)"
+# Was settings.json git-tracked before we (re)render it? (Per convention the
+# product commits the composite, so it usually is.) We hide our overwrite so
+# the autonomous session never commits a freshly-composed copy back.
+SETTINGS_TRACKED=0
+if git -C "$WORKTREE" ls-files --error-unmatch .claude/settings.json >/dev/null 2>&1; then
+  SETTINGS_TRACKED=1
 fi
 
-# Validate the composed result and assert the safety guarantee before install.
-jq empty "$COMPOSED" 2>/dev/null || die "composed settings.json is not valid JSON"
-DENY_COUNT="$(jq '.permissions.deny | length' "$COMPOSED")"
-[[ "$DENY_COUNT" -gt 0 ]] || die "composed settings has an empty deny list — refusing to launch"
+if [[ -f "$PRODUCT_DELTA" ]]; then
+  apogee_compose_settings "$BASELINE_SETTINGS" "$PRODUCT_DELTA" "$PRODUCT_SETTINGS" "$APOGEE_SETTINGS_BANNER" \
+    || die "failed to compose settings"
+  ok "composed apogee baseline ⊔ product delta (.claude/settings.delta.json)"
+else
+  apogee_compose_settings "$BASELINE_SETTINGS" "" "$PRODUCT_SETTINGS" "$APOGEE_SETTINGS_BANNER" \
+    || die "failed to compose settings"
+  ok "installed apogee baseline (no product delta)"
+fi
+ok "wrote .claude/settings.json (deny entries: $(jq '.permissions.deny | length' "$PRODUCT_SETTINGS"))"
 
-mv "$COMPOSED" "$PRODUCT_SETTINGS"
-ok "wrote .claude/settings.json (deny entries: $DENY_COUNT)"
-
-# Keep the composed settings local to this worktree: the autonomous session
-# must never commit it back into the product repo. If the product delta was
-# git-tracked, hide our overwrite via skip-worktree.
-if [[ "$DELTA_TRACKED" -eq 1 ]]; then
+if [[ "$SETTINGS_TRACKED" -eq 1 ]]; then
   git -C "$WORKTREE" update-index --skip-worktree .claude/settings.json
   ok "marked .claude/settings.json skip-worktree (won't be committed)"
 fi
