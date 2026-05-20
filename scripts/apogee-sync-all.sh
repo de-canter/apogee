@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 # apogee-sync-all.sh — re-render .claude/settings.json across every product.
 #
-# Runs apogee-sync-settings.sh in each product repo under
-# $APOGEE_PRODUCTS_ROOT, skipping any directory without a .claude/ dir (and
-# the apogee repo itself). Use after changing the shared baseline so every
-# product's committed composite picks up the new rules.
+# Runs apogee-sync-settings.sh in each opted-in product repo under
+# $APOGEE_PRODUCTS_ROOT. A product opts in by committing a
+# .claude/settings.delta.json (even an empty {}); repos without one — or
+# without a .claude/ dir — are skipped, as is the apogee repo itself. This
+# keeps bulk sync from imposing the baseline on repos that never asked for it.
+# Use after changing the shared baseline so every opted-in product's committed
+# composite picks up the new rules. (To render a single repo regardless of
+# opt-in, run apogee-sync-settings.sh inside it directly.)
 #
 # Usage:
 #   apogee-sync-all.sh
@@ -50,6 +54,14 @@ for dir in "$APOGEE_PRODUCTS_ROOT"/*/; do
   # Skip anything without a .claude/ directory
   if [[ ! -d "$dir/.claude" ]]; then
     printf '%s  skip%s %s %s(no .claude/)%s\n' "$C_DIM" "$C_RESET" "$name" "$C_DIM" "$C_RESET"
+    skipped=$((skipped+1))
+    continue
+  fi
+
+  # Skip repos that haven't opted in (no settings.delta.json). The delta is
+  # the opt-in signal — bulk sync never imposes the baseline uninvited.
+  if [[ ! -f "$dir/.claude/settings.delta.json" ]]; then
+    printf '%s  skip%s %s %s(no settings.delta.json — not opted in)%s\n' "$C_DIM" "$C_RESET" "$name" "$C_DIM" "$C_RESET"
     skipped=$((skipped+1))
     continue
   fi
