@@ -229,18 +229,18 @@
       "Bash(terraform destroy:*)",
       "Bash(docker push:*)",
 
-      "Bash(mongosh:* --eval *drop*)",
-      "Bash(mongosh:* --eval *deleteMany*)",
-      "Bash(mongosh:* --eval *remove*)",
+      "Bash(mongosh* --eval *drop*)",
+      "Bash(mongosh* --eval *deleteMany*)",
+      "Bash(mongosh* --eval *remove*)",
 
-      "Bash(curl:*api.openai.com*)",
-      "Bash(curl:*api.anthropic.com*)",
-      "Bash(curl:*api.stripe.com*)",
-      "Bash(curl:*.clerk.accounts.dev*)",
-      "Bash(curl:* https://* -X POST *)",
-      "Bash(curl:* https://* -X PUT *)",
-      "Bash(curl:* https://* -X DELETE *)",
-      "Bash(curl:* https://* -X PATCH *)"
+      "Bash(curl*api.openai.com*)",
+      "Bash(curl*api.anthropic.com*)",
+      "Bash(curl*api.stripe.com*)",
+      "Bash(curl*.clerk.accounts.dev*)",
+      "Bash(curl* https://* -X POST *)",
+      "Bash(curl* https://* -X PUT *)",
+      "Bash(curl* https://* -X DELETE *)",
+      "Bash(curl* https://* -X PATCH *)"
     ]
   }
 }
