@@ -226,7 +226,28 @@ message, and proceed. Do not block on style.
 
 ---
 
-## 10. Session Hygiene
+## 10. Cross-repo operations
+
+When inspecting or operating on a different repo than the current one,
+**never** use `cd <other-repo> && git ...`. The auto-mode classifier
+(correctly) flags this as a prompt-injection risk because untrusted git
+hooks could execute. Use these patterns instead:
+
+| Goal | Use |
+|---|---|
+| Git operation in another repo | `git -C /path/to/repo <command>` |
+| List a directory | `ls /path/to/dir/` |
+| Read a file | `cat /path/to/file` |
+| Grep across files | `grep -n pattern /path/to/file` or `rg pattern /path/` |
+| Run a script in another repo | `bash /path/to/repo/script.sh` (when safe) |
+
+The principle: avoid `cd` to directories you don't fully control. Stay in
+your working directory and use absolute paths or path-flagged commands
+instead.
+
+---
+
+## 11. Session Hygiene
 
 - **Run `/compact` every ~90 minutes of work** to keep context fresh.
   Long sessions degrade decision quality.
