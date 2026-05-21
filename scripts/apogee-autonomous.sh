@@ -277,13 +277,16 @@ BEFORE WRITING ANY CODE, read in this order:
 2. ./SPEC.md     (if present — the locked product spec)
 EOF
 
+NEXT_READ=3
 if [[ -n "$SPEC_FILE" ]]; then
   cat >> "$INITIAL_PROMPT_FILE" <<EOF
-3. ./$SPEC_FILE  (the specific spec for THIS task)
+${NEXT_READ}. ./$SPEC_FILE  (the specific spec for THIS task)
 EOF
+  NEXT_READ=4
 fi
 
 cat >> "$INITIAL_PROMPT_FILE" <<EOF
+${NEXT_READ}. ./docs/plans/  (any pending plan files relevant to this task; see CLAUDE.md §12)
 
 THEN, before any implementation:
 - Enter Plan Mode and produce a task breakdown
