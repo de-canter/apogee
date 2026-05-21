@@ -271,9 +271,12 @@ instead.
 - **Re-read this file when context is compacted.** It is not optional
   background.
 - **At session start, read** the product's local `CLAUDE.md`, the
-  product's `SPEC.md`, `docs/plans/` (see §12), the most recent commits on
-  the current branch, the task spec passed via the launcher, and the current
-  `status.json` if one exists from a prior session.
+  product's `SPEC.md`, any plan files in `docs/plans/` relevant to the current
+  task (see §12), the 5 most recent files in `docs/plans/completed/`
+  (autonomous session history — what was recently merged or discarded and
+  why), the most recent commits on the current branch, the task spec passed
+  via the launcher, and the current `status.json` if one exists from a prior
+  session.
 - **At session end** (or before going idle for >10 min), make sure
   status.json is current and any work-in-progress is committed.
 
