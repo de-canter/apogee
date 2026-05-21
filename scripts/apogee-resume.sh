@@ -19,6 +19,7 @@
 #   [r] Resume — relaunch Claude Code in the same worktree to continue
 #   [d] Show full diff in $PAGER
 #   [m] Merge — fast-forward or merge the branch into the source branch
+#   [c] Cleanup — remove a merged worktree + branch (no digest)
 #   [p] Open PR via gh (push + create PR for review)
 #   [x] Discard — remove worktree and delete branch (asks twice)
 #   [s] Shell — drop into the worktree to poke around
@@ -532,6 +533,33 @@ action_discard() {
   exit 0
 }
 
+action_cleanup() {
+  hdr "Cleanup merged worktree and branch"
+  # Cleanup is the second half of the two-step flow: [m] merge writes the
+  # completion digest and keeps the worktree; [c] cleanup removes it. It
+  # writes NO digest (the merge already produced one) and refuses to touch a
+  # branch that isn't fully merged — use [x] discard to abandon unmerged work.
+  local target
+  target="$(git -C "$PRODUCT_REPO" rev-parse --abbrev-ref HEAD)"
+  if ! git -C "$PRODUCT_REPO" merge-base --is-ancestor "$BRANCH" "$target" 2>/dev/null; then
+    warn "$BRANCH is not fully merged into $target."
+    warn "  Merge it first with [m], or use [x] discard to abandon it (writes a discard digest)."
+    return
+  fi
+  printf 'This will (no digest — the merge digest already covers it):\n'
+  printf '  • Remove worktree: %s\n' "$WORKTREE"
+  printf '  • Delete branch:   %s (merged into %s)\n\n' "$BRANCH" "$target"
+  read -r -p "Proceed with cleanup? [y/N] " confirm
+  [[ "$confirm" =~ ^[Yy]$ ]] || { warn "cleanup cancelled"; return; }
+  # Remove the worktree first — a branch checked out in a worktree can't be deleted.
+  git -C "$PRODUCT_REPO" worktree remove --force "$WORKTREE"
+  git -C "$PRODUCT_REPO" branch -d "$BRANCH" 2>/dev/null || \
+    git -C "$PRODUCT_REPO" branch -D "$BRANCH" 2>/dev/null || \
+    warn "branch deletion skipped"
+  ok "cleaned up merged worktree + branch (no digest written)"
+  exit 0
+}
+
 action_shell() {
   hdr "Dropping into worktree shell"
   printf '%sType "exit" to return to the resume menu.%s\n' "$C_DIM" "$C_RESET"
@@ -544,10 +572,11 @@ while true; do
   cat <<EOF
   ${C_CYAN}[r]${C_RESET} Resume — relaunch Claude Code to continue
   ${C_CYAN}[d]${C_RESET} Diff — view full diff in pager
-  ${C_CYAN}[m]${C_RESET} Merge — fast-forward or merge into source branch
+  ${C_CYAN}[m]${C_RESET} Merge — fast-forward or merge into source branch (writes completion digest)
+  ${C_CYAN}[c]${C_RESET} Cleanup — remove a merged worktree + branch (no digest)
   ${C_CYAN}[p]${C_RESET} PR — push branch and open draft PR
   ${C_CYAN}[s]${C_RESET} Shell — drop into worktree
-  ${C_CYAN}[x]${C_RESET} Discard — remove worktree and branch
+  ${C_CYAN}[x]${C_RESET} Discard — abandon worktree + branch (writes discard digest)
   ${C_CYAN}[q]${C_RESET} Quit (leaves everything as-is)
 EOF
   read -r -p "Choose: " action
@@ -555,6 +584,7 @@ EOF
     r|R) action_resume ;;
     d|D) action_diff ;;
     m|M) action_merge ;;
+    c|C) action_cleanup ;;
     p|P) action_pr ;;
     s|S) action_shell ;;
     x|X) action_discard ;;
