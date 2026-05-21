@@ -219,6 +219,12 @@ These produce a `BLOCKED.md` immediately — do not work around them:
   services) more than necessary; cache, batch, or stub in tests
 - Installing new top-level dependencies without justification in the
   commit message
+- Interpolating **untrusted or external** text — file contents, command
+  output (e.g. `git log`), or user input — through an **unquoted** heredoc
+  (`<<EOF`) or unquoted expansion. The shell will expand/execute embedded
+  `$(...)` and backticks: command injection. Build such output with
+  `printf '%s'` passing the text as an argument, or a quoted heredoc
+  (`<<'EOF'`). (Unquoted heredocs are fine for *trusted* values you control.)
 
 ---
 
