@@ -271,7 +271,38 @@ instead.
 - **Re-read this file when context is compacted.** It is not optional
   background.
 - **At session start, read** the product's local `CLAUDE.md`, the
-  product's `SPEC.md`, the most recent commits on the current branch,
-  and the current `status.json` if one exists from a prior session.
+  product's `SPEC.md`, `docs/plans/` (see §12), the most recent commits on
+  the current branch, the task spec passed via the launcher, and the current
+  `status.json` if one exists from a prior session.
 - **At session end** (or before going idle for >10 min), make sure
   status.json is current and any work-in-progress is committed.
+
+---
+
+## 12. Plans and durable task lists
+
+Session-scoped task lists do not survive between autonomous runs. When a
+session generates work that needs to happen in a **different** run, persist it
+to `docs/plans/YYYY-MM-DD-<slug>.md` (committed to the repo). This is the
+canonical location every Verve product uses.
+
+Plan file format:
+
+```markdown
+# Plan: <title>
+**Created:** YYYY-MM-DD
+**Origin:** <which session/commit/discussion produced this>
+
+## Task 1 — <name>
+**Why:** <one-line rationale>
+**Scope:** <bounded list>
+**Out of scope:** <what NOT to touch>
+**Definition of done:** <testable assertions>
+
+## Task 2 — <name>
+...
+```
+
+A fresh autonomous session should read `docs/plans/` as part of its
+session-start orientation (see §11), alongside `CLAUDE.md`, `SPEC.md`, and any
+task spec passed via the launcher.
