@@ -306,3 +306,21 @@ Plan file format:
 A fresh autonomous session should read `docs/plans/` as part of its
 session-start orientation (see §11), alongside `CLAUDE.md`, `SPEC.md`, and any
 task spec passed via the launcher.
+
+### Don't confuse Plan Mode with plan files
+
+These are different things and must not be conflated:
+
+- **Plan files** (`docs/plans/<date>-<slug>.md`) are durable markdown specs for
+  *future* autonomous runs. Producing one is a normal conversational task — **no
+  branch, no Plan Mode, no worktree** — just edit the file and commit it.
+  Multiple plans can be authored in parallel sessions. Do **not** run the
+  launcher to write a plan file.
+- **Plan Mode** is Claude Code's pre-execution discipline used *inside* an
+  autonomous run: produce a task breakdown, commit it as a `planning`
+  checkpoint, then exit and execute. The launcher already triggers this — you
+  never enter Plan Mode just to author a plan file.
+
+A useful test: if the output is a markdown file in `docs/plans/`, you're
+writing a **plan file** (no Plan Mode). If the output is code commits in an
+autonomous worktree, **Plan Mode** happened inside the autonomous run.
