@@ -74,35 +74,63 @@ die()  { err "$*"; exit 1; }
 # Session discovery
 # ----------------------------------------------------------------------------
 
+# Git-based fallback discovery: enumerate worktrees registered in each product
+# repo whose branch is autonomous/*, even if their .claude/status.json is gone.
+git_discover_sessions() {
+  local gitdir repo
+  for gitdir in "$APOGEE_PRODUCTS_ROOT"/*/.git; do
+    [[ -e "$gitdir" ]] || continue
+    repo="$(dirname "$gitdir")"
+    git -C "$repo" worktree list --porcelain 2>/dev/null | awk '
+      /^worktree /                          { wt = substr($0, 10) }
+      /^branch refs\/heads\/autonomous\//   { if (wt != "") print wt }
+    ' || true
+  done
+}
+
 list_sessions() {
-  # Find all worktree dirs under AUTONOMOUS_ROOT that have a .claude/status.json
-  find "$AUTONOMOUS_ROOT" -maxdepth 2 -type f -path '*/.claude/status.json' 2>/dev/null \
-    | while read -r status_path; do
-        wt="$(dirname "$(dirname "$status_path")")"
-        printf '%s\n' "$wt"
-      done \
-    | sort -r
+  # Two discovery methods, merged and de-duplicated:
+  #   1. Worktrees under AUTONOMOUS_ROOT carrying a .claude/status.json. The
+  #      file sits at depth 3 ($AUTONOMOUS_ROOT/<worktree>/.claude/status.json),
+  #      so -maxdepth must be 3.
+  #   2. autonomous/* worktrees registered in product repos (git fallback),
+  #      which catches sessions whose status.json was deleted or never written.
+  {
+    find "$AUTONOMOUS_ROOT" -maxdepth 3 -type f -path '*/.claude/status.json' 2>/dev/null \
+      | while read -r status_path; do
+          dirname "$(dirname "$status_path")"
+        done || true
+    git_discover_sessions || true
+  } | sort -ru
 }
 
 session_summary() {
   local wt="$1"
   local status="$wt/.claude/status.json"
-  if [[ ! -f "$status" ]]; then
-    echo "(no status.json) $(basename "$wt")"
-    return
+
+  local blocked="" timeout=""
+  [[ -f "$wt/BLOCKED.md" ]]                && blocked=" ${C_YELLOW}[BLOCKED]${C_RESET}"
+  [[ -f "$wt/.claude/WATCHDOG_TIMEOUT" ]]  && timeout=" ${C_RED}[TIMEOUT]${C_RESET}"
+
+  if [[ -f "$status" ]]; then
+    local product slug phase started
+    product="$(jq -r '.product // "?"' "$status")"
+    slug="$(jq -r '.task_slug // "?"' "$status")"
+    phase="$(jq -r '.phase // "?"' "$status")"
+    started="$(jq -r '.started_at // "?"' "$status")"
+    printf '%s%s/%s%s  %s%s%s%s%s\n' \
+      "$C_BOLD" "$product" "$slug" "$C_RESET" \
+      "$C_DIM" "$started · phase=$phase" "$C_RESET" "$blocked" "$timeout"
+  else
+    # No status.json — derive what we can from the path and git history.
+    local name last
+    name="$(basename "$wt")"
+    last="$(git -C "$wt" log -1 --format=%cI 2>/dev/null || echo '?')"
+    printf '%s%s%s  %slast activity: %s%s  %s[no status]%s%s%s\n' \
+      "$C_BOLD" "$name" "$C_RESET" \
+      "$C_DIM" "$last" "$C_RESET" \
+      "$C_YELLOW" "$C_RESET" "$blocked" "$timeout"
   fi
-  local product slug phase started
-  product="$(jq -r '.product // "?"' "$status")"
-  slug="$(jq -r '.task_slug // "?"' "$status")"
-  phase="$(jq -r '.phase // "?"' "$status")"
-  started="$(jq -r '.started_at // "?"' "$status")"
-  local blocked=""
-  [[ -f "$wt/BLOCKED.md" ]] && blocked=" ${C_YELLOW}[BLOCKED]${C_RESET}"
-  local timeout=""
-  [[ -f "$wt/.claude/WATCHDOG_TIMEOUT" ]] && timeout=" ${C_RED}[TIMEOUT]${C_RESET}"
-  printf '%s%s/%s%s  %s%s%s%s%s\n' \
-    "$C_BOLD" "$product" "$slug" "$C_RESET" \
-    "$C_DIM" "$started · phase=$phase" "$C_RESET" "$blocked" "$timeout"
 }
 
 pick_session_interactive() {

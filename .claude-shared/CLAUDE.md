@@ -117,6 +117,23 @@ meaningful checkpoint (task start, task complete, blocked, idle).
 
 ARGUS reads this file. Keep it accurate or the human's HUD lies.
 
+### Per-session state is not source — gitignore it
+
+`status.json` and its siblings are **per-session harness state**, not source
+code. They live in `.claude/` (or the worktree root) for the duration of a
+run and must not be committed to the product repo. Each product's
+`.gitignore` should include:
+
+```gitignore
+.claude/status.json
+.claude/WATCHDOG_TIMEOUT
+.claude/settings.local.json
+BLOCKED.md
+```
+
+(The composed `.claude/settings.json` and the `.claude/settings.delta.json`
+delta *are* committed — those are configuration, not session state.)
+
 ---
 
 ## 6. Escalation: BLOCKED.md
