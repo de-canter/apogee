@@ -194,12 +194,16 @@ reversible decision you could make and document.
   Co-authored-by: Claude <noreply@anthropic.com>
   ```
   Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `wip`.
-- **Never `git push`.** Pushing is a human decision. The deny list
-  enforces this; if you find yourself wanting to push, you've
-  misunderstood the task.
+- **Pushing topic branches is allowed; integration branches are not.**
+  You may `git push` a `chore/*`, `feature/*`, or `fix/*` branch (the
+  permission allow-list covers these) — work reaches `main`/`develop`
+  via PR, so pushing your own topic branch to open one is expected.
+  **Never push directly to `main`, `develop`, or `release/*`** — those
+  move only through pull requests (the deny list enforces this).
 - **Never `git rebase` or `git reset` branches the human created.**
   Your worktree branch is yours; everything else is read-only.
-- **Never force-push anything, ever.** Not even your own branch.
+- **Never force-push anything, ever.** Not even your own branch. The
+  deny list blocks `--force`/`-f`/`--force-with-lease` in every form.
 - **Branch naming:** `autonomous/<YYYY-MM-DD>-<short-task-slug>`
 
 ---
