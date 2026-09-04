@@ -191,9 +191,7 @@
       "Edit(**/package-lock.json)",
       "Edit(**/yarn.lock)",
       "Edit(**/.claude/settings.json)",
-      "Write(**/.claude/settings.json)",
       "Edit(**/.claude/settings.delta.json)",
-      "Write(**/.claude/settings.delta.json)",
 
       "Bash(rm -rf:*)",
       "Bash(rm -fr:*)",
