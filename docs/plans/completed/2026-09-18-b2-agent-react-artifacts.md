@@ -1,5 +1,7 @@
 # Plan B2 — `@apogee/agent` + `@apogee/agent-react` + `@apogee/artifacts` Implementation Plan
 
+> **Outcome (2026-09-18):** Completed. Merged via de-canter/apogee#8; tagged `ai-v0.2.0`, `agent-v0.1.0`, `agent-react-v0.1.0`, `artifacts-v0.1.0`. agent 29 tests / 99%; agent-react 12 / 100%; artifacts 7 / 100%. Deviation: the end-to-end acceptance test lives in agent-react (dev-dep cycle avoidance). The apogee.build chat demo moved to plan B6a.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Created:** 2026-09-18

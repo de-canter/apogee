@@ -1,6 +1,6 @@
 {
   "name": "@apogee/prompts",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Apogee prompt registry: named, versioned prompts composed from sections with a cache-aware boundary and contributor slots",
   "license": "UNLICENSED",
   "type": "module",
@@ -14,7 +14,10 @@
       "require": "./dist/index.cjs"
     }
   },
-  "files": ["dist", "README.md"],
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "sideEffects": false,
   "scripts": {
     "prepare": "tsup",
@@ -30,7 +33,7 @@
     "zod": "^4.0.0"
   },
   "peerDependencies": {
-    "@apogee/ai": "workspace:*"
+    "@apogee/ai": ">=0.1.0"
   },
   "devDependencies": {
     "@apogee/ai": "workspace:*",
