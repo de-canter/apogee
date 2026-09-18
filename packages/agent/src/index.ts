@@ -6,3 +6,4 @@ export * from './telemetry';
 export * from './memory';
 export * from './compaction';
 export * from './session';
+export * from './sse';
