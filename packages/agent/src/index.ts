@@ -4,3 +4,4 @@ export * from './events';
 export * from './stores';
 export * from './telemetry';
 export * from './memory';
+export * from './compaction';
