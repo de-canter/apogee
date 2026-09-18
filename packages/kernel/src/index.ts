@@ -7,3 +7,5 @@ export * from './identifier';
 export * from './time';
 export * from './provenance';
 export * from './lifecycle';
+export * from './role';
+export * from './classification';
