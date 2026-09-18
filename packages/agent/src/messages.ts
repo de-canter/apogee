@@ -23,6 +23,8 @@ export interface AgentMessage {
   toolCalls?: ToolCallRecord[];
   artifacts?: ArtifactDescriptor[];
   usage?: Usage;
+  /** Intermediate tool-use turns and tool-result turns: replayed to the model, skipped by UIs. */
+  hidden?: boolean;
   at: ISODate;
 }
 
