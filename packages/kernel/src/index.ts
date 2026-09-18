@@ -5,3 +5,4 @@ export * from './money';
 export * from './quantity';
 export * from './identifier';
 export * from './time';
+export * from './provenance';
