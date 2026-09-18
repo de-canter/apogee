@@ -10,3 +10,4 @@ export * from './audit';
 export * from './parse';
 export * from './validate';
 export * from './conflicts';
+export * from './suggest';

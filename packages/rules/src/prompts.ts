@@ -130,6 +130,21 @@ export const AiConflictsSchema = z.object({
 });
 export type AiConflicts = z.infer<typeof AiConflictsSchema>;
 
+export const RULE_SUGGESTION_PROMPT = definePrompt<ParserPromptCtx>({
+  name: 'rules.suggest-rules',
+  version: '1.0.0',
+  sections: [
+    fromContext(
+      'role',
+      (c) =>
+        `You advise administrators of ${c.domain} on business rules for their AI assistant. From audit data you propose new rules for actions users take that no rule covers, and improvements to rules users rarely accept. Each suggestion is a complete rule in the same shape as a parsed rule, with a confidence and a short reasoning.`,
+      { stable: true },
+    ),
+    fromContext('dimensions', (c) => `Conditions may only use these dimensions:\n${c.dimensions}`, { stable: true }),
+    fromContext('categories', (c) => (c.categories.length > 0 ? `Categories: ${c.categories.join(', ')}.` : undefined), { stable: true }),
+  ],
+});
+
 export const GateVerdictSchema = z.object({ passed: z.boolean(), findings: z.array(z.string()) });
 export type GateVerdict = z.infer<typeof GateVerdictSchema>;
 
@@ -140,5 +155,6 @@ export function rulesPromptRegistry(): PromptRegistry {
   registry.register(RULE_PARSER_PROMPT);
   registry.register(RULE_VALIDATOR_PROMPT);
   registry.register(RULE_CONFLICT_PROMPT);
+  registry.register(RULE_SUGGESTION_PROMPT);
   return registry;
 }
