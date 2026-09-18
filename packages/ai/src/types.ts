@@ -16,7 +16,11 @@ export interface DocumentBlock {
     | { type: 'text'; mediaType: 'text/plain'; data: string };
   title?: string;
 }
-export type ContentBlock = TextBlock | ImageBlock | DocumentBlock;
+/** A tool call the model made, replayed in assistant history for multi-round loops. */
+export interface ToolUseBlock { type: 'tool_use'; id: string; name: string; input: unknown }
+/** The result of a tool call, sent back in a user message. */
+export interface ToolResultBlock { type: 'tool_result'; toolUseId: string; content: string; isError?: boolean }
+export type ContentBlock = TextBlock | ImageBlock | DocumentBlock | ToolUseBlock | ToolResultBlock;
 
 export interface Message { role: 'user' | 'assistant'; content: string | ContentBlock[] }
 

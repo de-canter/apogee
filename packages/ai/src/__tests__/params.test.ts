@@ -62,4 +62,15 @@ describe('buildMessageParams', () => {
     expect(p.max_tokens).toBe(500);
     expect(p.metadata).toEqual({ user_id: 'u1' });
   });
+  it('maps tool_use and tool_result blocks for multi-round loops', () => {
+    const p = buildMessageParams({ messages: [
+      { role: 'assistant', content: [{ type: 'text', text: 'Looking up.' }, { type: 'tool_use', id: 't1', name: 'lookup', input: { q: 1 } }] },
+      { role: 'user', content: [{ type: 'tool_result', toolUseId: 't1', content: '{"ok":true}' }, { type: 'tool_result', toolUseId: 't2', content: 'Error: boom', isError: true }] },
+    ] }, { model: 'claude-opus-5', streaming: false });
+    const a = p.messages[0]!.content as unknown as Array<Record<string, unknown>>;
+    expect(a[1]).toEqual({ type: 'tool_use', id: 't1', name: 'lookup', input: { q: 1 } });
+    const u = p.messages[1]!.content as unknown as Array<Record<string, unknown>>;
+    expect(u[0]).toEqual({ type: 'tool_result', tool_use_id: 't1', content: '{"ok":true}' });
+    expect(u[1]).toEqual({ type: 'tool_result', tool_use_id: 't2', content: 'Error: boom', is_error: true });
+  });
 });

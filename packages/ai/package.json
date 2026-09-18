@@ -1,6 +1,6 @@
 {
   "name": "@apogee/ai",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Apogee model client: one client for every AI call, with vision, structured output, prompt caching, model roles, and usage accounting",
   "license": "UNLICENSED",
   "type": "module",
