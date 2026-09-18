@@ -1,5 +1,7 @@
 # Plan B6a — Release Tarballs + apogee.build Showcase (chat demo) Implementation Plan
 
+> **Outcome (2026-09-18):** Tasks 1–2 done in this repo (PR #9: `release.yml`, `docs/consuming.md`, prompts 0.1.1; six releases published with tarballs). Tasks 3–7 done in apogee-build on `feature/showcase`, PR de-canter/apogee-build#1, awaiting merge. Deviations: the apogee repo is private, so release URLs 404 unauthenticated and apogee-build vendors the tarballs under `vendor/`; no Vercel project exists for apogee.build yet, so the preview step could not run (build verified locally and over HTTP in demo mode). The dev shell's `NODE_ENV=development` breaks `next build`; the site's build script sets production.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Created:** 2026-09-18

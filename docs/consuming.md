@@ -51,6 +51,15 @@ gh release view agent-v0.1.1                               # confirm the .tgz as
 Bump the package's `version` in `package.json` before tagging; the tarball
 file name comes from it.
 
+## While the repo is private
+
+Release assets on a private repo need authentication, so the URLs above
+return 404 to an unauthenticated `pnpm install` (and to Vercel). Until the
+repo is public, consumers copy the `.tgz` files into their own repo (for
+example `vendor/`) and use `file:vendor/apogee-<name>-<version>.tgz` in both
+the dependency and the override. apogee-build does this; see its
+`vendor/README.md`.
+
 ## npm
 
 Nothing is published to npm. If the `@apogee` scope is ever claimed, the
