@@ -1,5 +1,7 @@
 # Apogee Kernel — Phase 1 (Primitives) Implementation Plan
 
+> **Outcome (2026-09-18):** Completed as planned. Merged via de-canter/apogee#5, tagged `kernel-v0.1.0`. 57 tests, 96% line coverage, CI green. One deviation: git-dependency syntax is `#<ref>&path:packages/kernel` (ref first). Zod 4's `z.iso.datetime` used for the ISODate brand.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Created:** 2026-09-17
