@@ -75,6 +75,36 @@ export const RULE_PARSER_PROMPT = definePrompt<ParserPromptCtx>({
   ],
 });
 
+export const RULE_VALIDATOR_PROMPT = definePrompt<DomainPromptCtx>({
+  name: 'rules.validate-rule',
+  version: '1.0.0',
+  sections: [
+    fromContext(
+      'role',
+      (c) =>
+        `You are a quality checker for business rules that guide an AI assistant in ${c.domain}. Analyze the target rule and the overlapping rules for these issues:
+- A001 (warning): the instruction is vague or an assistant could not tell what to do.
+- A002 (warning): the target's instruction conflicts with an overlapping rule's instruction.
+- A003 (info): the suggested actions do not fit the instruction.
+Report only real issues; an empty list is a good answer.`,
+      { stable: true },
+    ),
+  ],
+});
+
+export const AiFindingsSchema = z.object({
+  findings: z.array(
+    z.object({
+      code: z.enum(['A001', 'A002', 'A003']),
+      severity: z.enum(['warning', 'info']),
+      message: z.string(),
+      field: z.string().optional(),
+      suggestion: z.string().optional(),
+    }),
+  ),
+});
+export type AiFindings = z.infer<typeof AiFindingsSchema>;
+
 export const GateVerdictSchema = z.object({ passed: z.boolean(), findings: z.array(z.string()) });
 export type GateVerdict = z.infer<typeof GateVerdictSchema>;
 
@@ -83,5 +113,6 @@ export function rulesPromptRegistry(): PromptRegistry {
   const registry = createPromptRegistry();
   registry.register(GATE_EVALUATION_PROMPT);
   registry.register(RULE_PARSER_PROMPT);
+  registry.register(RULE_VALIDATOR_PROMPT);
   return registry;
 }

@@ -8,3 +8,4 @@ export * from './compile';
 export * from './store';
 export * from './audit';
 export * from './parse';
+export * from './validate';
