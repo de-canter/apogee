@@ -1,0 +1,49 @@
+name: release
+on:
+  push:
+    tags: ['*-v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Package tag to release, e.g. agent-v0.1.0'
+        required: true
+        type: string
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve tag
+        id: tag
+        run: |
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          NAME=$(printf '%s' "$TAG" | sed -E 's/^(.+)-v([0-9.]+)$/\1/')
+          VERSION=$(printf '%s' "$TAG" | sed -E 's/^(.+)-v([0-9.]+)$/\2/')
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.tag.outputs.tag }}
+      - uses: pnpm/action-setup@v4
+        with: { version: 9.15.9 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - name: Pack
+        run: |
+          mkdir -p release
+          pnpm -C "packages/${{ steps.tag.outputs.name }}" pack --pack-destination ../../release
+          ls -la release
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ steps.tag.outputs.tag }}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" release/*.tgz --clobber
+          else
+            gh release create "$TAG" release/*.tgz --title "$TAG" --notes "Tarball for @apogee/${{ steps.tag.outputs.name }} ${{ steps.tag.outputs.version }}. See docs/consuming.md for the dependency and overrides block."
+          fi
