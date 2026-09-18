@@ -32,7 +32,8 @@ HTTP. Spec: `docs/design/kernel-ontology.md`.
 
 ```jsonc
 // package.json in the consuming repo
-"dependencies": { "@apogee/kernel": "github:de-canter/apogee#path:packages/kernel&tag=kernel-v0.1.0" }
+"dependencies": { "@apogee/kernel": "github:de-canter/apogee#kernel-v0.1.0&path:packages/kernel" }
 ```
-`pnpm install` builds it via `prepare`. See the Phase 1 plan, Task 9 Step 6,
-for the release-tarball fallback if `#path:` is unavailable in the consumer's pnpm.
+The ref (tag, branch, or sha) comes first, then `&path:`. `pnpm install`
+builds `dist/` via the `prepare` script. Verified with pnpm 9.15.9 from a
+CommonJS consumer (`require('@apogee/kernel')`).

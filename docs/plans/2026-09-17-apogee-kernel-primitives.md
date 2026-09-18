@@ -1852,7 +1852,7 @@ HTTP. Spec: `docs/design/kernel-ontology.md`.
 
 ```jsonc
 // package.json in the consuming repo
-"dependencies": { "@apogee/kernel": "github:de-canter/apogee#path:packages/kernel&tag=kernel-v0.1.0" }
+"dependencies": { "@apogee/kernel": "github:de-canter/apogee#kernel-v0.1.0&path:packages/kernel" }
 ```
 `pnpm install` builds it via `prepare`. See Step 6 in the Phase 1 plan for the
 fallback if `#path:` is unavailable in the consumer's pnpm.
@@ -1864,11 +1864,11 @@ Add to `packages/kernel/package.json` scripts: `"prepare": "tsup"` so a git cons
 
 ```bash
 mkdir -p "$SCRATCH/kernel-consumer" && cd "$SCRATCH/kernel-consumer"
-printf '%s' '{"name":"kernel-consumer","private":true,"type":"commonjs","dependencies":{"@apogee/kernel":"github:de-canter/apogee#path:packages/kernel&branch=feature/kernel-primitives"}}' > package.json
+printf '%s' '{"name":"kernel-consumer","private":true,"type":"commonjs","dependencies":{"@apogee/kernel":"github:de-canter/apogee#feature/kernel-primitives&path:packages/kernel"}}' > package.json
 pnpm install
 node -e "const k=require('@apogee/kernel'); console.log(k.formatMoney(k.money(123456,'USD')))"
 ```
-Expected: prints `$1,234.56` from the CJS build. If pnpm rejects `#path:`, the fallback is a `pnpm pack` tarball attached to the GitHub release (`kernel-v0.1.0`) and a `https://github.com/de-canter/apogee/releases/download/kernel-v0.1.0/apogee-kernel-0.1.0.tgz` dependency; record which mechanism worked in the README's "Consuming" section before Step 8.
+Expected: prints `$1,234.56` from the CJS build. (Verified 2026-09-17 with pnpm 9.15.9: the ref must come before `&path:`; `#path:...&branch=...` is rejected.) If pnpm rejects `#path:`, the fallback is a `pnpm pack` tarball attached to the GitHub release (`kernel-v0.1.0`) and a `https://github.com/de-canter/apogee/releases/download/kernel-v0.1.0/apogee-kernel-0.1.0.tgz` dependency; record which mechanism worked in the README's "Consuming" section before Step 8.
 
 - [ ] **Step 7: Commit acceptance tests and README**
 
