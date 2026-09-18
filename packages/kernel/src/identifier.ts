@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { KernelError } from './errors';
+import { ISODateSchema } from './time';
 
 /** How one identity system names things: normalization and optional validation. */
 export interface IdentifierScheme {
@@ -37,8 +38,8 @@ export const IdentifierSchema = z.object({
   value: z.string().min(1),
   issuer: z.string().min(1).optional(),
   primary: z.boolean().optional(),
-  validFrom: z.string().datetime().optional(),
-  validTo: z.string().datetime().optional(),
+  validFrom: ISODateSchema.optional(),
+  validTo: ISODateSchema.optional(),
 });
 export type Identifier = z.infer<typeof IdentifierSchema>;
 

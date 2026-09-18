@@ -3,6 +3,7 @@ import {
   IdentifiersSchema, InvalidIdentifierError, UnknownSchemeError, findIdentifier, identifier,
   normalizeIdentifier, primaryIdentifier, registerScheme, resetSchemesForTest,
 } from '../identifier';
+import { isoDate } from '../time';
 
 describe('Identifier', () => {
   beforeEach(() => {
@@ -37,7 +38,7 @@ describe('Identifier', () => {
     expect(IdentifiersSchema.safeParse(ids).success).toBe(false);
   });
   it('carries issuer and validity and stays JSON-safe', () => {
-    const id = identifier('apn', '1', { issuer: 'County Appraisal District', validFrom: '2024-01-01T00:00:00.000Z' });
+    const id = identifier('apn', '1', { issuer: 'County Appraisal District', validFrom: isoDate('2024-01-01') });
     expect(id.issuer).toBe('Collin CAD');
     expect(JSON.parse(JSON.stringify(id))).toEqual(id);
   });
