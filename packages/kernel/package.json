@@ -14,9 +14,13 @@
       "require": "./dist/index.cjs"
     }
   },
-  "files": ["dist", "README.md"],
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "sideEffects": false,
   "scripts": {
+    "prepare": "tsup",
     "build": "tsup",
     "dev": "tsup --watch",
     "clean": "rm -rf dist",
@@ -29,6 +33,7 @@
     "zod": "^4.0.0"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^4.0.0",
     "tsup": "^8.0.0",
     "typescript": "^5.6.0",
     "vitest": "^4.0.0"
