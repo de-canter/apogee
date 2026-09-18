@@ -4,8 +4,8 @@ Updated 2026-09-18. Things only you can do, plus the queue.
 
 ## Needs you
 
-- [ ] **Vercel project for apogee.build** — no project exists in `verve-technologies` or `de-canter`. Create it from `de-canter/apogee-build` (`main`), attach the `apogee.build` domain, framework preset Next.js, package manager pnpm (lockfile is committed).
-- [ ] **`ANTHROPIC_API_KEY` in Vercel production** — flips `/demo/chat` from the scripted fake to Claude Haiku. Leave it unset on previews so they stay free.
+- [ ] **Vercel project for apogee.build** — in the **de|canter** Vercel account (de|canter LLC holds the IP; Verve runs the products). Import `de-canter/apogee-build` (`main`), framework preset Next.js, pnpm from `packageManager`, attach the `apogee.build` domain.
+- [ ] **`ANTHROPIC_API_KEY` in Vercel production** — flips `/demo/chat` and `/demo/rules` from the scripted fake to Claude Haiku. Leave it unset on previews so they stay free.
 - [ ] **Run the live smoke once** — `packages/ai/scripts/smoke.ts` (needs `ANTHROPIC_API_KEY` or `ant auth login`). One Haiku `generateObject` plus one short `stream`; confirms the structured-output and caching wire shapes the tests only type-check.
 - [ ] **Decide on `@apogee/agent-mongoose` timing** — the products need real `SessionStore`/`MessageStore` adapters before any rewrite; planned after B5.
 
