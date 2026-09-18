@@ -7,3 +7,4 @@ export * from './evaluate';
 export * from './compile';
 export * from './store';
 export * from './audit';
+export * from './parse';
