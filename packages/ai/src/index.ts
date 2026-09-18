@@ -6,3 +6,4 @@ export * from './params';
 export * from './usage';
 export * from './stream';
 export * from './anthropic-client';
+export * from './fake-client';
