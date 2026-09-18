@@ -6,7 +6,7 @@ Updated 2026-09-18. Things only you can do, plus the queue.
 
 - [ ] **Vercel project for apogee.build** — no project exists in `verve-technologies` or `de-canter`. Create it from `de-canter/apogee-build` (`main`), attach the `apogee.build` domain, framework preset Next.js, package manager pnpm (lockfile is committed).
 - [ ] **`ANTHROPIC_API_KEY` in Vercel production** — flips `/demo/chat` from the scripted fake to Claude Haiku. Leave it unset on previews so they stay free.
-- [ ] **Merge de-canter/apogee#10** — docs only: private-repo consumption caveat, plan B6a filed.
+- [ ] **Merge the B3 PR** (`feature/b3-rules`) and confirm the `rules-v0.1.0` release attached its tarball.
 - [ ] **Run the live smoke once** — `packages/ai/scripts/smoke.ts` (needs `ANTHROPIC_API_KEY` or `ant auth login`). One Haiku `generateObject` plus one short `stream`; confirms the structured-output and caching wire shapes the tests only type-check.
 - [ ] **Decide on `@apogee/agent-mongoose` timing** — the products need real `SessionStore`/`MessageStore` adapters before any rewrite; planned after B5.
 
@@ -17,7 +17,7 @@ Updated 2026-09-18. Things only you can do, plus the queue.
 
 ## Queue (Claude runs these)
 
-1. **B3** `@apogee/rules` — E11 behavior engine lift + admin-assistant demo (in progress next).
+1. **B3** `@apogee/rules` — package built on `feature/b3-rules` (125 tests, 97% lines; plan `docs/plans/2026-09-18-b3-rules.md`); PR to merge, then tag `rules-v0.1.0`; admin-assistant demo lands in apogee-build on `feature/rules-demo`.
 2. **B4** `@apogee/documents-ai` + `@apogee/knowledge` — document and knowledge demos.
 3. **B5** `@apogee/integrations` — integration demo.
 4. **B6b** apogee.build API reference (typedoc from the installed `.d.ts`), one demo per package as B3–B5 land.
