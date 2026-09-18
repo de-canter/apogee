@@ -1,7 +1,7 @@
 {
-  "name": "@apogee/ai",
-  "version": "0.2.0",
-  "description": "Apogee model client: one client for every AI call, with vision, structured output, prompt caching, model roles, and usage accounting",
+  "name": "@apogee/agent",
+  "version": "0.1.0",
+  "description": "Apogee agent session: tool loop, compaction, config memory, SSE encoding, and persistence ports",
   "license": "UNLICENSED",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -30,8 +30,9 @@
     "lint": "eslint src"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.126.0",
+    "@apogee/ai": "workspace:*",
     "@apogee/kernel": "workspace:*",
+    "@apogee/prompts": "workspace:*",
     "zod": "^4.0.0"
   },
   "devDependencies": {

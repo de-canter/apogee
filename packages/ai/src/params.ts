@@ -18,6 +18,10 @@ function toSdkBlock(b: ContentBlock): Anthropic.ContentBlockParam {
         : { type: 'text' as const, media_type: 'text/plain' as const, data: b.source.data };
       return { type: 'document', source, ...(b.title !== undefined ? { title: b.title } : {}) };
     }
+    case 'tool_use':
+      return { type: 'tool_use', id: b.id, name: b.name, input: b.input };
+    case 'tool_result':
+      return { type: 'tool_result', tool_use_id: b.toolUseId, content: b.content, ...(b.isError ? { is_error: true } : {}) };
   }
 }
 

@@ -1,5 +1,7 @@
 # Plan B1 — `@apogee/ai` + `@apogee/prompts` Implementation Plan
 
+> **Outcome (2026-09-18):** Completed. Merged via de-canter/apogee#7, tagged `ai-v0.1.0` and `prompts-v0.1.0`. ai: 28 tests / 98% lines; prompts: 10 tests / 99%. Deviations: structured output validates response text with the caller's Zod schema instead of the SDK zod helper; refusal fallbacks not enabled (RefusalError surfaces to the agent layer); Tasks 4 and 5 landed as one commit. The live smoke script was not run (no credentials in session).
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Created:** 2026-09-18
