@@ -12,12 +12,13 @@ the consumer where those versions come from.
 
 ## The block
 
-Declare every package you import directly. Add overrides for all six so the
+Declare every package you import directly. Add overrides for all seven so the
 transitive `@apogee/*` versions resolve to tarballs instead of a registry.
 
 ```jsonc
 {
   "dependencies": {
+    "@apogee/rules": "https://github.com/de-canter/apogee/releases/download/rules-v0.1.0/apogee-rules-0.1.0.tgz",
     "@apogee/agent": "https://github.com/de-canter/apogee/releases/download/agent-v0.1.0/apogee-agent-0.1.0.tgz",
     "@apogee/agent-react": "https://github.com/de-canter/apogee/releases/download/agent-react-v0.1.0/apogee-agent-react-0.1.0.tgz",
     "@apogee/artifacts": "https://github.com/de-canter/apogee/releases/download/artifacts-v0.1.0/apogee-artifacts-0.1.0.tgz",
@@ -32,7 +33,8 @@ transitive `@apogee/*` versions resolve to tarballs instead of a registry.
       "@apogee/prompts": "https://github.com/de-canter/apogee/releases/download/prompts-v0.1.1/apogee-prompts-0.1.1.tgz",
       "@apogee/agent": "https://github.com/de-canter/apogee/releases/download/agent-v0.1.0/apogee-agent-0.1.0.tgz",
       "@apogee/agent-react": "https://github.com/de-canter/apogee/releases/download/agent-react-v0.1.0/apogee-agent-react-0.1.0.tgz",
-      "@apogee/artifacts": "https://github.com/de-canter/apogee/releases/download/artifacts-v0.1.0/apogee-artifacts-0.1.0.tgz"
+      "@apogee/artifacts": "https://github.com/de-canter/apogee/releases/download/artifacts-v0.1.0/apogee-artifacts-0.1.0.tgz",
+      "@apogee/rules": "https://github.com/de-canter/apogee/releases/download/rules-v0.1.0/apogee-rules-0.1.0.tgz"
     }
   }
 }
