@@ -6,3 +6,4 @@ export * from './quantity';
 export * from './identifier';
 export * from './time';
 export * from './provenance';
+export * from './lifecycle';
