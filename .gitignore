@@ -1,0 +1,9 @@
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+.turbo/
+.claude/status.json
+.claude/WATCHDOG_TIMEOUT
+.claude/settings.local.json
+BLOCKED.md
