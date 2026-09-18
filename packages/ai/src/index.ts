@@ -4,3 +4,5 @@ export * from './types';
 export * from './errors';
 export * from './params';
 export * from './usage';
+export * from './stream';
+export * from './anthropic-client';

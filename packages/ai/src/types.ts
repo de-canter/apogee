@@ -49,7 +49,9 @@ export interface GenerateRequest {
   metadata?: Record<string, string>;
 }
 
-export type StopReason = 'end_turn' | 'max_tokens' | 'stop_sequence' | 'tool_use' | 'pause_turn' | 'refusal';
+export type StopReason =
+  | 'end_turn' | 'max_tokens' | 'stop_sequence' | 'tool_use' | 'pause_turn' | 'refusal'
+  | 'compaction' | 'model_context_window_exceeded';
 
 export interface ToolUse { id: string; name: string; input: unknown }
 
