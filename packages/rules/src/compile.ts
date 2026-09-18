@@ -52,7 +52,8 @@ export function compileRules<S extends DimensionShape>(rules: readonly Rule<S>[]
 }
 
 export interface RulesContributorOptions<TCtx, S extends DimensionShape> extends CompileOptions {
-  rules: () => readonly Rule<S>[] | Promise<readonly Rule<S>[]>;
+  /** The rule source; receives the compose context so a host can scope rules per tenant or visitor. */
+  rules: (ctx: TCtx) => readonly Rule<S>[] | Promise<readonly Rule<S>[]>;
   factsFromCtx: (ctx: TCtx) => Facts<S>;
 }
 
@@ -60,7 +61,7 @@ export interface RulesContributorOptions<TCtx, S extends DimensionShape> extends
 export function rulesContributor<TCtx, S extends DimensionShape>(opts: RulesContributorOptions<TCtx, S>): Contributor<TCtx> {
   const { rules, factsFromCtx, ...compile } = opts;
   return async (ctx) => {
-    const compiled = compileRules(await rules(), factsFromCtx(ctx), compile);
+    const compiled = compileRules(await rules(ctx), factsFromCtx(ctx), compile);
     return compiled.ruleCount === 0 ? undefined : compiled.text;
   };
 }

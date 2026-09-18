@@ -71,6 +71,17 @@ describe('rulesContributor', () => {
     expect(composed.text).toContain('### Return check');
     expect(composed.blocks.map((b) => b.id)).toEqual(['id', 'rules']);
   });
+  it('passes the context to the rule source so a host can scope rules per tenant', async () => {
+    const seen: string[] = [];
+    const contributor = rulesContributor<{ tenant: string }, typeof dims.shape>({
+      rules: (ctx) => { seen.push(ctx.tenant); return ctx.tenant === 'a' ? [welcome] : []; },
+      factsFromCtx: () => ({}),
+    });
+    expect(await contributor({ tenant: 'a' })).toContain('Welcome back');
+    expect(await contributor({ tenant: 'b' })).toBeUndefined();
+    expect(seen).toEqual(['a', 'b']);
+  });
+
   it('contributes nothing when no rule matches', async () => {
     const contributor = rulesContributor<{ event?: 'created' | 'returned' }, typeof dims.shape>({ rules: () => [returned], factsFromCtx: () => ({ event: 'created' }) });
     expect(await contributor({ event: 'created' })).toBeUndefined();
