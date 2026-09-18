@@ -69,11 +69,15 @@ const tally = (items: string[]): Record<string, number> => {
 export function createInMemoryRuleAudit(opts: { now?: () => ISODate } = {}): RuleAuditSink {
   const now = opts.now ?? nowIso;
   const entries: RuleAuditEntry[] = [];
-  const select = (filter: RuleAuditFilter): RuleAuditEntry[] => entries.filter((e) => matches(e, filter)).sort((a, b) => b.at.localeCompare(a.at));
+  const seq = new Map<string, number>();
+  /** Newest first; entries recorded at the same instant come back in reverse insertion order. */
+  const select = (filter: RuleAuditFilter): RuleAuditEntry[] =>
+    entries.filter((e) => matches(e, filter)).sort((a, b) => b.at.localeCompare(a.at) || seq.get(b.id)! - seq.get(a.id)!);
   return {
     record(input) {
       const entry: RuleAuditEntry = { ...input, id: crypto.randomUUID(), at: now(), success: input.success ?? true, conditionsMatched: input.conditionsMatched ?? {}, suggestedActions: input.suggestedActions ?? [] };
       entries.push(entry);
+      seq.set(entry.id, entries.length);
       return Promise.resolve({ ...entry });
     },
     outcome(id, userChoice, success = true, error) {

@@ -12,3 +12,4 @@ export * from './validate';
 export * from './conflicts';
 export * from './suggest';
 export * from './simulate';
+export * from './tools';
