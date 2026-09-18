@@ -24,7 +24,7 @@ describe('buildMessageParams', () => {
     const system = p.system as Block[];
     expect(system[0]!.cache_control).toBeUndefined();
     expect(system[1]!.cache_control).toEqual({ type: 'ephemeral' });
-    const tools = p.tools as Array<Record<string, unknown>>;
+    const tools = p.tools as unknown as Array<Record<string, unknown>>;
     expect(tools[0]!['cache_control']).toBeUndefined();
     expect(tools[1]!['cache_control']).toEqual({ type: 'ephemeral' });
     expect(tools[1]!['strict']).toBe(true);
@@ -50,7 +50,7 @@ describe('buildMessageParams', () => {
       ] }],
       effort: 'low', thinking: false, stopSequences: ['END'], maxTokens: 500, metadata: { userId: 'u1' },
     }, { model: 'claude-haiku-4-5', streaming: false });
-    const content = p.messages[0]!.content as Array<Record<string, unknown>>;
+    const content = p.messages[0]!.content as unknown as Array<Record<string, unknown>>;
     expect(content[0]).toEqual({ type: 'image', source: { type: 'base64', media_type: 'image/png', data: 'AAAA' } });
     expect(content[1]).toEqual({ type: 'image', source: { type: 'url', url: 'https://x/y.png' } });
     expect(content[2]).toEqual({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: 'BBBB' }, title: 'Deed' });
