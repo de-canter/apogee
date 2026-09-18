@@ -9,3 +9,4 @@ export * from './store';
 export * from './audit';
 export * from './parse';
 export * from './validate';
+export * from './conflicts';

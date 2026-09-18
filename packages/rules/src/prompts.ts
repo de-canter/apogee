@@ -105,6 +105,31 @@ export const AiFindingsSchema = z.object({
 });
 export type AiFindings = z.infer<typeof AiFindingsSchema>;
 
+export const RULE_CONFLICT_PROMPT = definePrompt<DomainPromptCtx>({
+  name: 'rules.detect-conflicts',
+  version: '1.0.0',
+  sections: [
+    fromContext(
+      'role',
+      (c) =>
+        `You analyze pairs of overlapping business rules for ${c.domain}. For each pair decide whether the two instructions are contradictory or incompatible (conflicting_instructions), or whether one rule is effectively a duplicate of the other with different wording (redundant_rule). Report nothing for pairs that coexist.`,
+      { stable: true },
+    ),
+  ],
+});
+
+export const AiConflictsSchema = z.object({
+  conflicts: z.array(
+    z.object({
+      type: z.enum(['conflicting_instructions', 'redundant_rule']),
+      ruleIds: z.tuple([z.string(), z.string()]),
+      description: z.string(),
+      explanation: z.string(),
+    }),
+  ),
+});
+export type AiConflicts = z.infer<typeof AiConflictsSchema>;
+
 export const GateVerdictSchema = z.object({ passed: z.boolean(), findings: z.array(z.string()) });
 export type GateVerdict = z.infer<typeof GateVerdictSchema>;
 
@@ -114,5 +139,6 @@ export function rulesPromptRegistry(): PromptRegistry {
   registry.register(GATE_EVALUATION_PROMPT);
   registry.register(RULE_PARSER_PROMPT);
   registry.register(RULE_VALIDATOR_PROMPT);
+  registry.register(RULE_CONFLICT_PROMPT);
   return registry;
 }
