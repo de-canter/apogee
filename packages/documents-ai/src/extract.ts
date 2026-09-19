@@ -60,7 +60,9 @@ export interface Extraction<C extends string, T> {
   value: T;
   /** One per field present in `value`. */
   fields: FieldAssertion[];
-  /** Weakest link across the fields and the model's overall confidence. */
+  /** The model's own overall confidence. */
+  overall: Confidence;
+  /** Weakest link across the fields and `overall`. */
   confidence: Confidence;
   warnings: string[];
   usage: Usage;
@@ -131,6 +133,7 @@ export async function extract<C extends string, T extends Record<string, unknown
     subject,
     value: value.data,
     fields,
+    overall,
     confidence: combineConfidence([...fields.map((f) => f.confidence), overall], engine.bands),
     warnings: value.warnings,
     usage,
