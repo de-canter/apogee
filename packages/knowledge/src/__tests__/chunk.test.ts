@@ -78,6 +78,6 @@ describe('helpers', () => {
     expect(deriveSection('user-guide/guides/foo.md')).toBe('user-guide');
     expect(deriveSection('foo.md')).toBe('general');
     expect(contentHash('abc')).toBe('ba7816bf8f01cfea');
-    expect(tokenize('The Deposit is refundable, within 7 days!')).toEqual(['deposit', 'refundable', 'within', 'days']);
+    expect(tokenize('The Deposits are refundable, within 7 days of policies!')).toEqual(['deposit', 'refundable', 'within', 'day', 'policy']);
   });
 });

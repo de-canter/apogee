@@ -55,12 +55,21 @@ export const STOPWORDS: ReadonlySet<string> = new Set([
   'about', 'would', 'there', 'their', 'which', 'these', 'those', 'where', 'while', 'should', 'could', 'other',
 ]);
 
-/** Lowercase words of three or more characters, minus stopwords. */
+/** Light plural stemming: policies -> policy, refunds -> refund, classes -> class. */
+export function stem(token: string): string {
+  if (token.length > 4 && token.endsWith('ies')) return token.slice(0, -3) + 'y';
+  if (token.length > 4 && token.endsWith('sses')) return token.slice(0, -2);
+  if (token.length > 3 && token.endsWith('s') && !token.endsWith('ss')) return token.slice(0, -1);
+  return token;
+}
+
+/** Lowercase, stemmed words of three or more characters, minus stopwords. */
 export function tokenize(text: string): string[] {
   return text
     .toLowerCase()
     .split(/[^a-z0-9]+/)
-    .filter((t) => t.length >= 3 && !STOPWORDS.has(t));
+    .filter((t) => t.length >= 3 && !STOPWORDS.has(t))
+    .map(stem);
 }
 
 const wordCount = (text: string): number => text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
