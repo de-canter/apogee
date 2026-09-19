@@ -1,5 +1,7 @@
 # Plan B4 — `@apogee/documents-ai` + `@apogee/knowledge` + document and knowledge demos Implementation Plan
 
+> **Outcome (2026-09-19):** Tasks 1–12 done in this repo on `feature/b4-documents-knowledge`, PR de-canter/apogee#14 (awaiting Jeff; tag `documents-ai-v0.1.0` and `knowledge-v0.1.0` after merge). documents-ai: 41 tests, 100% lines. knowledge: 25 tests, 98.7% lines. Tasks 13–14 done in apogee-build on `feature/documents-knowledge-demo`, PR de-canter/apogee-build#4 (24 tests), with the tarballs packed locally from the PR #14 commit. Deviations: `Extraction` carries the model's `overall` confidence so corrections can recompute the combined score; `Stage.when` may return a string that becomes the skip note; the tokenizer stems plurals; the knowledge package has no error class (nothing throws); `createAgentRoute` gained `beforeRun` so the desk can retrieve for the current message; the visitor cookie helper moved to `src/demo/visitor.ts`. Still on Jeff's list: merge both PRs, tag, the Vercel project.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Created:** 2026-09-19
