@@ -7,3 +7,5 @@ export * from './classify';
 export * from './extract';
 export * from './correction';
 export * from './reconcile';
+export * from './pipeline';
+export * from './process';
