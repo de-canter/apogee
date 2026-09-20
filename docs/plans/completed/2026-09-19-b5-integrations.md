@@ -1,5 +1,7 @@
 # Plan B5 — `@apogee/integrations` + integration demo Implementation Plan
 
+> **Outcome (2026-09-20):** Tasks 1–8 done in this repo on `feature/b5-integrations`, PR de-canter/apogee#16 (awaiting Jeff; tag `integrations-v0.1.0` after merge). 91 tests, 98.4% lines. Task 9 done in apogee-build on `feature/integrations-demo` (29 tests), with the tarball packed locally from the PR #16 commit. Deviations: the audit sink stamps `at` itself; `ExecutionResult` carries the trigger evaluation on dry runs; the dead-letter payload stores the masked request plus the context and event so replay can re-execute; the demo's inbound endpoint signs sample bodies server-side (`action: 'sign'`) because the courier is simulated; `deterministicConflicts`-style options were not needed here. Still on Jeff's list: merge both PRs, tag.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Created:** 2026-09-19
