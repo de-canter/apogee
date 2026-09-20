@@ -3,8 +3,7 @@
 @.claude-shared/CLAUDE.md
 
 Apogee is de|canter's TypeScript framework for production AI applications,
-used by Verve Technologies products (the reference product, The Somm, NailNotes,
-MacMethod). Licensed Apache-2.0; the repo goes public once
+used by Verve Technologies products (The Somm, NailNotes, MacMethod). Licensed Apache-2.0; the repo goes public once
 `docs/open-source.md` is closed out. Nothing product-specific belongs here.
 
 ## Orientation (read in this order at session start)
@@ -24,6 +23,6 @@ Releases: bump `version` in the package, tag `<name>-v<version>`, push the tag; 
 ## Working pattern that held
 
 - One plan per track in `docs/plans/<date>-<slug>.md` (TDD tasks, interfaces per task), executed on `feature/<name>`, PR to `main`, tag after merge, file the plan under `completed/` with an outcome note.
-- Tests never touch the network: `createFakeModelClient` from `@apogee/ai` scripts model turns and validates `generateObject` objects against the schema.
+- Tests never touch the network: `createFakeModelClient` from `@de_canter/apogee-ai` scripts model turns and validates `generateObject` objects against the schema.
 - Domain vocabulary is injected by the host; nothing in a package knows what an order or a rental is (the showcase's equipment-rental domain lives in apogee-build).
 - Shell gotchas on Selene: `NODE_ENV=development` is exported (breaks `next build`); `rm -rf` and cross-repo `cd` are denied; do not chain commit, push, and PR creation in one command.

@@ -18,7 +18,7 @@ The principles in the README are not negotiable in a pull request:
 
 - Domain vocabulary is injected by the host, never declared by a package.
   A package that ships a product's enum will not be merged.
-- Nothing constructs the Anthropic SDK except `@apogee/ai`.
+- Nothing constructs the Anthropic SDK except `@de_canter/apogee-ai`.
 - Anything a model produces that a person might overrule enters as an
   `Assertion` with provenance and a confidence.
 - Every prompt is registered: name, version, sections.

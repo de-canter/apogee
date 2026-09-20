@@ -1,4 +1,4 @@
-# Plan B5 — `@apogee/integrations` + integration demo Implementation Plan
+# Plan B5 — `@de_canter/apogee-integrations` + integration demo Implementation Plan
 
 > **Outcome (2026-09-20):** Tasks 1–8 done in this repo on `feature/b5-integrations`, PR de-canter/apogee#16 (awaiting Jeff; tag `integrations-v0.1.0` after merge). 91 tests, 98.4% lines. Task 9 done in apogee-build on `feature/integrations-demo` (29 tests), with the tarball packed locally from the PR #16 commit. Deviations: the audit sink stamps `at` itself; `ExecutionResult` carries the trigger evaluation on dry runs; the dead-letter payload stores the masked request plus the context and event so replay can re-execute; the demo's inbound endpoint signs sample bodies server-side (`action: 'sign'`) because the courier is simulated; `deterministicConflicts`-style options were not needed here. Still on Jeff's list: merge both PRs, tag.
 
@@ -7,17 +7,17 @@
 **Created:** 2026-09-19
 **Origin:** `docs/design/ai-abstractions.md` §3.9, §5. Survey of the reference product (2026-09-19): `packages/shared/src/schemas/integration-pattern.ts`, `services/integration-engine/*` (execution engine, transforms, circuit breaker, rate limiter, schema drift, dead letter, execution audit, inbound webhooks, AI payload classifier, correlation), `services/integration-auth/*` (five auth methods), `services/credential-vault-service.ts`, `chat/tools/admin-integration-tools.ts`.
 
-**Goal:** Ship `@apogee/integrations` v0.1.0: the `IntegrationPattern` schema and store port, `{{…}}` interpolation with vault references, the transform registry and response mapping, a `VaultPort` with AES-GCM helpers and the five auth methods (API key, basic, OAuth2 client credentials, HMAC, JWT bearer), resilience (sliding-window rate limit, circuit breaker, exponential retry, dead-letter queue with real replay, schema-drift fingerprints), `executePattern` with dry run, trace id propagation, AI post-processing and an execution audit with health, inbound webhooks with sender verification, deterministic matching, AI classification as an assertion and correlation, and an admin tool set for `@apogee/agent`. Then the apogee.build integration demo: author a pattern against an in-process mock geocoding and weather API, dry-run it, approve it, run it, break the API to watch retries, the breaker, the dead letter and its replay, and post a sample inbound payload to see it classified.
+**Goal:** Ship `@de_canter/apogee-integrations` v0.1.0: the `IntegrationPattern` schema and store port, `{{…}}` interpolation with vault references, the transform registry and response mapping, a `VaultPort` with AES-GCM helpers and the five auth methods (API key, basic, OAuth2 client credentials, HMAC, JWT bearer), resilience (sliding-window rate limit, circuit breaker, exponential retry, dead-letter queue with real replay, schema-drift fingerprints), `executePattern` with dry run, trace id propagation, AI post-processing and an execution audit with health, inbound webhooks with sender verification, deterministic matching, AI classification as an assertion and correlation, and an admin tool set for `@de_canter/apogee-agent`. Then the apogee.build integration demo: author a pattern against an in-process mock geocoding and weather API, dry-run it, approve it, run it, break the API to watch retries, the breaker, the dead letter and its replay, and post a sample inbound payload to see it classified.
 
 **Architecture:** Everything the engine touches is a port: `fetch` (the transport), `VaultPort`, `PatternStore`, `ExecutionAuditSink`, `DeadLetterQueue`, `RateLimiter`, `CircuitBreaker`, `CorrelationStore`, and the model client for the two AI steps. The engine itself is pure functions over a pattern and a host context: build the request (interpolate, resolve vault references, inject auth), run it through the resilience gates and the retry loop, map the response, record the trace. Inbound is the mirror: verify the sender, match a pattern deterministically or by classification, map the payload, or correlate it to a pending callback. Nothing in the package knows what an order, a task, or a vendor is; the host passes a context object and, if it wants, an `onOutput` hook to write mapped output somewhere.
 
-**Tech Stack:** TypeScript strict, Zod 4, Vitest 4, tsup; `@apogee/{kernel,ai,prompts,agent}` workspace deps; `node:crypto` for AES-GCM, HMAC, JWT HS256 and fingerprints; the standard `fetch` signature as the transport port. Demo: Next.js 16 in apogee-build.
+**Tech Stack:** TypeScript strict, Zod 4, Vitest 4, tsup; `@de_canter/apogee-{kernel,ai,prompts,agent}` workspace deps; `node:crypto` for AES-GCM, HMAC, JWT HS256 and fingerprints; the standard `fetch` signature as the transport port. Demo: Next.js 16 in apogee-build.
 
 **Spec:** `docs/design/ai-abstractions.md` §2, §3.9, §5.
 
 ## Global Constraints
 
-- Package `packages/integrations` (`@apogee/integrations`), same toolchain as `packages/rules` (`exactOptionalPropertyTypes`: spread optional keys conditionally, derive tool input types from Zod).
+- Package `packages/integrations` (`@de_canter/apogee-integrations`), same toolchain as `packages/rules` (`exactOptionalPropertyTypes`: spread optional keys conditionally, derive tool input types from Zod).
 - No network in tests: the transport is an injected `fetch`-compatible function returning `Response` objects; the model is `createFakeModelClient`.
 - Domain vocabulary is injected: no pattern seeds, no entity names, no vendor URLs, no task categories ship in the package. The host's context object is what templates interpolate against; the host's `onOutput` decides where mapped output goes.
 - AI output enters as an `Assertion`: the inbound classification (`predicate: 'matches-pattern'`) and, when a pattern enables it, AI post-processing results carry `Provenance` with `source.kind = 'ai'`.
@@ -43,7 +43,7 @@ packages/integrations/src/
 ├── prompts.ts        # IntegrationEngineOptions, CLASSIFY_INBOUND_PROMPT, POST_PROCESS_PROMPT, registry
 ├── execute.ts        # buildRequest, executePattern (outbound, dry run, AI post-processing)
 ├── inbound.ts        # verifySender, matchInbound, classifyInbound, CorrelationStore + in-memory, receiveWebhook
-├── tools.ts          # integrationTools() for @apogee/agent
+├── tools.ts          # integrationTools() for @de_canter/apogee-agent
 └── __tests__/ pattern, template, transforms, vault, auth, resilience, audit, execute, inbound, tools, acceptance
 
 apogee-build/ (Task 9)
@@ -61,7 +61,7 @@ apogee-build/ (Task 9)
 
 ### Task 1: Scaffold, pattern schema, store, trigger evaluation
 
-**Files:** Create `packages/integrations/{package.json,tsconfig.json,tsup.config.ts,vitest.config.ts}` (copy from `packages/rules`; deps `@apogee/agent`, `@apogee/ai`, `@apogee/kernel`, `@apogee/prompts`, `zod`), `src/errors.ts`, `src/pattern.ts`, `src/index.ts`. Test `pattern.test.ts`.
+**Files:** Create `packages/integrations/{package.json,tsconfig.json,tsup.config.ts,vitest.config.ts}` (copy from `packages/rules`; deps `@de_canter/apogee-agent`, `@de_canter/apogee-ai`, `@de_canter/apogee-kernel`, `@de_canter/apogee-prompts`, `zod`), `src/errors.ts`, `src/pattern.ts`, `src/index.ts`. Test `pattern.test.ts`.
 
 **Interfaces:**
 ```ts
@@ -301,9 +301,9 @@ export function integrationTools<TCtx>(opts: IntegrationToolsOptions<TCtx>): Any
 ```
 Tools: `list_integration_patterns { direction?, status?, search? }` (one `integration-pattern-card` per pattern); `create_integration_pattern { pattern: <IntegrationPatternInput minus provenance> }` (draft, provenance human = actor, validation errors returned softly, card); `update_integration_pattern { id, patch }`; `test_integration_pattern { id, event? }` (dry run: masked request + trigger evaluation, `integration-test-card`); `approve_integration_pattern { id }` (actor recorded); `pause_integration_pattern { id }`; `resume_integration_pattern { id }` (soft failure when never approved); `run_integration_pattern { id, event? }` (real execution; `integration-trace-card`); `show_integration_trace { traceId }`; `show_integration_health { id? }`; `list_dead_letters { source?, status? }`; `replay_dead_letter { id }` (re-executes the pattern with the stored ctx); `reset_circuit_breaker { id }`; `manage_credentials { action: 'list' | 'set' | 'rotate' | 'remove', key, value?, name?, type? }` (description warns that `value` passes through the conversation; the result never echoes it). Every tool result masks secrets.
 
-README: surface table, guarantees, the composition example (store + vault + deps + tools on an agent; `receiveWebhook` in a route). Acceptance test (§7): a vault key, a draft pattern against a fake fetch, `test` → `approve` → `run` through the tools on an `@apogee/agent` session with a scripted fake, then a broken fetch → failure → dead letter → `replay_dead_letter` with the fetch fixed → replayed; an inbound payload classified through `receiveWebhook` with a fake at 0.96 → `classified` with output.
+README: surface table, guarantees, the composition example (store + vault + deps + tools on an agent; `receiveWebhook` in a route). Acceptance test (§7): a vault key, a draft pattern against a fake fetch, `test` → `approve` → `run` through the tools on an `@de_canter/apogee-agent` session with a scripted fake, then a broken fetch → failure → dead letter → `replay_dead_letter` with the fetch fixed → replayed; an inbound payload classified through `receiveWebhook` with a fake at 0.96 → `classified` with output.
 
-- [ ] **Step 1: Failing tests. Step 2: Implement; README. Step 3: Verify (≥ 90%), commit** `feat(integrations): admin tools for @apogee/agent, README, and the acceptance test`.
+- [ ] **Step 1: Failing tests. Step 2: Implement; README. Step 3: Verify (≥ 90%), commit** `feat(integrations): admin tools for @de_canter/apogee-agent, README, and the acceptance test`.
 
 ---
 
@@ -329,7 +329,7 @@ README: surface table, guarantees, the composition example (store + vault + deps
 
 ## Self-review
 
-- **§3.9 coverage:** `IntegrationPattern` schema as-is with the survey's fields (T1); `executePattern` with rate limit, circuit breaker, retry, dead letter, drift, audit (T4, T5); AI post-processing and inbound classification through `@apogee/ai` with registered prompts, classification as an assertion (T5, T6); `VaultPort` and five auth methods (T3); admin tools as `Tool<TContext>[]` (T7). §5 demo: author a pattern against a mock API and run it (T9).
+- **§3.9 coverage:** `IntegrationPattern` schema as-is with the survey's fields (T1); `executePattern` with rate limit, circuit breaker, retry, dead letter, drift, audit (T4, T5); AI post-processing and inbound classification through `@de_canter/apogee-ai` with registered prompts, classification as an assertion (T5, T6); `VaultPort` and five auth methods (T3); admin tools as `Tool<TContext>[]` (T7). §5 demo: author a pattern against a mock API and run it (T9).
 - **§2 rules:** ports with in-memory implementations (store, vault, audit, dead letters, limiter, breaker, correlations); injected vocabulary; assertions for AI output; one client; registered prompts; secrets masked everywhere.
 - **Type consistency:** `IntegrationPattern` (T1) is the input to `evaluateTrigger`, `buildRequest`, `executePattern`, `matchInbound`, `receiveWebhook`, and the tools; `OutboundRequest` (T3) is what `buildRequest` (T5) produces and auth `inject` consumes; `ResponseMapping` (T1) drives `applyMapping` (T2) in both directions; `ExecutionRecord` (T5) is what inbound (T6) and tools (T7) read; `DeadLetter` (T4) is what `replay` (T4) and the tools (T7) handle.
 - **Placeholders:** none; every prompt has its text, every LLM function its output schema, every test its fixture.

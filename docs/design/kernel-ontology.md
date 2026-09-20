@@ -1,24 +1,24 @@
 # Apogee Kernel — Domain Ontology
 
-**Status:** Design spec (source of truth for `@apogee/kernel`)
+**Status:** Design spec (source of truth for `@de_canter/apogee-kernel`)
 **Created:** 2026-09-17
 **Owner:** Jeff Canter
 **Origin:** Shower-thought conversation 2026-09-17; lineage in §8.
 
 ## 1. Purpose
 
-Every Verve product (the reference product, The Somm, NailNotes, MacMethod, and those
+Every Verve product (The Somm, NailNotes, MacMethod, and those
 not yet named) re-derives the same dozen concepts and re-makes the same
 modeling mistakes: money as a float, status as a free string, role as an
 attribute on a person, one identifier column when the outside world has six.
 
-`@apogee/kernel` fixes the vocabulary once. It is the shared set of
+`@de_canter/apogee-kernel` fixes the vocabulary once. It is the shared set of
 **value objects**, **mixins**, and **entity categories** that every product
 composes into its own concrete types. Product-specific behavior lives in
 Rule/Policy and Lifecycle transitions (the Behavior Engine), not in bespoke
 schema shapes.
 
-The kernel is being built to be **right and tested first**. the reference product will
+The kernel is being built to be **right and tested first**. The reference product will
 be clean-room rewritten on top of it once it is, not migrated incrementally.
 the reference product's domain is therefore the kernel's acceptance test suite, not its
 first customer.
@@ -27,15 +27,15 @@ first customer.
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│  Product (the reference product, The Somm, ...)                     │
+│  Product (The Somm, NailNotes, ...)                       │
 │  Concrete named types: Order, Property, Bottle, Tasting   │
 │  Product rules, lifecycles, role types, identifier schemes│
 ├──────────────────────────────────────────────────────────┤
-│  @apogee/kernel — entity categories (Phase 2)             │
+│  @de_canter/apogee-kernel — entity categories (Phase 2)             │
 │  Party, Place, Resource, Document, Event, Activity,       │
 │  Commitment, Transaction, Relationship, Communication     │
 ├──────────────────────────────────────────────────────────┤
-│  @apogee/kernel — value objects & mixins (Phase 1)        │
+│  @de_canter/apogee-kernel — value objects & mixins (Phase 1)        │
 │  Ref, Money, Quantity, Identifier, Interval, Bitemporal,  │
 │  Provenance, Assertion, Lifecycle, Role, Classification   │
 └──────────────────────────────────────────────────────────┘
@@ -47,7 +47,7 @@ first customer.
   interpreter for screens.
 - **The kernel has no persistence opinion.** It exports Zod schemas, TS
   types, and pure functions. Mongoose/Prisma adapters are separate packages
-  (`@apogee/kernel-mongoose`), built after the kernel is stable.
+  (`@de_canter/apogee-kernel-mongoose`), built after the kernel is stable.
 - **Every kernel type is JSON-safe.** No `bigint`, no class instances, no
   `Date` in stored shapes unless declared (see §4.5). What goes in a document
   store must round-trip through `JSON.parse(JSON.stringify(x))` unchanged.
@@ -153,7 +153,7 @@ default; products opt in per predicate.
 `defineLifecycle({ states, initial, terminal, transitions })` returns a
 frozen definition with `can(from, to)`, `next(from)`, `assertTransition(from, to)`,
 and the `LifecycleState<S>` shape `{ state: S; since: ISODate; reason?: string; by?: Ref }`.
-The kernel **declares**; `@apogee/workflow-engine` **executes**. The
+The kernel **declares**; `@de_canter/apogee-workflow-engine` **executes**. The
 workflow-engine `StateMachine` will accept a kernel `LifecycleDefinition`
 in a later task; the kernel does not depend on workflow-engine.
 
@@ -172,9 +172,9 @@ once Phase 1 ships at v0.1.0.
 
 ## 6. Phase 3 persistence and adoption (separate plans)
 
-- `@apogee/kernel-mongoose`: Mongoose sub-schemas for every value object and
+- `@de_canter/apogee-kernel-mongoose`: Mongoose sub-schemas for every value object and
   discriminator-per-category base schemas.
-- the reference product clean-room rewrite plan (lives in the the reference product repo).
+- The reference product's clean-room rewrite plan (lives in its own repo).
 
 ## 7. The questions table (acceptance criteria for "is the model complete")
 
@@ -214,4 +214,4 @@ constraint rather than advice.
 - No ORM, no persistence, no HTTP in the kernel.
 - No unit conversion, no FX conversion in Phase 1.
 - No universal object table, no EAV, no runtime-interpreted screens.
-- No incremental the reference product migration; adoption is a clean-room rewrite.
+- No incremental migration of the reference product; adoption is a clean-room rewrite.

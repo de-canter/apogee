@@ -1,7 +1,7 @@
 # CLAUDE.md — Apogee Shared Autonomy Baseline
 
 This file defines how Claude Code operates in any apogee-pattern repository
-(the reference product, The Somm, NailNotes, MacMethod, and future Verve products).
+(The Somm, NailNotes, MacMethod, and future Verve products).
 
 Each product's local `CLAUDE.md` may **add** to these rules but must not
 relax them. Where local rules conflict with this file, this file wins.
@@ -13,9 +13,9 @@ relax them. Where local rules conflict with this file, this file wins.
 - **Stack baseline:** TypeScript strict, pnpm workspaces, Turborepo, Next.js
   (Vercel) frontends, Fastify (Railway) APIs, MongoDB Atlas, Clerk auth,
   Cloudflare R2 storage.
-- **Shared packages:** `@apogee/core`, `@apogee/ai-integration`,
-  `@apogee/mcp-framework`, `@apogee/document-gen`, `@apogee/workflow-engine`,
-  `@apogee/vision-extraction`. Never duplicate logic that belongs in shared
+- **Shared packages:** `@de_canter/apogee-core`, `@de_canter/apogee-ai-integration`,
+  `@de_canter/apogee-mcp-framework`, `@de_canter/apogee-document-gen`, `@de_canter/apogee-workflow-engine`,
+  `@de_canter/apogee-vision-extraction`. Never duplicate logic that belongs in shared
   packages — if a product needs behavior that overlaps, extract to shared.
 - **Owner:** Jeff Canter (jeff@vervetech.ai). Verve Technologies LLC.
 
@@ -81,7 +81,7 @@ Do not disable lint rules to make this pass — see §8.
   handle the error meaningfully or let it propagate. Logging counts
   as handling only if there's a clear reason to swallow.
 - **Async-await over `.then()`.** Always.
-- **Imports.** Absolute imports (`@apogee/...` for shared packages,
+- **Imports.** Absolute imports (`@de_canter/apogee-...` for shared packages,
   `@/...` for product-local) over deep relative paths.
 
 ---

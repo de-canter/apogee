@@ -1,4 +1,4 @@
-# Plan B4 — `@apogee/documents-ai` + `@apogee/knowledge` + document and knowledge demos Implementation Plan
+# Plan B4 — `@de_canter/apogee-documents-ai` + `@de_canter/apogee-knowledge` + document and knowledge demos Implementation Plan
 
 > **Outcome (2026-09-19):** Tasks 1–12 done in this repo on `feature/b4-documents-knowledge`, PR de-canter/apogee#14, merged and released as `documents-ai-v0.1.0` and `knowledge-v0.1.0` on 2026-09-19. documents-ai: 41 tests, 100% lines. knowledge: 25 tests, 98.7% lines. Tasks 13–14 done in apogee-build on `feature/documents-knowledge-demo`, PR de-canter/apogee-build#4 (24 tests), with the tarballs packed locally from the PR #14 commit. Deviations: `Extraction` carries the model's `overall` confidence so corrections can recompute the combined score; `Stage.when` may return a string that becomes the skip note; the tokenizer stems plurals; the knowledge package has no error class (nothing throws); `createAgentRoute` gained `beforeRun` so the desk can retrieve for the current message; the visitor cookie helper moved to `src/demo/visitor.ts`. Still on Jeff's list: merge apogee-build#4.
 
@@ -7,17 +7,17 @@
 **Created:** 2026-09-19
 **Origin:** `docs/design/ai-abstractions.md` §3.7, §3.8, §5. Survey of the reference product (2026-09-19): `services/document-classification/*` (classification prompt, `EXTRACTION_PROMPTS`, cross-validation, extraction audit), `services/vision-extraction-service.ts` (the one path with a system prompt and per-field confidence), `services/document-intake/upload-pipeline-service.ts` (five straight-line stages), `services/examination-engine/examination-engine-service.ts` (write-through stage checkpoints, `ConfidenceScore { value, level, factors }`, 0.9/0.7 banding, weakest-link aggregation, no resume), `services/knowledge-ingestion-service.ts` and `knowledge-retrieval-service.ts` (h1–h3 split, 500-word paragraph split, sha256 hash, upsert by source+title, `$text` then regex fallback, `## Relevant Documentation` template, unused `embedding` field, no scoping, no delete on reingest).
 
-**Goal:** Ship `@apogee/documents-ai` v0.1.0 (taxonomy, content-block routing, classify and extract as assertions with per-field confidence, corrections and an audit sink, cross-document reconciliation, a staged resumable pipeline, `Confidence`) and `@apogee/knowledge` v0.1.0 (markdown chunking, lexical and vector chunk stores with reingest, retrieval with citations, a prompt contributor), then the apogee.build document demo (drop a rental agreement, inspection report, or invoice; watch classify, extract, correct) and knowledge demo (ask about the demo company's policies, with citations, also wired into the rental desk).
+**Goal:** Ship `@de_canter/apogee-documents-ai` v0.1.0 (taxonomy, content-block routing, classify and extract as assertions with per-field confidence, corrections and an audit sink, cross-document reconciliation, a staged resumable pipeline, `Confidence`) and `@de_canter/apogee-knowledge` v0.1.0 (markdown chunking, lexical and vector chunk stores with reingest, retrieval with citations, a prompt contributor), then the apogee.build document demo (drop a rental agreement, inspection report, or invoice; watch classify, extract, correct) and knowledge demo (ask about the demo company's policies, with citations, also wired into the rental desk).
 
-**Architecture:** `documents-ai` is a thin, typed layer over `@apogee/ai`: one `DocumentInput` union routed to content blocks (media block first, text after), `generateObject` against host schemas, and every model claim returned as a kernel `Assertion` (a classification, each extracted field) with a `Confidence`. Corrections supersede field assertions with human ones and are recorded through an audit port that doubles as the ground-truth store. The pipeline runner is generic: named stages over a state object, checkpointed after each stage through a store port so a run can resume. `knowledge` is pure functions plus ports: chunks with stable ids and content hashes, a `ChunkStore` with an in-memory lexical (BM25) implementation, a vector implementation over an `EmbeddingPort`, a hybrid combiner, and a retrieval template that cites sources; `knowledgeContributor` fills a prompt slot from the context's question.
+**Architecture:** `documents-ai` is a thin, typed layer over `@de_canter/apogee-ai`: one `DocumentInput` union routed to content blocks (media block first, text after), `generateObject` against host schemas, and every model claim returned as a kernel `Assertion` (a classification, each extracted field) with a `Confidence`. Corrections supersede field assertions with human ones and are recorded through an audit port that doubles as the ground-truth store. The pipeline runner is generic: named stages over a state object, checkpointed after each stage through a store port so a run can resume. `knowledge` is pure functions plus ports: chunks with stable ids and content hashes, a `ChunkStore` with an in-memory lexical (BM25) implementation, a vector implementation over an `EmbeddingPort`, a hybrid combiner, and a retrieval template that cites sources; `knowledgeContributor` fills a prompt slot from the context's question.
 
-**Tech Stack:** TypeScript strict, Zod 4, Vitest 4, tsup; `@apogee/{kernel,ai,prompts}` workspace deps (`knowledge` also none of `agent`; `documents-ai` none of `agent`). `node:crypto` for hashing. Demo: Next.js 16 in apogee-build.
+**Tech Stack:** TypeScript strict, Zod 4, Vitest 4, tsup; `@de_canter/apogee-{kernel,ai,prompts}` workspace deps (`knowledge` also none of `agent`; `documents-ai` none of `agent`). `node:crypto` for hashing. Demo: Next.js 16 in apogee-build.
 
 **Spec:** `docs/design/ai-abstractions.md` §2, §3.7, §3.8, §5.
 
 ## Global Constraints
 
-- Packages `packages/documents-ai` (`@apogee/documents-ai`) and `packages/knowledge` (`@apogee/knowledge`), same toolchain as `packages/rules` (tsup dual build, vitest v8 coverage, `@types/node`, root ESLint, `exactOptionalPropertyTypes`: spread optional keys conditionally, derive input types from Zod with `z.infer`).
+- Packages `packages/documents-ai` (`@de_canter/apogee-documents-ai`) and `packages/knowledge` (`@de_canter/apogee-knowledge`), same toolchain as `packages/rules` (tsup dual build, vitest v8 coverage, `@types/node`, root ESLint, `exactOptionalPropertyTypes`: spread optional keys conditionally, derive input types from Zod with `z.infer`).
 - No network in tests: `createFakeModelClient` scripts; its `generateObject` validates scripted objects against the schemas.
 - Domain vocabulary is injected: the taxonomy, the per-type extraction schemas and instructions, the reconciliation field rules, the knowledge scopes and sections, and the demo domain all come from the host. The packages ship no document types, no field names, no help topics.
 - AI output enters as an `Assertion`: the classification (`predicate: 'classified-as'`) and every extracted field (`predicate: 'field:<name>'`), all `proposed`, provenance `source.kind = 'ai'` with the model's confidence; a correction confirms a human assertion that supersedes the AI one.
@@ -68,9 +68,9 @@ apogee-build/ (Tasks 13–14)
 
 ---
 
-### Task 1: `@apogee/documents-ai` scaffold, taxonomy, input routing, confidence
+### Task 1: `@de_canter/apogee-documents-ai` scaffold, taxonomy, input routing, confidence
 
-**Files:** Create `packages/documents-ai/{package.json,tsconfig.json,tsup.config.ts,vitest.config.ts}` (copy from `packages/rules`; deps `@apogee/ai`, `@apogee/kernel`, `@apogee/prompts`, `zod`), `src/errors.ts`, `src/taxonomy.ts`, `src/input.ts`, `src/confidence.ts`, `src/index.ts`. Tests: `taxonomy.test.ts`, `input.test.ts`, `confidence.test.ts`.
+**Files:** Create `packages/documents-ai/{package.json,tsconfig.json,tsup.config.ts,vitest.config.ts}` (copy from `packages/rules`; deps `@de_canter/apogee-ai`, `@de_canter/apogee-kernel`, `@de_canter/apogee-prompts`, `zod`), `src/errors.ts`, `src/taxonomy.ts`, `src/input.ts`, `src/confidence.ts`, `src/index.ts`. Tests: `taxonomy.test.ts`, `input.test.ts`, `confidence.test.ts`.
 
 **Interfaces:**
 ```ts
@@ -328,9 +328,9 @@ export async function processDocument<C extends string>(input: DocumentInput, ct
 
 ---
 
-### Task 8: `@apogee/knowledge` scaffold and chunking
+### Task 8: `@de_canter/apogee-knowledge` scaffold and chunking
 
-**Files:** Create `packages/knowledge/*` (deps `@apogee/ai`, `@apogee/kernel`, `@apogee/prompts`, `zod`), `src/errors.ts` (`KnowledgeError`), `src/chunk.ts`, `src/index.ts`; test `chunk.test.ts`.
+**Files:** Create `packages/knowledge/*` (deps `@de_canter/apogee-ai`, `@de_canter/apogee-kernel`, `@de_canter/apogee-prompts`, `zod`), `src/errors.ts` (`KnowledgeError`), `src/chunk.ts`, `src/index.ts`; test `chunk.test.ts`.
 
 **Interfaces:**
 ```ts
@@ -447,7 +447,7 @@ export function knowledgePromptRegistry(): PromptRegistry;
 
 **Files:** `vendor/apogee-documents-ai-0.1.0.tgz`, `vendor/apogee-knowledge-0.1.0.tgz` (packed locally from the PR commit), `package.json` (+ deps and overrides), `src/packages.ts`, `src/demo/rental/documents/taxonomy.ts` (taxonomy: `agreement`, `inspection`, `invoice`; three `defineExtraction`s with Zod schemas: agreement `{ agreementNumber, customerName, equipment, serial, startDate, endDate, total }`, inspection `{ serial, inspectedOn, condition: enum(good|worn|damaged), findings: string[], technician }`, invoice `{ invoiceNumber, customerName, total, dueDate, lineItems: [{ description, amount }] }`), `samples.ts` (three text samples as chips, one per type, plus one deliberately ambiguous), `script.ts` (demo-mode fake: routes on the user text: `Classify` → code by keyword (`RENTAL AGREEMENT` → agreement, `INSPECTION` → inspection, `INVOICE` → invoice, else `unknown` at 0.4); `Fields:` → an extraction object built by regexes over the sample text with field confidences), `server.ts` (`documentEngine()`, `documentAudit` per visitor via `rulesFor`-style registry `documentsFor(visitorId)` = `{ audit, store }`), `src/app/api/documents/route.ts` (`POST { text? | file: { mediaType, data(base64), filename } , expectedCode? }` → `processDocument` → JSON `{ runId, classification: { code, label, confidence, reasoning }, extraction?: { code, value, fields: [{ field, value, confidence: { value, level } }], warnings }, stages }`; rate limited; visitor cookie), `src/app/api/documents/correct/route.ts` (`POST { runId, field, corrected }` → `audit.recordCorrection` with `by: ref('User', visitorId)`; returns stats), `src/components/DocumentsDemo.tsx` (client: sample chips, textarea, file input (PNG/JPEG/PDF read as base64), Run button, result card with the classification badge and a field table with per-row confidence chip and an inline "correct" input that posts; stats line "N runs, M corrections, top corrected: …"), `src/app/demo/documents/page.tsx`. Tests `src/__tests__/documents.test.ts`: the route in demo mode on the invoice sample → classification `invoice` and an extraction with `invoiceNumber`; the ambiguous sample → `unknown` and no extraction; a correction → stats reflect it; a bad body → 400.
 
-- [ ] **Step 1:** vendor + install + smoke import. Commit `chore: vendor @apogee/documents-ai and @apogee/knowledge 0.1.0`.
+- [ ] **Step 1:** vendor + install + smoke import. Commit `chore: vendor @de_canter/apogee-documents-ai and @de_canter/apogee-knowledge 0.1.0`.
 - [ ] **Step 2: Failing tests. Step 3: Implement.** `pnpm typecheck && pnpm lint && pnpm test && pnpm build`. Commit `feat(demo): add the document demo (classify, extract, correct) on the rental domain`.
 
 ---
