@@ -1,4 +1,4 @@
-import { nowIso, sameRef, type ISODate, type Ref } from '@apogee/kernel';
+import { nowIso, sameRef, type ISODate, type Ref } from '@de_canter/apogee-kernel';
 
 export type ExecutionStatus = 'success' | 'failure' | 'circuit_open' | 'rate_limited' | 'trigger_skip' | 'dry_run' | 'inbound' | 'manual';
 

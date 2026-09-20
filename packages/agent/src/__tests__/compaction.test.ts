@@ -1,5 +1,5 @@
-import { createFakeModelClient } from '@apogee/ai';
-import { isoDate } from '@apogee/kernel';
+import { createFakeModelClient } from '@de_canter/apogee-ai';
+import { isoDate } from '@de_canter/apogee-kernel';
 import { describe, expect, it } from 'vitest';
 import { compactHistory, estimateHistoryTokens, pruneToBudget } from '../compaction';
 import type { AgentMessage } from '../messages';

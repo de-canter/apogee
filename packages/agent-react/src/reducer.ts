@@ -1,5 +1,5 @@
-import type { AgentEvent, AgentMessage } from '@apogee/agent';
-import type { RawUsage, Usage } from '@apogee/ai';
+import type { AgentEvent, AgentMessage } from '@de_canter/apogee-agent';
+import type { RawUsage, Usage } from '@de_canter/apogee-ai';
 
 export interface AgentUiMessage extends AgentMessage { streaming?: boolean }
 export interface ActiveTool { toolUseId: string; name: string; input: unknown; startedAt: number }

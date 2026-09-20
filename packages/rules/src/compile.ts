@@ -1,4 +1,4 @@
-import type { Contributor } from '@apogee/prompts';
+import type { Contributor } from '@de_canter/apogee-prompts';
 import type { DimensionShape, Facts } from './dimensions';
 import { findMatchingRules, type Rule, type UnknownFacts } from './rule';
 
@@ -57,7 +57,7 @@ export interface RulesContributorOptions<TCtx, S extends DimensionShape> extends
   factsFromCtx: (ctx: TCtx) => Facts<S>;
 }
 
-/** A `@apogee/prompts` contributor for a `rules` slot: undefined when nothing matches. */
+/** A `@de_canter/apogee-prompts` contributor for a `rules` slot: undefined when nothing matches. */
 export function rulesContributor<TCtx, S extends DimensionShape>(opts: RulesContributorOptions<TCtx, S>): Contributor<TCtx> {
   const { rules, factsFromCtx, ...compile } = opts;
   return async (ctx) => {

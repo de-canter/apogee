@@ -1,6 +1,6 @@
-import type { ModelClient, ModelRole } from '@apogee/ai';
-import type { ISODate } from '@apogee/kernel';
-import { createPromptRegistry, definePrompt, fromContext, text, type PromptRegistry } from '@apogee/prompts';
+import type { ModelClient, ModelRole } from '@de_canter/apogee-ai';
+import type { ISODate } from '@de_canter/apogee-kernel';
+import { createPromptRegistry, definePrompt, fromContext, text, type PromptRegistry } from '@de_canter/apogee-prompts';
 import { z } from 'zod';
 import type { Dimensions, DimensionShape } from './dimensions';
 import { RulesError } from './errors';

@@ -1,5 +1,5 @@
-import { createFakeModelClient, StructuredOutputError, type SystemBlock } from '@apogee/ai';
-import { AssertionStateError, isoDate, ref } from '@apogee/kernel';
+import { createFakeModelClient, StructuredOutputError, type SystemBlock } from '@de_canter/apogee-ai';
+import { AssertionStateError, isoDate, ref } from '@de_canter/apogee-kernel';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { defineDimensions } from '../dimensions';

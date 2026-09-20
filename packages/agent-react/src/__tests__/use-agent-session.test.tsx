@@ -1,5 +1,5 @@
-import type { AgentEvent, AgentMessage } from '@apogee/agent';
-import { isoDate } from '@apogee/kernel';
+import type { AgentEvent, AgentMessage } from '@de_canter/apogee-agent';
+import { isoDate } from '@de_canter/apogee-kernel';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { fetchSseTransport, useAgentSession, type SendInput } from '../use-agent-session';

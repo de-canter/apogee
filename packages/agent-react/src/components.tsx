@@ -1,5 +1,5 @@
-import type { ArtifactDescriptor } from '@apogee/agent';
-import type { Usage } from '@apogee/ai';
+import type { ArtifactDescriptor } from '@de_canter/apogee-agent';
+import type { Usage } from '@de_canter/apogee-ai';
 import { useState, type FormEvent, type KeyboardEvent, type ReactNode } from 'react';
 import type { ActiveTool, AgentUiMessage } from './reducer';
 

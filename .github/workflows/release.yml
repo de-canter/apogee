@@ -45,5 +45,5 @@ jobs:
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" release/*.tgz --clobber
           else
-            gh release create "$TAG" release/*.tgz --title "$TAG" --notes "Tarball for @apogee/${{ steps.tag.outputs.name }} ${{ steps.tag.outputs.version }}. See docs/consuming.md for the dependency and overrides block."
+            gh release create "$TAG" release/*.tgz --title "$TAG" --notes "Tarball for @de_canter/apogee-${{ steps.tag.outputs.name }} ${{ steps.tag.outputs.version }}. See docs/consuming.md for the dependency and overrides block."
           fi

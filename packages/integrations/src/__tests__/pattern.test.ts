@@ -1,4 +1,4 @@
-import { isoDate, ref } from '@apogee/kernel';
+import { isoDate, ref } from '@de_canter/apogee-kernel';
 import { describe, expect, it } from 'vitest';
 import { IntegrationsError } from '../errors';
 import { approvePattern, createInMemoryPatternStore, definePattern, evaluateTrigger, pausePattern, resumePattern, updatePattern } from '../pattern';

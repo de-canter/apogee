@@ -1,6 +1,6 @@
-# @apogee/agent-react
+# @de_canter/apogee-agent-react
 
-React client for `@apogee/agent`. Decodes the SSE event stream, reduces it
+React client for `@de_canter/apogee-agent`. Decodes the SSE event stream, reduces it
 into UI state with a pure reducer, and ships unstyled shells with slots.
 Spec: `docs/design/ai-abstractions.md` §3.4.
 

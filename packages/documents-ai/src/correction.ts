@@ -1,5 +1,5 @@
-import type { ModelId, Usage } from '@apogee/ai';
-import { assertion, AssertionSchema, confirmAssertion, nowIso, sameRef, supersedeAssertion, type Assertion, type ISODate, type Ref } from '@apogee/kernel';
+import type { ModelId, Usage } from '@de_canter/apogee-ai';
+import { assertion, AssertionSchema, confirmAssertion, nowIso, sameRef, supersedeAssertion, type Assertion, type ISODate, type Ref } from '@de_canter/apogee-kernel';
 import type { Classification } from './classify';
 import { combineConfidence, confidence, type Confidence } from './confidence';
 import { DocumentsError } from './errors';

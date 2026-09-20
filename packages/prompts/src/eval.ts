@@ -1,4 +1,4 @@
-import type { ModelClient, ModelRole, Usage } from '@apogee/ai';
+import type { ModelClient, ModelRole, Usage } from '@de_canter/apogee-ai';
 import { composePrompt, toSystemBlocks, type ComposeOptions, type Prompt } from './prompt';
 
 export interface EvalCase<TCtx> {

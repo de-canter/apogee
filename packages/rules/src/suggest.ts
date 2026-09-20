@@ -1,6 +1,6 @@
-import type { Usage } from '@apogee/ai';
-import { assertion, nowIso, toDate, type Assertion, type ISODate, type Ref } from '@apogee/kernel';
-import { composePrompt, toSystemBlocks } from '@apogee/prompts';
+import type { Usage } from '@de_canter/apogee-ai';
+import { assertion, nowIso, toDate, type Assertion, type ISODate, type Ref } from '@de_canter/apogee-kernel';
+import { composePrompt, toSystemBlocks } from '@de_canter/apogee-prompts';
 import { z } from 'zod';
 import type { RuleAuditEntry } from './audit';
 import type { DimensionShape } from './dimensions';

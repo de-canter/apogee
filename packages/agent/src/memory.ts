@@ -1,5 +1,5 @@
-import { nowIso, type ISODate } from '@apogee/kernel';
-import type { Contributor } from '@apogee/prompts';
+import { nowIso, type ISODate } from '@de_canter/apogee-kernel';
+import type { Contributor } from '@de_canter/apogee-prompts';
 import { z } from 'zod';
 import { defineTool, type Tool } from './tool';
 

@@ -1,4 +1,4 @@
-import { isoDate, ref } from '@apogee/kernel';
+import { isoDate, ref } from '@de_canter/apogee-kernel';
 import { describe, expect, it } from 'vitest';
 import { createInMemoryExecutionAudit, type ExecutionRecordInput } from '../audit';
 

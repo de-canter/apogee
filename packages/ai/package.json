@@ -1,6 +1,6 @@
 {
-  "name": "@apogee/ai",
-  "version": "0.2.0",
+  "name": "@de_canter/apogee-ai",
+  "version": "0.3.0",
   "license": "Apache-2.0",
   "homepage": "https://apogee.build",
   "repository": {
@@ -37,7 +37,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.126.0",
-    "@apogee/kernel": "workspace:*",
+    "@de_canter/apogee-kernel": "workspace:*",
     "zod": "^4.0.0"
   },
   "devDependencies": {

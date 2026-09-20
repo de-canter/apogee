@@ -1,4 +1,4 @@
-import type { Ref } from '@apogee/kernel';
+import type { Ref } from '@de_canter/apogee-kernel';
 import type { FieldAssertion } from './extract';
 
 export type Comparator = 'exact' | 'text' | 'name' | 'number' | 'date' | ((a: unknown, b: unknown) => boolean);

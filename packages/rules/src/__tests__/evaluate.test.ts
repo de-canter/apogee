@@ -1,4 +1,4 @@
-import { AiError, createFakeModelClient, type SystemBlock } from '@apogee/ai';
+import { AiError, createFakeModelClient, type SystemBlock } from '@de_canter/apogee-ai';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { defineDimensions } from '../dimensions';

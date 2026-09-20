@@ -1,4 +1,4 @@
-# @apogee/knowledge
+# @de_canter/apogee-knowledge
 
 Retrieval for an assistant: markdown becomes chunks with stable ids and
 content hashes, a chunk store ranks them for a query within a visibility

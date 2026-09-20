@@ -2,8 +2,8 @@
  * Spec §7 criterion: classify and extract a demo document, record a correction, and
  * expose it for eval; reconcile across documents; resume a failed run.
  */
-import { AiError, createFakeModelClient, type FakeTurn, type GenerateRequest } from '@apogee/ai';
-import { isoDate, ref } from '@apogee/kernel';
+import { AiError, createFakeModelClient, type FakeTurn, type GenerateRequest } from '@de_canter/apogee-ai';
+import { isoDate, ref } from '@de_canter/apogee-kernel';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { correctField, createInMemoryDocumentAudit, groundTruth } from '../correction';

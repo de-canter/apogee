@@ -1,5 +1,5 @@
-import { nowIso, type Ref } from '@apogee/kernel';
-import { composePrompt, toSystemBlocks } from '@apogee/prompts';
+import { nowIso, type Ref } from '@de_canter/apogee-kernel';
+import { composePrompt, toSystemBlocks } from '@de_canter/apogee-prompts';
 import { getAuthMethod, maskHeaders, redactUrl, type OutboundRequest } from './auth';
 import { preview, type ExecutionAuditSink, type ExecutionRecord, type ExecutionStatus } from './audit';
 import { IntegrationsError } from './errors';

@@ -1,4 +1,4 @@
-export type { ArtifactDescriptor } from '@apogee/agent';
+export type { ArtifactDescriptor } from '@de_canter/apogee-agent';
 
 /** A user interaction with a card, sent back to the agent with the next message. */
 export interface ArtifactAction {

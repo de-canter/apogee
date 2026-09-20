@@ -1,6 +1,6 @@
 {
-  "name": "@apogee/prompts",
-  "version": "0.1.1",
+  "name": "@de_canter/apogee-prompts",
+  "version": "0.2.0",
   "license": "Apache-2.0",
   "homepage": "https://apogee.build",
   "repository": {
@@ -39,10 +39,10 @@
     "zod": "^4.0.0"
   },
   "peerDependencies": {
-    "@apogee/ai": ">=0.1.0"
+    "@de_canter/apogee-ai": ">=0.1.0"
   },
   "devDependencies": {
-    "@apogee/ai": "workspace:*",
+    "@de_canter/apogee-ai": "workspace:*",
     "@types/node": "^22",
     "@vitest/coverage-v8": "^4.0.0",
     "tsup": "^8.0.0",

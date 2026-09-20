@@ -1,4 +1,4 @@
-import type { ArtifactDescriptor } from '@apogee/agent';
+import type { ArtifactDescriptor } from '@de_canter/apogee-agent';
 import type { ReactNode } from 'react';
 import { ArtifactContainer } from './ArtifactContainer';
 import { useArtifactRegistry, type ArtifactActionHandler } from './registry';

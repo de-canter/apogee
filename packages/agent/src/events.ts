@@ -1,4 +1,4 @@
-import type { Usage } from '@apogee/ai';
+import type { Usage } from '@de_canter/apogee-ai';
 import type { AgentMessage } from './messages';
 import type { ArtifactDescriptor, ToolResult } from './tool';
 

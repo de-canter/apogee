@@ -1,4 +1,4 @@
-# @apogee/integrations
+# @de_canter/apogee-integrations
 
 No-code REST integrations for an assistant to run and an administrator to
 manage. A pattern says what triggers it, the request it makes (templates
@@ -24,7 +24,7 @@ classify the pattern, correlate or map the payload. Spec:
 | Execute | `executePattern(pattern, { ctx, subject, event, dryRun }, deps)`, `buildRequest` | Gates, build, dry run or fetch, drift, AI post-processing, mapping, `onOutput`, audit with `X-Request-Id` |
 | Audit | `ExecutionAuditSink`, `createInMemoryExecutionAudit` | Traces with masked requests; `health()` per pattern |
 | Inbound | `receiveWebhook`, `verifySender`, `matchInbound`, `classifyInbound`, `CorrelationStore` | Sender auth and allowlist; header/body matching; classification as an assertion with thresholds; correlation to pending callbacks |
-| Tools | `integrationTools({ store, vault, deps, actorFromCtx })` | Fourteen admin tools for `@apogee/agent` |
+| Tools | `integrationTools({ store, vault, deps, actorFromCtx })` | Fourteen admin tools for `@de_canter/apogee-agent` |
 | Prompts | `integrationsPromptRegistry()` | `integrations.post-process`, `integrations.classify-inbound` |
 
 ## Guarantees

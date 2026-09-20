@@ -1,4 +1,4 @@
-import { encodeAgentEvent, type AgentEvent } from '@apogee/agent';
+import { encodeAgentEvent, type AgentEvent } from '@de_canter/apogee-agent';
 import { describe, expect, it } from 'vitest';
 import { decodeSseStream } from '../sse-decoder';
 

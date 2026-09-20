@@ -1,5 +1,5 @@
-import { AiError, createFakeModelClient } from '@apogee/ai';
-import { isoDate, ref } from '@apogee/kernel';
+import { AiError, createFakeModelClient } from '@de_canter/apogee-ai';
+import { isoDate, ref } from '@de_canter/apogee-kernel';
 import { describe, expect, it } from 'vitest';
 import { createInMemoryExecutionAudit } from '../audit';
 import { buildRequest, executePattern, type ExecuteDeps } from '../execute';

@@ -1,5 +1,5 @@
-import { newMessageId, type AgentEvent, type AgentMessage } from '@apogee/agent';
-import { nowIso } from '@apogee/kernel';
+import { newMessageId, type AgentEvent, type AgentMessage } from '@de_canter/apogee-agent';
+import { nowIso } from '@de_canter/apogee-kernel';
 import { useCallback, useMemo, useReducer, useRef } from 'react';
 import { displayMessages, initialAgentUiState, reduceAgentState, type AgentUiMessage, type AgentUiState } from './reducer';
 import { decodeSseStream } from './sse-decoder';

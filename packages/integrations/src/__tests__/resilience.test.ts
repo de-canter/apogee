@@ -1,4 +1,4 @@
-import { isoDate, ref } from '@apogee/kernel';
+import { isoDate, ref } from '@de_canter/apogee-kernel';
 import { describe, expect, it } from 'vitest';
 import { definePattern } from '../pattern';
 import { backoffFor, checkDrift, createCircuitBreaker, createInMemoryDeadLetterQueue, createRateLimiter, fingerprint, retry } from '../resilience';

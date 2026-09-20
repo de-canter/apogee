@@ -1,5 +1,5 @@
 import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
-import { nowIso, type ISODate } from '@apogee/kernel';
+import { nowIso, type ISODate } from '@de_canter/apogee-kernel';
 import { IntegrationsError } from './errors';
 import { findVaultRefs } from './template';
 

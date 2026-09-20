@@ -1,4 +1,4 @@
-import { nowIso, type ISODate } from '@apogee/kernel';
+import { nowIso, type ISODate } from '@de_canter/apogee-kernel';
 import type { AgentMessage } from './messages';
 
 export interface SessionRecord {

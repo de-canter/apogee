@@ -1,5 +1,5 @@
-import { createFakeModelClient, StructuredOutputError, type ContentBlock, type SystemBlock } from '@apogee/ai';
-import { isoDate } from '@apogee/kernel';
+import { createFakeModelClient, StructuredOutputError, type ContentBlock, type SystemBlock } from '@de_canter/apogee-ai';
+import { isoDate } from '@de_canter/apogee-kernel';
 import { describe, expect, it } from 'vitest';
 import { classify } from '../classify';
 import { DocumentsError } from '../errors';

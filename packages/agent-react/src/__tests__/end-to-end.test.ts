@@ -1,6 +1,6 @@
-import { agentEventsToReadableStream, createAgentSession, createInMemoryMemory, createInMemoryMessageStore, defineTool, memoryContributor, memoryTool, type TelemetryEvent } from '@apogee/agent';
-import { createFakeModelClient, type SystemBlock } from '@apogee/ai';
-import { definePrompt, fromContext, slot, text } from '@apogee/prompts';
+import { agentEventsToReadableStream, createAgentSession, createInMemoryMemory, createInMemoryMessageStore, defineTool, memoryContributor, memoryTool, type TelemetryEvent } from '@de_canter/apogee-agent';
+import { createFakeModelClient, type SystemBlock } from '@de_canter/apogee-ai';
+import { definePrompt, fromContext, slot, text } from '@de_canter/apogee-prompts';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { initialAgentUiState, reduceAgentState, type AgentUiState } from '../reducer';

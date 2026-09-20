@@ -1,6 +1,6 @@
-import { defineTool, type AnyTool, type ArtifactDescriptor, type ToolResult } from '@apogee/agent';
-import { StructuredOutputError } from '@apogee/ai';
-import { nowIso, type Ref } from '@apogee/kernel';
+import { defineTool, type AnyTool, type ArtifactDescriptor, type ToolResult } from '@de_canter/apogee-agent';
+import { StructuredOutputError } from '@de_canter/apogee-ai';
+import { nowIso, type Ref } from '@de_canter/apogee-kernel';
 import { z } from 'zod';
 import type { RuleAuditSink } from './audit';
 import { detectConflicts } from './conflicts';
@@ -75,7 +75,7 @@ const errorMessage = (e: unknown): string => {
   return String(e);
 };
 
-/** The administrator's tool set for `@apogee/agent`: propose (parse), confirm, reject, list, toggle, delete, simulate, check conflicts. */
+/** The administrator's tool set for `@de_canter/apogee-agent`: propose (parse), confirm, reject, list, toggle, delete, simulate, check conflicts. */
 export function ruleTools<TCtx, S extends DimensionShape>(opts: RuleToolsOptions<TCtx, S>): RuleToolSet<TCtx, S> {
   const { engine, store, audit } = opts;
   const proposals = new Map<string, ParsedRule<S>>();

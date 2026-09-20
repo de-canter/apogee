@@ -1,5 +1,5 @@
-import type { AgentEvent, AgentMessage } from '@apogee/agent';
-import { isoDate } from '@apogee/kernel';
+import type { AgentEvent, AgentMessage } from '@de_canter/apogee-agent';
+import { isoDate } from '@de_canter/apogee-kernel';
 import { describe, expect, it } from 'vitest';
 import { displayMessages, initialAgentUiState, reduceAgentState, type AgentUiState } from '../reducer';
 

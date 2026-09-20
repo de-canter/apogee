@@ -1,5 +1,5 @@
-import { createToolRegistry, type ToolResult } from '@apogee/agent';
-import { isoDate, ref } from '@apogee/kernel';
+import { createToolRegistry, type ToolResult } from '@de_canter/apogee-agent';
+import { isoDate, ref } from '@de_canter/apogee-kernel';
 import { describe, expect, it } from 'vitest';
 import { createInMemoryExecutionAudit } from '../audit';
 import { createInMemoryPatternStore, definePattern } from '../pattern';

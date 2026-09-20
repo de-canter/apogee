@@ -1,4 +1,4 @@
-import { isoDate } from '@apogee/kernel';
+import { isoDate } from '@de_canter/apogee-kernel';
 import { describe, expect, it } from 'vitest';
 import type { AgentEvent } from '../events';
 import { SSE_HEADERS, agentEventsToReadableStream, encodeAgentEvent, pipeAgentEventsToNode } from '../sse';

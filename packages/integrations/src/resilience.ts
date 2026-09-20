@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { nowIso, type ISODate, type Ref } from '@apogee/kernel';
+import { nowIso, type ISODate, type Ref } from '@de_canter/apogee-kernel';
 import { IntegrationsError } from './errors';
 import type { IntegrationPattern } from './pattern';
 

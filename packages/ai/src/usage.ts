@@ -1,4 +1,4 @@
-import type { ISODate } from '@apogee/kernel';
+import type { ISODate } from '@de_canter/apogee-kernel';
 import type { ModelCatalog, ModelId, RawUsage } from './catalog';
 import type { ModelRole } from './models';
 import type { Usage } from './types';

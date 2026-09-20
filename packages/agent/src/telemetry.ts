@@ -1,4 +1,4 @@
-import { nowIso, type ISODate } from '@apogee/kernel';
+import { nowIso, type ISODate } from '@de_canter/apogee-kernel';
 
 export type TelemetryEventType =
   | 'session_start' | 'user_message' | 'assistant_message'

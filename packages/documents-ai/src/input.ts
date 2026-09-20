@@ -1,4 +1,4 @@
-import type { ContentBlock, ModelRole } from '@apogee/ai';
+import type { ContentBlock, ModelRole } from '@de_canter/apogee-ai';
 import { DocumentsError } from './errors';
 
 export type ImageMediaType = 'image/png' | 'image/jpeg' | 'image/gif' | 'image/webp';

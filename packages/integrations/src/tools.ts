@@ -1,5 +1,5 @@
-import { defineTool, type AnyTool, type ArtifactDescriptor, type ToolResult } from '@apogee/agent';
-import { nowIso, type Ref } from '@apogee/kernel';
+import { defineTool, type AnyTool, type ArtifactDescriptor, type ToolResult } from '@de_canter/apogee-agent';
+import { nowIso, type Ref } from '@de_canter/apogee-kernel';
 import { z } from 'zod';
 import { maskHeaders } from './auth';
 import { IntegrationsError } from './errors';
@@ -46,7 +46,7 @@ const deadLetterData = (d: DeadLetter): Record<string, unknown> => ({ id: d.id, 
 const PatternInput = IntegrationPatternSchema.omit({ provenance: true, status: true, version: true, approvedBy: true, approvedAt: true }).partial({ description: true, trigger: true, variables: true, response: true, ai: true, rateLimits: true, drift: true, metadata: true });
 const IdInput = z.object({ id: z.string().min(1) });
 
-/** The administrator's tool set for `@apogee/agent`: patterns, dry runs, approval, runs, traces, health, dead letters, the breaker, and credentials. */
+/** The administrator's tool set for `@de_canter/apogee-agent`: patterns, dry runs, approval, runs, traces, health, dead letters, the breaker, and credentials. */
 export function integrationTools<TCtx>(opts: IntegrationToolsOptions<TCtx>): AnyTool<TCtx>[] {
   const { store, vault } = opts;
   const now = opts.deps.engine?.now ?? nowIso;

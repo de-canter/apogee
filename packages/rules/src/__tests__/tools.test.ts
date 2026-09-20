@@ -1,6 +1,6 @@
-import { createToolRegistry, type ToolResult } from '@apogee/agent';
-import { createFakeModelClient, type FakeTurn, type GenerateRequest } from '@apogee/ai';
-import { isoDate, ref } from '@apogee/kernel';
+import { createToolRegistry, type ToolResult } from '@de_canter/apogee-agent';
+import { createFakeModelClient, type FakeTurn, type GenerateRequest } from '@de_canter/apogee-ai';
+import { isoDate, ref } from '@de_canter/apogee-kernel';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { createInMemoryRuleAudit } from '../audit';

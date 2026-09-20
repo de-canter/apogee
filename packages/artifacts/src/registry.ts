@@ -1,4 +1,4 @@
-import type { ArtifactDescriptor } from '@apogee/agent';
+import type { ArtifactDescriptor } from '@de_canter/apogee-agent';
 import { createContext, createElement, useContext, type ComponentType, type ReactNode } from 'react';
 
 export type ArtifactActionHandler = (actionType: string, data?: Record<string, unknown>, message?: string) => void;
