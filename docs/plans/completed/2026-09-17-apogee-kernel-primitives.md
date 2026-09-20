@@ -841,7 +841,7 @@ describe('Identifier', () => {
   });
   it('carries issuer and validity and stays JSON-safe', () => {
     const id = identifier('apn', '1', { issuer: 'County Appraisal District', validFrom: '2024-01-01T00:00:00.000Z' });
-    expect(id.issuer).toBe('Collin CAD');
+    expect(id.issuer).toBe('County Appraisal District');
     expect(JSON.parse(JSON.stringify(id))).toEqual(id);
   });
 });
