@@ -34,4 +34,10 @@ describe('createInMemoryExecutionAudit', () => {
     expect((await audit.health('GEOCODE'))[0]).toMatchObject({ total: 1, successRate: 1, avgLatencyMs: 50 });
     expect(await audit.health('NONE')).toEqual([]);
   });
+
+  it('measures the health window against the injected now when no clock is given', async () => {
+    const audit = createInMemoryExecutionAudit({ now: () => isoDate('2020-01-01T12:00:00Z') });
+    await audit.record(rec({}));
+    expect((await audit.health('YARD_WEATHER'))[0]).toMatchObject({ total: 1, success: 1 });
+  });
 });
