@@ -10,6 +10,7 @@ on:
         type: string
 permissions:
   contents: write
+  id-token: write
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -29,7 +30,7 @@ jobs:
       - uses: pnpm/action-setup@v4
         with: { version: 9.15.9 }
       - uses: actions/setup-node@v4
-        with: { node-version: 22, cache: pnpm }
+        with: { node-version: 22, cache: pnpm, registry-url: 'https://registry.npmjs.org' }
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - name: Pack
@@ -37,6 +38,14 @@ jobs:
           mkdir -p release
           pnpm -C "packages/${{ steps.tag.outputs.name }}" pack --pack-destination ../../release
           ls -la release
+      - name: Publish to npm
+        # Needs the NPM_TOKEN repo secret (a granular token with publish rights on @de_canter).
+        # Skipped when the secret is absent so the tarball release still happens.
+        if: env.NODE_AUTH_TOKEN != ''
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          pnpm -C "packages/${{ steps.tag.outputs.name }}" publish --access public --provenance --no-git-checks
       - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}

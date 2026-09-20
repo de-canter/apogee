@@ -8,6 +8,9 @@
     "url": "https://github.com/de-canter/apogee.git",
     "directory": "packages/kernel"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "description": "Apogee domain kernel: shared value objects, mixins, and entity categories",
   "type": "module",
   "main": "./dist/index.cjs",

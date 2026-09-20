@@ -36,10 +36,11 @@ What a reader will still see:
 - [x] `license: Apache-2.0`, `repository`, `homepage` in every package.json
 - [x] Packages renamed to `@de_canter/apogee-<name>`; every package bumped one
       minor version so the renamed tarballs get fresh tags
-- [ ] Create the `de_canter` org on npm **before merging the rename**. The
-      registry reports the scope as free and the name validates, but the org
-      form is the final word. Fallback: `@de-canter`, which matches the GitHub
-      org.
+- [x] `de_canter` org created on npm (2026-09-19)
+- [x] `publishConfig.access: public` in every package; `release.yml`
+      publishes with provenance when `NPM_TOKEN` is set
+- [ ] Add the `NPM_TOKEN` repo secret: a granular access token with
+      read/write on the `@de_canter` scope, bypassing 2FA for automation.
 - [ ] Decide where `.claude-shared/` and `scripts/` live. Options: leave them
       (public but harmless), or move them to a private ops repo and update the
       `@../apogee/.claude-shared/CLAUDE.md` import in each product repo.
@@ -55,7 +56,7 @@ The `@apogee` scope belongs to someone else (the org exists; the registry
 returns it), and the unscoped `apogee` name is taken too. Packages publish as
 `@de_canter/apogee-<name>`.
 
-Once the org exists: add `publishConfig.access: public` to each package,
-extend `release.yml` with `pnpm publish --provenance`, then replace the
-tarball install block on apogee.build and in `docs/consuming.md` with a
-normal install line.
+Tags publish in dependency order (kernel first, integrations last), since
+`pnpm publish` rewrites `workspace:*` to the real version and that version
+must already be on npm. After the first full round, replace the tarball
+install block on apogee.build with a normal install line.

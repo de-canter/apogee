@@ -8,6 +8,9 @@
     "url": "https://github.com/de-canter/apogee.git",
     "directory": "packages/knowledge"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "description": "Apogee knowledge: markdown chunking with stable ids, lexical and vector chunk stores with scopes and reingest, retrieval with citations, a prompt contributor",
   "type": "module",
   "main": "./dist/index.cjs",

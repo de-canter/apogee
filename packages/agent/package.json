@@ -8,6 +8,9 @@
     "url": "https://github.com/de-canter/apogee.git",
     "directory": "packages/agent"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "description": "Apogee agent session: tool loop, compaction, config memory, SSE encoding, and persistence ports",
   "type": "module",
   "main": "./dist/index.cjs",

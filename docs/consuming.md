@@ -70,5 +70,15 @@ the dependency and the override. apogee-build does this; see its
 
 ## npm
 
-Nothing is published to npm. If the `@apogee` scope is ever claimed, the
-same tags can publish there and the overrides block goes away.
+Packages publish to npm as `@de_canter/apogee-<name>` from the same tags:
+`release.yml` runs `pnpm publish --provenance` when the `NPM_TOKEN` repo
+secret is set. Once a package is on npm, the tarball URL and the overrides
+entry for it go away and a normal dependency works:
+
+```bash
+pnpm add @de_canter/apogee-kernel
+```
+
+Publish in dependency order (kernel, ai, prompts, agent, agent-react,
+artifacts, rules, documents-ai, knowledge, integrations): `pnpm publish`
+rewrites `workspace:*` to the real version, which must already be on npm.

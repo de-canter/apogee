@@ -8,6 +8,9 @@
     "url": "https://github.com/de-canter/apogee.git",
     "directory": "packages/ai"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "description": "Apogee model client: one client for every AI call, with vision, structured output, prompt caching, model roles, and usage accounting",
   "type": "module",
   "main": "./dist/index.cjs",
