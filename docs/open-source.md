@@ -2,7 +2,8 @@
 
 **Decision (2026-09-19):** the `de-canter/apogee` repo becomes public under
 Apache-2.0. de_canter LLC holds the copyright; Verve Technologies consumes the
-packages the same way anyone else will. The flip waits on the checklist below.
+packages the same way anyone else will. **Done 2026-09-20.** The checklist below
+is kept as the record of what it took.
 
 ## Audit (2026-09-19)
 
@@ -45,12 +46,13 @@ What a reader will still see:
 - [x] `.claude-shared/` and `scripts/` stay in the repo (public but harmless).
       Revisit if the harness grows product-specific.
 - [x] Every package tagged and released at its new version (2026-09-20).
-- [ ] apogee.build installs from npm and drops the vendored tarballs.
+- [x] apogee.build installs from npm and drops the vendored tarballs (2026-09-20).
 - [x] History rewritten with `git filter-repo` (2026-09-20) so no revision names
       the reference product or carries a local path, then pushed to a fresh
       repository. The original, with its pull-request history, stays private
       as `de-canter/apogee-archive`.
-- [ ] Flip visibility on GitHub. Confirm the license badge shows Apache-2.0.
+- [x] Public since 2026-09-20; GitHub detects Apache License 2.0. `NPM_TOKEN` re-set on
+      the fresh repo the same day, so provenance is on for the next tag.
 
 ## npm
 
