@@ -46,8 +46,10 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         # Run from inside the package: `pnpm -C <dir> publish` forwards the
         # directory to `npm publish` as a stray positional argument (EUSAGE).
+        # npm accepts a provenance statement only from a public source repo
+        # (E422 otherwise), so the flag follows the repo's visibility.
         working-directory: packages/${{ steps.tag.outputs.name }}
-        run: pnpm publish --access public --provenance --no-git-checks
+        run: pnpm publish --access public --no-git-checks ${{ github.event.repository.visibility == 'public' && '--provenance' || '' }}
       - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
