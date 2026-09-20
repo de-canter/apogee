@@ -12,7 +12,7 @@ the consumer where those versions come from.
 
 ## The block
 
-Declare every package you import directly. Add overrides for all nine so the
+Declare every package you import directly. Add overrides for all ten so the
 transitive `@apogee/*` versions resolve to tarballs instead of a registry.
 
 ```jsonc
@@ -21,6 +21,7 @@ transitive `@apogee/*` versions resolve to tarballs instead of a registry.
     "@apogee/rules": "https://github.com/de-canter/apogee/releases/download/rules-v0.1.0/apogee-rules-0.1.0.tgz",
     "@apogee/documents-ai": "https://github.com/de-canter/apogee/releases/download/documents-ai-v0.1.0/apogee-documents-ai-0.1.0.tgz",
     "@apogee/knowledge": "https://github.com/de-canter/apogee/releases/download/knowledge-v0.1.0/apogee-knowledge-0.1.0.tgz",
+    "@apogee/integrations": "https://github.com/de-canter/apogee/releases/download/integrations-v0.1.0/apogee-integrations-0.1.0.tgz",
     "@apogee/agent": "https://github.com/de-canter/apogee/releases/download/agent-v0.1.0/apogee-agent-0.1.0.tgz",
     "@apogee/agent-react": "https://github.com/de-canter/apogee/releases/download/agent-react-v0.1.0/apogee-agent-react-0.1.0.tgz",
     "@apogee/artifacts": "https://github.com/de-canter/apogee/releases/download/artifacts-v0.1.0/apogee-artifacts-0.1.0.tgz",
@@ -38,7 +39,8 @@ transitive `@apogee/*` versions resolve to tarballs instead of a registry.
       "@apogee/artifacts": "https://github.com/de-canter/apogee/releases/download/artifacts-v0.1.0/apogee-artifacts-0.1.0.tgz",
       "@apogee/rules": "https://github.com/de-canter/apogee/releases/download/rules-v0.1.0/apogee-rules-0.1.0.tgz",
       "@apogee/documents-ai": "https://github.com/de-canter/apogee/releases/download/documents-ai-v0.1.0/apogee-documents-ai-0.1.0.tgz",
-      "@apogee/knowledge": "https://github.com/de-canter/apogee/releases/download/knowledge-v0.1.0/apogee-knowledge-0.1.0.tgz"
+      "@apogee/knowledge": "https://github.com/de-canter/apogee/releases/download/knowledge-v0.1.0/apogee-knowledge-0.1.0.tgz",
+      "@apogee/integrations": "https://github.com/de-canter/apogee/releases/download/integrations-v0.1.0/apogee-integrations-0.1.0.tgz"
     }
   }
 }
