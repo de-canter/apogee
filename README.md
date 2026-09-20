@@ -21,6 +21,7 @@ Private repo. © de|canter LLC.
 | [`@apogee/rules`](packages/rules) | 0.1.0 | Natural-language business rules: host-declared condition dimensions, parsing into assertions, validation, conflict detection, two-layer evaluation, prompt compilation, audit |
 | [`@apogee/documents-ai`](packages/documents-ai) | 0.1.0 | Classify, extract, confirm: host taxonomy and per-type Zod schemas, every claim an assertion with confidence, corrections and an audit sink, cross-document reconciliation, a staged resumable pipeline |
 | [`@apogee/knowledge`](packages/knowledge) | 0.1.0 | Retrieval: markdown chunking with stable ids, lexical and vector chunk stores with scopes and reingest, excerpts with citations as a prompt contributor |
+| [`@apogee/integrations`](packages/integrations) | 0.1.0 | No-code REST patterns: templates over the host context with vault secrets, five auth methods, rate limit, circuit breaker, retry, dead letters with replay, drift detection, inbound webhooks with classification, admin tools |
 
 Each package README has its surface table, guarantees, and an example.
 
