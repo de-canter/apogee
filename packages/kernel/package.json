@@ -1,8 +1,17 @@
 {
-  "name": "@apogee/kernel",
-  "version": "0.1.0",
+  "name": "@de_canter/apogee-kernel",
+  "version": "0.2.0",
+  "license": "Apache-2.0",
+  "homepage": "https://apogee.build",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/de-canter/apogee.git",
+    "directory": "packages/kernel"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "description": "Apogee domain kernel: shared value objects, mixins, and entity categories",
-  "license": "UNLICENSED",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",

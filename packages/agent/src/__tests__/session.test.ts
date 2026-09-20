@@ -1,6 +1,6 @@
-import { createFakeModelClient, AiError, type SystemBlock } from '@apogee/ai';
-import { isoDate } from '@apogee/kernel';
-import { definePrompt, fromContext, slot, text } from '@apogee/prompts';
+import { createFakeModelClient, AiError, type SystemBlock } from '@de_canter/apogee-ai';
+import { isoDate } from '@de_canter/apogee-kernel';
+import { definePrompt, fromContext, slot, text } from '@de_canter/apogee-prompts';
 import { describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import type { AgentEvent } from '../events';

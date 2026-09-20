@@ -1,6 +1,6 @@
 import { createHmac } from 'node:crypto';
-import { createFakeModelClient, type SystemBlock } from '@apogee/ai';
-import { isoDate, ref } from '@apogee/kernel';
+import { createFakeModelClient, type SystemBlock } from '@de_canter/apogee-ai';
+import { isoDate, ref } from '@de_canter/apogee-kernel';
 import { describe, expect, it } from 'vitest';
 import { createInMemoryExecutionAudit } from '../audit';
 import { classifyInbound, createInMemoryCorrelationStore, matchInbound, receiveWebhook, verifySender, type InboundDeps, type SenderConfig } from '../inbound';

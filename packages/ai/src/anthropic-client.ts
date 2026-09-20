@@ -1,5 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { nowIso } from '@apogee/kernel';
+import { nowIso } from '@de_canter/apogee-kernel';
 import { z } from 'zod';
 import { createCatalog, type ModelCatalog, type ModelId } from './catalog';
 import { AiError, RefusalError, StructuredOutputError, mapSdkError } from './errors';

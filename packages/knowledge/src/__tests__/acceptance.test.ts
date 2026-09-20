@@ -1,6 +1,6 @@
 /** Two policy files, a hybrid store, a prompt slot filled with cited excerpts, and an answer with citations. */
-import { createFakeModelClient } from '@apogee/ai';
-import { composePrompt, definePrompt, slot, text } from '@apogee/prompts';
+import { createFakeModelClient } from '@de_canter/apogee-ai';
+import { composePrompt, definePrompt, slot, text } from '@de_canter/apogee-prompts';
 import { describe, expect, it } from 'vitest';
 import { chunkMarkdown } from '../chunk';
 import { createHashEmbedder, createHybridChunkStore, createVectorChunkStore } from '../embedding';

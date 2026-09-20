@@ -1,4 +1,4 @@
-import { isoDate } from '@apogee/kernel';
+import { isoDate } from '@de_canter/apogee-kernel';
 import { describe, expect, it, vi } from 'vitest';
 import { createCatalog } from '../catalog';
 import { createUsageLedger, usageFromSdk } from '../usage';

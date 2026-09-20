@@ -1,4 +1,4 @@
-import type { ToolDefinition } from '@apogee/ai';
+import type { ToolDefinition } from '@de_canter/apogee-ai';
 import { z } from 'zod';
 
 /** A UI component descriptor returned by a tool. The host registers a component per `type`. */

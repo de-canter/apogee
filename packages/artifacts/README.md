@@ -1,4 +1,4 @@
-# @apogee/artifacts
+# @de_canter/apogee-artifacts
 
 Tool results as UI. A tool returns an `ArtifactDescriptor` (`{ type, id, data, props? }`);
 the host registers one React component per `type`; the renderer looks it up;

@@ -1,8 +1,17 @@
 {
-  "name": "@apogee/knowledge",
-  "version": "0.1.0",
+  "name": "@de_canter/apogee-knowledge",
+  "version": "0.2.0",
+  "license": "Apache-2.0",
+  "homepage": "https://apogee.build",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/de-canter/apogee.git",
+    "directory": "packages/knowledge"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "description": "Apogee knowledge: markdown chunking with stable ids, lexical and vector chunk stores with scopes and reingest, retrieval with citations, a prompt contributor",
-  "license": "UNLICENSED",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -30,9 +39,9 @@
     "lint": "eslint src"
   },
   "dependencies": {
-    "@apogee/ai": "workspace:*",
-    "@apogee/kernel": "workspace:*",
-    "@apogee/prompts": "workspace:*",
+    "@de_canter/apogee-ai": "workspace:*",
+    "@de_canter/apogee-kernel": "workspace:*",
+    "@de_canter/apogee-prompts": "workspace:*",
     "zod": "^4.0.0"
   },
   "devDependencies": {

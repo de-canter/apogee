@@ -1,4 +1,4 @@
-import { nowIso, sameRef, type ISODate, type Ref } from '@apogee/kernel';
+import { nowIso, sameRef, type ISODate, type Ref } from '@de_canter/apogee-kernel';
 
 /** One rule firing: which rule, in what context, what the assistant did, and what the user chose. */
 export interface RuleAuditEntry {

@@ -26,13 +26,13 @@ importers:
 
   packages/agent:
     dependencies:
-      '@apogee/ai':
+      '@de_canter/apogee-ai':
         specifier: workspace:*
         version: link:../ai
-      '@apogee/kernel':
+      '@de_canter/apogee-kernel':
         specifier: workspace:*
         version: link:../kernel
-      '@apogee/prompts':
+      '@de_canter/apogee-prompts':
         specifier: workspace:*
         version: link:../prompts
       zod:
@@ -57,17 +57,17 @@ importers:
 
   packages/agent-react:
     dependencies:
-      '@apogee/agent':
+      '@de_canter/apogee-agent':
         specifier: workspace:*
         version: link:../agent
-      '@apogee/ai':
+      '@de_canter/apogee-ai':
         specifier: workspace:*
         version: link:../ai
-      '@apogee/kernel':
+      '@de_canter/apogee-kernel':
         specifier: workspace:*
         version: link:../kernel
     devDependencies:
-      '@apogee/prompts':
+      '@de_canter/apogee-prompts':
         specifier: workspace:*
         version: link:../prompts
       '@testing-library/jest-dom':
@@ -112,7 +112,7 @@ importers:
       '@anthropic-ai/sdk':
         specifier: ^0.126.0
         version: 0.126.0(zod@4.6.5)
-      '@apogee/kernel':
+      '@de_canter/apogee-kernel':
         specifier: workspace:*
         version: link:../kernel
       zod:
@@ -137,10 +137,10 @@ importers:
 
   packages/artifacts:
     dependencies:
-      '@apogee/agent':
+      '@de_canter/apogee-agent':
         specifier: workspace:*
         version: link:../agent
-      '@apogee/kernel':
+      '@de_canter/apogee-kernel':
         specifier: workspace:*
         version: link:../kernel
     devDependencies:
@@ -180,13 +180,13 @@ importers:
 
   packages/documents-ai:
     dependencies:
-      '@apogee/ai':
+      '@de_canter/apogee-ai':
         specifier: workspace:*
         version: link:../ai
-      '@apogee/kernel':
+      '@de_canter/apogee-kernel':
         specifier: workspace:*
         version: link:../kernel
-      '@apogee/prompts':
+      '@de_canter/apogee-prompts':
         specifier: workspace:*
         version: link:../prompts
       zod:
@@ -211,16 +211,16 @@ importers:
 
   packages/integrations:
     dependencies:
-      '@apogee/agent':
+      '@de_canter/apogee-agent':
         specifier: workspace:*
         version: link:../agent
-      '@apogee/ai':
+      '@de_canter/apogee-ai':
         specifier: workspace:*
         version: link:../ai
-      '@apogee/kernel':
+      '@de_canter/apogee-kernel':
         specifier: workspace:*
         version: link:../kernel
-      '@apogee/prompts':
+      '@de_canter/apogee-prompts':
         specifier: workspace:*
         version: link:../prompts
       zod:
@@ -264,13 +264,13 @@ importers:
 
   packages/knowledge:
     dependencies:
-      '@apogee/ai':
+      '@de_canter/apogee-ai':
         specifier: workspace:*
         version: link:../ai
-      '@apogee/kernel':
+      '@de_canter/apogee-kernel':
         specifier: workspace:*
         version: link:../kernel
-      '@apogee/prompts':
+      '@de_canter/apogee-prompts':
         specifier: workspace:*
         version: link:../prompts
       zod:
@@ -299,7 +299,7 @@ importers:
         specifier: ^4.0.0
         version: 4.6.5
     devDependencies:
-      '@apogee/ai':
+      '@de_canter/apogee-ai':
         specifier: workspace:*
         version: link:../ai
       '@types/node':
@@ -320,16 +320,16 @@ importers:
 
   packages/rules:
     dependencies:
-      '@apogee/agent':
+      '@de_canter/apogee-agent':
         specifier: workspace:*
         version: link:../agent
-      '@apogee/ai':
+      '@de_canter/apogee-ai':
         specifier: workspace:*
         version: link:../ai
-      '@apogee/kernel':
+      '@de_canter/apogee-kernel':
         specifier: workspace:*
         version: link:../kernel
-      '@apogee/prompts':
+      '@de_canter/apogee-prompts':
         specifier: workspace:*
         version: link:../prompts
       zod:

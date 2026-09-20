@@ -1,14 +1,14 @@
 # Apogee AI Abstractions — Design Spec
 
-**Status:** Design spec (source of truth for the `@apogee/ai*`, `@apogee/agent*`, `@apogee/rules`, `@apogee/documents-ai`, `@apogee/knowledge`, `@apogee/integrations` packages and the apogee.build showcase)
+**Status:** Design spec (source of truth for the `@de_canter/apogee-ai*`, `@de_canter/apogee-agent*`, `@de_canter/apogee-rules`, `@de_canter/apogee-documents-ai`, `@de_canter/apogee-knowledge`, `@de_canter/apogee-integrations` packages and the apogee.build showcase)
 **Created:** 2026-09-17
 **Owner:** Jeff Canter
 **Origin:** Conversation 2026-09-17 following the kernel ontology (`kernel-ontology.md`); two code surveys of the reference product (`apps/api/src/chat`, `services/*`, `apogee/*`) on the same day.
-**Relationship to the kernel:** This is Track B. Track A is the kernel (`kernel-ontology.md`, Phase 1 shipped as `@apogee/kernel` v0.1.0). Track B depends on kernel Phase 1 (`Ref`, `ISODate`, `Provenance`, `Assertion`, `Lifecycle`) and on nothing from kernel Phase 2.
+**Relationship to the kernel:** This is Track B. Track A is the kernel (`kernel-ontology.md`, Phase 1 shipped as `@de_canter/apogee-kernel` v0.1.0). Track B depends on kernel Phase 1 (`Ref`, `ISODate`, `Provenance`, `Assertion`, `Lifecycle`) and on nothing from kernel Phase 2.
 
 ## 1. Purpose
 
-the reference product has the most complete AI functionality of any Verve product: an
+The reference product has the most complete AI functionality of any Verve product: an
 agentic chat with ~95 tools and 42 artifact cards, an admin assistant that
 configures the system through conversation, a natural-language behavior
 engine, a document classify-and-extract pipeline with confidence and human
@@ -23,11 +23,11 @@ Almost none of it is reusable today. The survey found:
 | 16 production files bypass the package | Each constructs `new Anthropic()` itself because the package lacks vision, structured output, and prompt caching. |
 | Model selection is scattered | Two registry entries (`ai.defaultModel`, `ai.visionModel`), six private fallbacks, several hardcoded IDs; the chat default model is not in the cost table so every request is costed at $0. |
 | Prompts have six storage idioms | TS constants, a composer, a `Record<docType, string>`, inline literals, DB free-text compiled at runtime, retrieved chunks. No registry, no versioning, no evals. |
-| The framework package leaks the domain | `OrderContext` (order number, sale price, closing date, C3 pipeline summary) lives inside `@apogee/ai-integration`. |
+| The framework package leaks the domain | `OrderContext` (order number, sale price, closing date, C3 pipeline summary) lives inside `@de_canter/apogee-ai-integration`. |
 
 Track B extracts the *mechanisms* into product-agnostic packages in this
 repo, leaves every domain vocabulary in the product, proves each package
-against the the reference product use cases it came from, and showcases each one as a
+against the reference product's use cases it came from, and showcases each one as a
 live demo on apogee.build.
 
 ## 2. Rules (apply to every package in this track)
@@ -48,7 +48,7 @@ live demo on apogee.build.
    `source.kind = 'ai'`, a confidence, and a `proposed` status. Confirmation
    is the host's decision and is recorded.
 4. **One model client.** No package and no host constructs the Anthropic SDK
-   client directly. Everything goes through `@apogee/ai`. That is the whole
+   client directly. Everything goes through `@de_canter/apogee-ai`. That is the whole
    point of the first package.
 5. **Every prompt is registered.** Prompts have a name, a version, and
    sections; they are composed, not concatenated inline. This makes prompt
@@ -59,9 +59,9 @@ live demo on apogee.build.
 ## 3. Package map
 
 ```
-@apogee/kernel  (Track A) ──────────────────────────────────────────┐
+@de_canter/apogee-kernel  (Track A) ──────────────────────────────────────────┐
                                                                      │
-@apogee/ai ─────────┬──────────────┬───────────────┬────────────────┤
+@de_canter/apogee-ai ─────────┬──────────────┬───────────────┬────────────────┤
   provider client   │              │               │                │
   models/cost       │              │               │                │
   structured output │              │               │                │
@@ -69,25 +69,25 @@ live demo on apogee.build.
   prompt caching    │              │               │                │
   streaming events  │              │               │                │
                     │              │               │                │
-@apogee/prompts ────┤              │               │                │
+@de_canter/apogee-prompts ────┤              │               │                │
   registry/compose  │              │               │                │
                     ▼              ▼               ▼                ▼
-             @apogee/agent   @apogee/rules   @apogee/documents-ai  @apogee/integrations
+             @de_canter/apogee-agent   @de_canter/apogee-rules   @de_canter/apogee-documents-ai  @de_canter/apogee-integrations
                tool loop      NL→rule          classify/extract     patterns/execution
                SSE protocol   validate         confidence           resilience
                compaction     evaluate         corrections          AI post-process
                config memory  audit            audit                inbound classify
                     │
-                    ├── @apogee/agent-react   (client hooks, SSE decoder, chat UI shells)
-                    └── @apogee/artifacts     (tool-result-as-UI protocol, renderer registry, actions)
+                    ├── @de_canter/apogee-agent-react   (client hooks, SSE decoder, chat UI shells)
+                    └── @de_canter/apogee-artifacts     (tool-result-as-UI protocol, renderer registry, actions)
 
-             @apogee/knowledge  (chunking, retrieval port, embedding port, prompt injection) → used by agent
+             @de_canter/apogee-knowledge  (chunking, retrieval port, embedding port, prompt injection) → used by agent
 ```
 
 Nine packages. Each is small enough to hold in context, has one purpose,
 and maps to one section and one live demo on apogee.build.
 
-### 3.1 `@apogee/ai` — model client
+### 3.1 `@de_canter/apogee-ai` — model client
 
 The replacement for the 16 direct SDK constructions. Anthropic is the only
 implemented provider; the interface admits others.
@@ -106,7 +106,7 @@ implemented provider; the interface admits others.
 
 Salvage from `apogee/ai-integration`: the provider interface idea and the token-tracker math. Everything else is replaced.
 
-### 3.2 `@apogee/prompts` — prompt registry
+### 3.2 `@de_canter/apogee-prompts` — prompt registry
 
 Greenfield. Replaces six idioms with one.
 
@@ -115,7 +115,7 @@ Greenfield. Replaces six idioms with one.
 - Prompts are plain objects, so a product can store overrides in its database and merge them.
 - `evalPrompt(prompt, cases, judge)` scaffold: run cases through a client, score with a rubric or an LLM judge, emit a report. Minimal in this track; exists so prompts have a home for tests.
 
-### 3.3 `@apogee/agent` — agentic session
+### 3.3 `@de_canter/apogee-agent` — agentic session
 
 Generic `ChatSession`, lifted and fixed.
 
@@ -128,31 +128,31 @@ Generic `ChatSession`, lifted and fixed.
 - Ports: `SessionStore`, `MessageStore`, `MemoryPort`, `TelemetrySink` (tool timing, context changes). In-memory implementations included.
 - The admin assistant is a **composition**, not a package: an `AgentSession` with the config-tool families and the memory port. The tool families that need entity models (users, org, workflows, task templates, fees) arrive with kernel Phase 2. The showcase demonstrates the composition on the demo domain.
 
-### 3.4 `@apogee/agent-react` — client
+### 3.4 `@de_canter/apogee-agent-react` — client
 
 - `useAgentSession({ endpoint, sessionId })`: sends messages, decodes SSE frames into state, tracks tool activity, exposes `sendMessage`, `messages`, `streaming`, `usage`.
 - Unstyled UI shells with slots: `MessageList`, `Composer`, `ToolActivity`, `ContextMeter`. Products style them; the showcase styles them once.
 - Generalized from `use-chat-orchestrator` and the chat components.
 
-### 3.5 `@apogee/artifacts` — tool results as UI
+### 3.5 `@de_canter/apogee-artifacts` — tool results as UI
 
 - Server side: `artifact(type, id, data, props?)` helper for tools; the `artifact` `AgentEvent`.
 - Client side: `ArtifactRegistry` mapping `type → React component`; `<ArtifactRenderer>` that looks up the registry; `useArtifactActions` that turns a card interaction into the next agent message with a typed `artifactAction` payload; `useArtifactEvents` for batched interaction telemetry.
 - The host registers its cards. The framework ships none, except the showcase's demo cards.
 
-### 3.6 `@apogee/rules` — natural-language behavior engine
+### 3.6 `@de_canter/apogee-rules` — natural-language behavior engine
 
 Lift of E11. The cleanest extraction in the repo.
 
 - `Rule` shape: id, name, category, `conditions` (typed by the host's **condition dimensions**), instruction, suggested actions, default action, gate, structured checks, priority, enabled, version, scope, provenance.
 - `defineDimensions({ documentType: z.enum([...]), status: ..., ... })`: the host declares what a rule can condition on. The parser prompt, validator, and evaluator are generated from it. This removes the only title coupling.
 - `parseRule(text)` returns a kernel `Assertion` whose object is a `Rule` and whose provenance carries confidence and ambiguities; the admin confirms it.
-- `validateRule`, `detectConflicts(rules)`, `suggestRules(auditLog)`: LLM-backed, through `@apogee/ai` with registered prompts.
+- `validateRule`, `detectConflicts(rules)`, `suggestRules(auditLog)`: LLM-backed, through `@de_canter/apogee-ai` with registered prompts.
 - `evaluate(rule, facts)`: structured checks first (deterministic, no model), then the LLM instruction if the checks pass and it is enabled. Returns a typed result with which layer decided.
 - `compileRulesSection(rules, context)`: the prompt-registry contributor that injects matching rules into an agent's system prompt.
 - `simulate(rule, scenarios)`, `RuleAudit` sink, `RuleStore` port with the DB-first, file-fallback loader pattern.
 
-### 3.7 `@apogee/documents-ai` — classify, extract, confirm
+### 3.7 `@de_canter/apogee-documents-ai` — classify, extract, confirm
 
 Lift of the E19 pipeline mechanism.
 
@@ -164,7 +164,7 @@ Lift of the E19 pipeline mechanism.
 - `reconcile(extractions[])`: cross-document field reconciliation with a conflict report.
 - The staged, resumable pipeline runner and `ConfidenceScore { value, level, factors }` from the examination engine are extracted here as `Pipeline` and `Confidence`, since document work is the natural home. The examination engine itself stays in the reference product.
 
-### 3.8 `@apogee/knowledge` — retrieval
+### 3.8 `@de_canter/apogee-knowledge` — retrieval
 
 - `chunkMarkdown(source)`: heading-split then size-split, content hash, stable ids.
 - `ChunkStore` port with `upsert`, `search(query, { scope })`; in-memory lexical implementation.
@@ -172,15 +172,15 @@ Lift of the E19 pipeline mechanism.
 - `retrieveSection(query)`: the prompt-registry contributor that injects retrieved chunks with citations.
 - Role scoping on chunks (`user`, `admin`, `platform`), matching E28.
 
-### 3.9 `@apogee/integrations` — no-code REST patterns
+### 3.9 `@de_canter/apogee-integrations` — no-code REST patterns
 
 Lift of E21 to E25 with minimal change.
 
 - `IntegrationPattern` schema as-is (direction, trigger, request template, auth method, response mapping, transforms, inbound config, AI post-processing).
 - `executePattern(pattern, input)` with rate limit, circuit breaker, retry, dead letter, schema drift detection, execution audit.
-- AI post-processing and inbound payload classification go through `@apogee/ai` with registered prompts; the classification result is an `Assertion`.
+- AI post-processing and inbound payload classification go through `@de_canter/apogee-ai` with registered prompts; the classification result is an `Assertion`.
 - `VaultPort` for credentials; five auth methods.
-- Admin tools (`create`, `test`, `approve`, `pause`, `trace`, `health`) exported as a `Tool<TContext>[]` for `@apogee/agent`.
+- Admin tools (`create`, `test`, `approve`, `pause`, `trace`, `health`) exported as a `Tool<TContext>[]` for `@de_canter/apogee-agent`.
 
 ## 4. What stays behind, and why
 
@@ -191,7 +191,7 @@ Lift of E21 to E25 with minimal change.
 | `apogee/workflow-engine` | Zero consumers, zero tests, two unused heavy dependencies. Not extracted in this track. Kernel Lifecycle plus a future executor supersedes it. |
 | `apogee/mcp-framework` | Not MCP (no protocol SDK). Out of scope for this track; revisit as a real MCP package later. |
 | `apogee/document-gen` | Rendering, not AI. Extract in its own track after it gets tests and loses the product's `DocumentCategory` enum. |
-| The QA agent | A parallel agent runtime. Once `@apogee/agent` exists, it is a candidate consumer, not a source. |
+| The QA agent | A parallel agent runtime. Once `@de_canter/apogee-agent` exists, it is a candidate consumer, not a source. |
 
 ## 5. apogee.build showcase
 
@@ -229,22 +229,22 @@ front-loads the piece that unblocks everything else.
 
 | Plan | Delivers | Depends on |
 |---|---|---|
-| B1 | `@apogee/ai` + `@apogee/prompts` | kernel v0.1.0 |
-| B2 | `@apogee/agent` + `@apogee/agent-react` + `@apogee/artifacts`; showcase: chat demo | B1 |
-| B3 | `@apogee/rules`; showcase: admin assistant demo (rules + memory) | B2 |
-| B4 | `@apogee/documents-ai` + `@apogee/knowledge`; showcase: document and knowledge demos | B1, B2 |
-| B5 | `@apogee/integrations`; showcase: integration demo | B2 |
+| B1 | `@de_canter/apogee-ai` + `@de_canter/apogee-prompts` | kernel v0.1.0 |
+| B2 | `@de_canter/apogee-agent` + `@de_canter/apogee-agent-react` + `@de_canter/apogee-artifacts`; showcase: chat demo | B1 |
+| B3 | `@de_canter/apogee-rules`; showcase: admin assistant demo (rules + memory) | B2 |
+| B4 | `@de_canter/apogee-documents-ai` + `@de_canter/apogee-knowledge`; showcase: document and knowledge demos | B1, B2 |
+| B5 | `@de_canter/apogee-integrations`; showcase: integration demo | B2 |
 | B6 | apogee.build restructure: generated package index, API reference, demo domain fixtures | can start alongside B1; demos land per plan |
 
-the reference product does not adopt any of this incrementally. The clean-room
+The reference product does not adopt any of this incrementally. The clean-room
 rewrite consumes Track A and Track B together once both are tagged.
 
 ## 7. Acceptance criteria for the track
 
-- Every one of the 16 bypass reasons is answerable by `@apogee/ai` alone (vision, PDF, structured output, caching, model roles, usage).
-- `@apogee/agent` reproduces the reference product's chat behavior on the demo domain: streaming, tools, artifacts, compaction, memory, with tests against the `FakeModelClient`.
-- `@apogee/rules` round-trips a natural-language rule to a confirmed `Rule` and evaluates it in both layers, with the condition dimensions supplied by the demo domain.
-- `@apogee/documents-ai` classifies and extracts a demo document, records a correction, and exposes it for eval.
+- Every one of the 16 bypass reasons is answerable by `@de_canter/apogee-ai` alone (vision, PDF, structured output, caching, model roles, usage).
+- `@de_canter/apogee-agent` reproduces the reference product's chat behavior on the demo domain: streaming, tools, artifacts, compaction, memory, with tests against the `FakeModelClient`.
+- `@de_canter/apogee-rules` round-trips a natural-language rule to a confirmed `Rule` and evaluates it in both layers, with the condition dimensions supplied by the demo domain.
+- `@de_canter/apogee-documents-ai` classifies and extracts a demo document, records a correction, and exposes it for eval.
 - Every package: strict TS, no `any`, tests with no network, 90% line coverage, dual build, consumable by git dependency.
 - apogee.build shows each package with a working demo and generated API docs, deployed on Vercel.
 
@@ -253,4 +253,4 @@ rewrite consumes Track A and Track B together once both are tagged.
 - No OpenAI or other provider implementation in this track; the interface admits one.
 - No fine-tuning, no training-data pipelines.
 - No multi-tenant runtime in the packages; tenancy is a host concern passed through context.
-- No migration of existing the reference product code paths onto these packages.
+- No migration of the reference product's existing code paths onto these packages.

@@ -1,6 +1,6 @@
-import type { ModelClient, ModelRole } from '@apogee/ai';
-import { nowIso, type ISODate } from '@apogee/kernel';
-import { composePrompt, definePrompt, text, toSystemBlocks } from '@apogee/prompts';
+import type { ModelClient, ModelRole } from '@de_canter/apogee-ai';
+import { nowIso, type ISODate } from '@de_canter/apogee-kernel';
+import { composePrompt, definePrompt, text, toSystemBlocks } from '@de_canter/apogee-prompts';
 import { newMessageId, type AgentMessage } from './messages';
 
 export const COMPACTION_PROMPT = definePrompt<Record<string, never>>({

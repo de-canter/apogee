@@ -1,4 +1,4 @@
-# Plan B1 — `@apogee/ai` + `@apogee/prompts` Implementation Plan
+# Plan B1 — `@de_canter/apogee-ai` + `@de_canter/apogee-prompts` Implementation Plan
 
 > **Outcome (2026-09-18):** Completed. Merged via de-canter/apogee#7, tagged `ai-v0.1.0` and `prompts-v0.1.0`. ai: 28 tests / 98% lines; prompts: 10 tests / 99%. Deviations: structured output validates response text with the caller's Zod schema instead of the SDK zod helper; refusal fallbacks not enabled (RefusalError surfaces to the agent layer); Tasks 4 and 5 landed as one commit. The live smoke script was not run (no credentials in session).
 
@@ -7,17 +7,17 @@
 **Created:** 2026-09-18
 **Origin:** `docs/design/ai-abstractions.md` §3.1 and §3.2, approved 2026-09-18. First plan of Track B.
 
-**Goal:** Ship `@apogee/ai` (the single model client every other package and product uses) and `@apogee/prompts` (the prompt registry and composer), both at v0.1.0, tested without network.
+**Goal:** Ship `@de_canter/apogee-ai` (the single model client every other package and product uses) and `@de_canter/apogee-prompts` (the prompt registry and composer), both at v0.1.0, tested without network.
 
-**Architecture:** `@apogee/ai` wraps `@anthropic-ai/sdk` behind a small provider-neutral surface: content blocks (text, image, document), `generate`, `generateObject` (structured output via `output_config.format`, validated with Zod), and `stream` (a normalized `ModelEvent` iterable). Models are requested by *role* and resolved by a host-supplied resolver; a catalog prices usage including cache tokens; a usage ledger records every call. The SDK client is injected so tests run against a fake. `@apogee/prompts` composes named, versioned prompts from sections, orders stable sections before volatile ones so the cache prefix is maximal, and exposes contributor slots that later packages (rules, knowledge, memory) fill.
+**Architecture:** `@de_canter/apogee-ai` wraps `@anthropic-ai/sdk` behind a small provider-neutral surface: content blocks (text, image, document), `generate`, `generateObject` (structured output via `output_config.format`, validated with Zod), and `stream` (a normalized `ModelEvent` iterable). Models are requested by *role* and resolved by a host-supplied resolver; a catalog prices usage including cache tokens; a usage ledger records every call. The SDK client is injected so tests run against a fake. `@de_canter/apogee-prompts` composes named, versioned prompts from sections, orders stable sections before volatile ones so the cache prefix is maximal, and exposes contributor slots that later packages (rules, knowledge, memory) fill.
 
-**Tech Stack:** TypeScript 5.x strict, Zod 4, `@anthropic-ai/sdk` ^0.126, Vitest 4, tsup. Same workspace as `@apogee/kernel`.
+**Tech Stack:** TypeScript 5.x strict, Zod 4, `@anthropic-ai/sdk` ^0.126, Vitest 4, tsup. Same workspace as `@de_canter/apogee-kernel`.
 
 **Spec:** `docs/design/ai-abstractions.md` (read §2 rules and §3.1–3.2 before any task). API facts used here come from the Claude API skill on 2026-09-18: structured outputs are `output_config: { format: { type: 'json_schema', schema } }` and `client.messages.parse`; adaptive thinking is `thinking: { type: 'adaptive' }` and effort is `output_config.effort`; prompt caching is `cache_control: { type: 'ephemeral' }` on system blocks and tool definitions with usage reported as `cache_creation_input_tokens` / `cache_read_input_tokens`; streaming client tools set `eager_input_streaming: true` and the client must validate parsed input; forced `tool_choice` is rejected on Fable 5.1, so structured output never uses tool forcing; assistant prefill is rejected on all current models.
 
 ## Global Constraints
 
-- Packages: `@apogee/ai` at `packages/ai`, `@apogee/prompts` at `packages/prompts`. Both `"type": "module"`, tsup ESM+CJS, `prepare: tsup`, same `tsconfig.json`/`tsup.config.ts`/`vitest.config.ts` shape as `packages/kernel`.
+- Packages: `@de_canter/apogee-ai` at `packages/ai`, `@de_canter/apogee-prompts` at `packages/prompts`. Both `"type": "module"`, tsup ESM+CJS, `prepare: tsup`, same `tsconfig.json`/`tsup.config.ts`/`vitest.config.ts` shape as `packages/kernel`.
 - Zero network in tests. The SDK client is injected through a structural `AnthropicLike` interface; tests pass hand-built fakes.
 - No package or host may construct `new Anthropic()` except `createAnthropicModelClient` in `packages/ai/src/anthropic-client.ts`.
 - Model IDs are never hardcoded outside `packages/ai/src/catalog.ts`. Everything else asks for a role.
@@ -58,7 +58,7 @@ packages/prompts/
 
 ---
 
-### Task 1: `@apogee/ai` package skeleton, model catalog, and roles
+### Task 1: `@de_canter/apogee-ai` package skeleton, model catalog, and roles
 
 **Files:**
 - Create: `packages/ai/package.json`, `packages/ai/tsconfig.json`, `packages/ai/tsup.config.ts`, `packages/ai/vitest.config.ts`
@@ -73,7 +73,7 @@ packages/prompts/
 
 ```json
 {
-  "name": "@apogee/ai",
+  "name": "@de_canter/apogee-ai",
   "version": "0.1.0",
   "description": "Apogee model client: one client for every AI call, with vision, structured output, prompt caching, model roles, and usage accounting",
   "license": "UNLICENSED",
@@ -85,7 +85,7 @@ packages/prompts/
   "files": ["dist", "README.md"],
   "sideEffects": false,
   "scripts": { "prepare": "tsup", "build": "tsup", "dev": "tsup --watch", "clean": "rm -rf dist", "test": "vitest run", "test:watch": "vitest", "typecheck": "tsc --noEmit", "lint": "eslint src" },
-  "dependencies": { "@anthropic-ai/sdk": "^0.126.0", "@apogee/kernel": "workspace:*", "zod": "^4.0.0" },
+  "dependencies": { "@anthropic-ai/sdk": "^0.126.0", "@de_canter/apogee-kernel": "workspace:*", "zod": "^4.0.0" },
   "devDependencies": { "@vitest/coverage-v8": "^4.0.0", "tsup": "^8.0.0", "typescript": "^5.6.0", "vitest": "^4.0.0" }
 }
 ```
@@ -146,7 +146,7 @@ describe('model roles', () => {
 });
 ```
 
-Run: `pnpm --filter @apogee/ai test` → FAIL (modules missing).
+Run: `pnpm --filter @de_canter/apogee-ai test` → FAIL (modules missing).
 
 - [ ] **Step 3: Implement**
 
@@ -235,8 +235,8 @@ export function staticResolver(map: Readonly<Record<string, ModelId>>, fallback?
 
 `packages/ai/src/index.ts`: `export * from './catalog'; export * from './models';`
 
-- [ ] **Step 4: Verify** `pnpm --filter @apogee/ai test && pnpm typecheck && pnpm lint` → PASS.
-- [ ] **Step 5: Commit** `feat(ai): bootstrap @apogee/ai with model catalog and roles`
+- [ ] **Step 4: Verify** `pnpm --filter @de_canter/apogee-ai test && pnpm typecheck && pnpm lint` → PASS.
+- [ ] **Step 5: Commit** `feat(ai): bootstrap @de_canter/apogee-ai with model catalog and roles`
 
 ---
 
@@ -463,7 +463,7 @@ Add exports to `index.ts`: `types`, `errors`, `params`.
 - [ ] **Step 1: Failing test**
 
 ```ts
-import { isoDate } from '@apogee/kernel';
+import { isoDate } from '@de_canter/apogee-kernel';
 import { describe, expect, it, vi } from 'vitest';
 import { createCatalog } from '../catalog';
 import { createUsageLedger, usageFromSdk } from '../usage';
@@ -543,12 +543,12 @@ describe('usage', () => {
 - [ ] **Step 1: Failing test** covering all three operations, the function form of the script, running out of turns (throws `AiError('SCRIPT_EXHAUSTED')`), and `error` turns.
 - [ ] **Step 2: Implement.**
 - [ ] **Step 3: README** with the surface table (generate / generateObject / stream / roles / catalog / usage / errors / fake) and the "no `new Anthropic` anywhere else" rule.
-- [ ] **Step 4: Verify with coverage** `pnpm --filter @apogee/ai exec vitest run --coverage` ≥ 90% lines; `pnpm build` produces dist.
+- [ ] **Step 4: Verify with coverage** `pnpm --filter @de_canter/apogee-ai exec vitest run --coverage` ≥ 90% lines; `pnpm build` produces dist.
 - [ ] **Step 5: Commit** `feat(ai): add scripted FakeModelClient and README`
 
 ---
 
-### Task 7: `@apogee/prompts` — sections, compose, registry
+### Task 7: `@de_canter/apogee-prompts` — sections, compose, registry
 
 **Files:**
 - Create: `packages/prompts/{package.json,tsconfig.json,tsup.config.ts,vitest.config.ts}`, `packages/prompts/src/{prompt.ts,registry.ts,index.ts}`
@@ -558,7 +558,7 @@ describe('usage', () => {
 - Produces: `Section<TCtx> = { id: string; kind: 'text'; text: string; stable: boolean } | { id: string; kind: 'context'; render: (ctx: TCtx) => string | undefined; stable: boolean } | { id: string; kind: 'slot'; slot: string; stable: boolean }`; helpers `text(id, str, { stable = true })`, `fromContext(id, render, { stable = false })`, `slot(id, slotName, { stable = false })`.
 - `Prompt<TCtx> = { name: string; version: string; sections: Section<TCtx>[] }`, `definePrompt(p)`.
 - `Contributor<TCtx> = (ctx: TCtx) => string | undefined | Promise<string | undefined>`.
-- `composePrompt(prompt, ctx, { contributors?: Record<string, Contributor<TCtx>>, separator = '\n\n---\n\n' }): Promise<ComposedPrompt>` where `ComposedPrompt = { name; version; blocks: Array<{ id: string; text: string; cache: boolean }>; cacheBoundary: number }`. Rules: sections render in declaration order; empty renders are dropped; `cacheBoundary` = index of the first non-stable block (or `blocks.length`); every block before the boundary gets `cache: false` except the last one before the boundary which gets `cache: true` (a single breakpoint at the end of the stable prefix); blocks after get `cache: false`. A missing contributor for a slot drops the section. `toSystemBlocks(composed)` returns `{ text, cache }[]` compatible with `@apogee/ai`'s `SystemBlock` without importing it.
+- `composePrompt(prompt, ctx, { contributors?: Record<string, Contributor<TCtx>>, separator = '\n\n---\n\n' }): Promise<ComposedPrompt>` where `ComposedPrompt = { name; version; blocks: Array<{ id: string; text: string; cache: boolean }>; cacheBoundary: number }`. Rules: sections render in declaration order; empty renders are dropped; `cacheBoundary` = index of the first non-stable block (or `blocks.length`); every block before the boundary gets `cache: false` except the last one before the boundary which gets `cache: true` (a single breakpoint at the end of the stable prefix); blocks after get `cache: false`. A missing contributor for a slot drops the section. `toSystemBlocks(composed)` returns `{ text, cache }[]` compatible with `@de_canter/apogee-ai`'s `SystemBlock` without importing it.
 - Registry: `createPromptRegistry()` with `register(prompt)`, `get(name, version?)` (latest by semver-ish string compare when omitted), `list()`, `overrideSection(prompt, id, text)` returning a new prompt.
 
 - [ ] **Step 1: Failing tests**
@@ -567,7 +567,7 @@ describe('usage', () => {
 
 `registry.test.ts`: register `a@1.0.0`, `a@1.2.0`, get latest → 1.2.0; get explicit; unknown throws; `overrideSection` replaces text by id and leaves the original untouched.
 
-- [ ] **Step 2: Implement.** `packages/prompts` depends only on `zod` (for a `PromptSchema` to validate stored overrides) and nothing from `@apogee/ai`.
+- [ ] **Step 2: Implement.** `packages/prompts` depends only on `zod` (for a `PromptSchema` to validate stored overrides) and nothing from `@de_canter/apogee-ai`.
 - [ ] **Step 3: Verify, commit** `feat(prompts): add prompt sections, cache-aware compose, and registry`
 
 ---
@@ -575,12 +575,12 @@ describe('usage', () => {
 ### Task 8: Eval scaffold, READMEs, PR
 
 **Files:**
-- Create: `packages/prompts/src/eval.ts`, `packages/prompts/README.md`; Modify: `packages/prompts/src/index.ts`, `packages/prompts/package.json` (add `@apogee/ai` as a **peer** dependency, used only by `eval.ts` types); Test: `packages/prompts/src/__tests__/eval.test.ts`
+- Create: `packages/prompts/src/eval.ts`, `packages/prompts/README.md`; Modify: `packages/prompts/src/index.ts`, `packages/prompts/package.json` (add `@de_canter/apogee-ai` as a **peer** dependency, used only by `eval.ts` types); Test: `packages/prompts/src/__tests__/eval.test.ts`
 
 **Interfaces:**
 - Produces: `EvalCase<TCtx> = { id: string; ctx: TCtx; input: string; expect?: string }`, `Judge = (c: EvalCase<unknown>, output: string) => { score: number; notes?: string } | Promise<...>`, `includesJudge` (score 1 if `expect` is a substring, else 0), `evalPrompt(prompt, cases, { client: ModelClient; judge?: Judge; role?: ModelRole; contributors? })` → `{ prompt: { name, version }; cases: Array<{ id; output; score; notes?; usage }>; meanScore; totalCostUsd }`.
 
-- [ ] **Step 1: Failing test** using `createFakeModelClient` from `@apogee/ai` with two scripted turns; expect scores `[1, 0]`, `meanScore 0.5`, and that the fake's `calls[0].system` is the composed blocks.
+- [ ] **Step 1: Failing test** using `createFakeModelClient` from `@de_canter/apogee-ai` with two scripted turns; expect scores `[1, 0]`, `meanScore 0.5`, and that the fake's `calls[0].system` is the composed blocks.
 - [ ] **Step 2: Implement.**
 - [ ] **Step 3: README** for prompts (sections, boundary rule, contributors, overrides, eval).
 - [ ] **Step 4: Full verification** `pnpm typecheck && pnpm lint && pnpm build && pnpm test`; coverage ≥ 90% for both packages.

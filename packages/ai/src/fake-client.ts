@@ -1,4 +1,4 @@
-import { nowIso } from '@apogee/kernel';
+import { nowIso } from '@de_canter/apogee-kernel';
 import type { z } from 'zod';
 import { createCatalog } from './catalog';
 import type { RawUsage } from './catalog';

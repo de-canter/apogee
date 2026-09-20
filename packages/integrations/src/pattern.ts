@@ -1,4 +1,4 @@
-import { ISODateSchema, nowIso, ProvenanceSchema, RefSchema, type ISODate, type Provenance, type Ref } from '@apogee/kernel';
+import { ISODateSchema, nowIso, ProvenanceSchema, RefSchema, type ISODate, type Provenance, type Ref } from '@de_canter/apogee-kernel';
 import { z } from 'zod';
 import { IntegrationsError } from './errors';
 import { resolvePath } from './template';

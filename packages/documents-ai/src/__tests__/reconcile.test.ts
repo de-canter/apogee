@@ -1,4 +1,4 @@
-import { assertion, isoDate, ref } from '@apogee/kernel';
+import { assertion, isoDate, ref } from '@de_canter/apogee-kernel';
 import { describe, expect, it } from 'vitest';
 import { confidence } from '../confidence';
 import type { FieldAssertion } from '../extract';

@@ -1,4 +1,4 @@
-import { createFakeModelClient } from '@apogee/ai';
+import { createFakeModelClient } from '@de_canter/apogee-ai';
 import { describe, expect, it } from 'vitest';
 import { evalPrompt, includesJudge } from '../eval';
 import { definePrompt, fromContext, text } from '../prompt';

@@ -1,5 +1,5 @@
-import type { ModelClient, ModelRole, Usage } from '@apogee/ai';
-import { composePrompt, createPromptRegistry, definePrompt, fromContext, toSystemBlocks, type Contributor, type PromptRegistry } from '@apogee/prompts';
+import type { ModelClient, ModelRole, Usage } from '@de_canter/apogee-ai';
+import { composePrompt, createPromptRegistry, definePrompt, fromContext, toSystemBlocks, type Contributor, type PromptRegistry } from '@de_canter/apogee-prompts';
 import type { ChunkStore, ScoredChunk, SearchOptions } from './store';
 
 export interface RetrieveOptions extends SearchOptions {
@@ -85,7 +85,7 @@ export interface KnowledgeContributorOptions<TCtx> extends RetrieveOptions {
   when?: (query: string) => boolean;
 }
 
-/** A `@apogee/prompts` contributor: excerpts for the context's question, or nothing. */
+/** A `@de_canter/apogee-prompts` contributor: excerpts for the context's question, or nothing. */
 export function knowledgeContributor<TCtx>(opts: KnowledgeContributorOptions<TCtx>): Contributor<TCtx> {
   const { store, queryFromCtx, scopeFromCtx, when, ...retrieveOpts } = opts;
   const gate = when ?? isHelpQuery;

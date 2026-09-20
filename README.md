@@ -6,22 +6,22 @@ an agentic session, and natural-language business rules into things a
 product can compose. Every package is domain-agnostic; the product supplies
 the vocabulary. The live showcase is [apogee.build](https://apogee.build).
 
-Private repo. © de|canter LLC.
+Apache-2.0. © de_canter LLC (de|canter). See [`docs/open-source.md`](docs/open-source.md) for the path to public.
 
 ## Packages
 
 | Package | Version | What it is |
 |---|---|---|
-| [`@apogee/kernel`](packages/kernel) | 0.1.0 | Domain kernel: `Money`, `Quantity`, `Identifier`, `Interval`, `Provenance` and `Assertion`, `Lifecycle`, `Role`, `Classification` |
-| [`@apogee/ai`](packages/ai) | 0.2.0 | One model client for every AI call: vision and PDF input, Zod-validated structured output, prompt caching, model roles, priced usage, a scripted fake for tests |
-| [`@apogee/prompts`](packages/prompts) | 0.1.1 | Named, versioned prompts composed from sections with a cache-aware boundary and contributor slots |
-| [`@apogee/agent`](packages/agent) | 0.1.0 | The agentic session: bounded tool loop, one event stream that is also the SSE protocol, history compaction, bounded memory, persistence ports |
-| [`@apogee/agent-react`](packages/agent-react) | 0.1.0 | React client: SSE decoder, pure reducer, `useAgentSession`, unstyled chat shells |
-| [`@apogee/artifacts`](packages/artifacts) | 0.1.0 | Tool results as UI: a registry the host fills with components, a renderer, action dispatch, interaction telemetry |
-| [`@apogee/rules`](packages/rules) | 0.1.0 | Natural-language business rules: host-declared condition dimensions, parsing into assertions, validation, conflict detection, two-layer evaluation, prompt compilation, audit |
-| [`@apogee/documents-ai`](packages/documents-ai) | 0.1.0 | Classify, extract, confirm: host taxonomy and per-type Zod schemas, every claim an assertion with confidence, corrections and an audit sink, cross-document reconciliation, a staged resumable pipeline |
-| [`@apogee/knowledge`](packages/knowledge) | 0.1.0 | Retrieval: markdown chunking with stable ids, lexical and vector chunk stores with scopes and reingest, excerpts with citations as a prompt contributor |
-| [`@apogee/integrations`](packages/integrations) | 0.1.0 | No-code REST patterns: templates over the host context with vault secrets, five auth methods, rate limit, circuit breaker, retry, dead letters with replay, drift detection, inbound webhooks with classification, admin tools |
+| [`@de_canter/apogee-kernel`](packages/kernel) | 0.2.0 | Domain kernel: `Money`, `Quantity`, `Identifier`, `Interval`, `Provenance` and `Assertion`, `Lifecycle`, `Role`, `Classification` |
+| [`@de_canter/apogee-ai`](packages/ai) | 0.3.0 | One model client for every AI call: vision and PDF input, Zod-validated structured output, prompt caching, model roles, priced usage, a scripted fake for tests |
+| [`@de_canter/apogee-prompts`](packages/prompts) | 0.2.0 | Named, versioned prompts composed from sections with a cache-aware boundary and contributor slots |
+| [`@de_canter/apogee-agent`](packages/agent) | 0.2.0 | The agentic session: bounded tool loop, one event stream that is also the SSE protocol, history compaction, bounded memory, persistence ports |
+| [`@de_canter/apogee-agent-react`](packages/agent-react) | 0.2.0 | React client: SSE decoder, pure reducer, `useAgentSession`, unstyled chat shells |
+| [`@de_canter/apogee-artifacts`](packages/artifacts) | 0.2.0 | Tool results as UI: a registry the host fills with components, a renderer, action dispatch, interaction telemetry |
+| [`@de_canter/apogee-rules`](packages/rules) | 0.2.0 | Natural-language business rules: host-declared condition dimensions, parsing into assertions, validation, conflict detection, two-layer evaluation, prompt compilation, audit |
+| [`@de_canter/apogee-documents-ai`](packages/documents-ai) | 0.2.0 | Classify, extract, confirm: host taxonomy and per-type Zod schemas, every claim an assertion with confidence, corrections and an audit sink, cross-document reconciliation, a staged resumable pipeline |
+| [`@de_canter/apogee-knowledge`](packages/knowledge) | 0.2.0 | Retrieval: markdown chunking with stable ids, lexical and vector chunk stores with scopes and reingest, excerpts with citations as a prompt contributor |
+| [`@de_canter/apogee-integrations`](packages/integrations) | 0.2.0 | No-code REST patterns: templates over the host context with vault secrets, five auth methods, rate limit, circuit breaker, retry, dead letters with replay, drift detection, inbound webhooks with classification, admin tools |
 
 Each package README has its surface table, guarantees, and an example.
 
@@ -31,7 +31,7 @@ Each package README has its surface table, guarantees, and an example.
   dimensions, tool sets, artifact cards, identifier schemes: all come from the
   host as typed configuration. A package that ships a product's enum is wrong.
 - **One model client.** Nothing constructs the Anthropic SDK except
-  `@apogee/ai`. Packages ask for a model *role*; the host maps roles to models.
+  `@de_canter/apogee-ai`. Packages ask for a model *role*; the host maps roles to models.
 - **AI output enters as an `Assertion`.** Anything a model produces that a
   person might overrule carries `Provenance` with `source.kind = 'ai'`, a
   confidence, and a `proposed` status until the host confirms it.
@@ -44,8 +44,8 @@ Each package README has its surface table, guarantees, and an example.
 
 ## Using the packages
 
-Packages are distributed as tarballs attached to GitHub Releases, one release
-per `<name>-v<version>` tag. Because the repo is private, consumers vendor the
+Until the packages are on npm, they are distributed as tarballs attached to
+GitHub Releases, one release per `<name>-v<version>` tag. Consumers vendor the
 `.tgz` files and add `pnpm.overrides`; see [`docs/consuming.md`](docs/consuming.md).
 
 ## Working in this repo
@@ -75,3 +75,10 @@ tarball to a GitHub Release.
   holds what shipped, each with an outcome note.
 - [`docs/consuming.md`](docs/consuming.md): installing the packages elsewhere.
 - [`docs/TODO.md`](docs/TODO.md): the action list and the queue of plans.
+- [`docs/open-source.md`](docs/open-source.md): the audit and the remaining
+  steps before the repo goes public.
+- [`CONTRIBUTING.md`](CONTRIBUTING.md): how to propose changes.
+
+## License
+
+Apache License 2.0. See [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE).

@@ -86,7 +86,7 @@ export async function composePrompt<TCtx>(prompt: Prompt<TCtx>, ctx: TCtx, opts:
   return { name: prompt.name, version: prompt.version, blocks, cacheBoundary, text: blocks.map((b) => b.text).join(separator) };
 }
 
-/** Shape accepted by `@apogee/ai`'s `system` field, without importing it. */
+/** Shape accepted by `@de_canter/apogee-ai`'s `system` field, without importing it. */
 export function toSystemBlocks(composed: ComposedPrompt): Array<{ text: string; cache?: boolean }> {
   return composed.blocks.map((b) => (b.cache ? { text: b.text, cache: true } : { text: b.text }));
 }

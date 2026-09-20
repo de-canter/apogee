@@ -7,7 +7,7 @@
 **Created:** 2026-09-17
 **Origin:** Design conversation 2026-09-17 (Jeff + Claude); spec at `docs/design/kernel-ontology.md`.
 
-**Goal:** Ship `@apogee/kernel` v0.1.0 from this repo: the shared value objects and mixins (Ref, Money, Quantity, Identifier, Interval, Bitemporal, Provenance, Assertion, Lifecycle, Role, Relationship, Classification) as Zod schemas, TS types, and pure functions, proven against reference-domain acceptance tests.
+**Goal:** Ship `@de_canter/apogee-kernel` v0.1.0 from this repo: the shared value objects and mixins (Ref, Money, Quantity, Identifier, Interval, Bitemporal, Provenance, Assertion, Lifecycle, Role, Relationship, Classification) as Zod schemas, TS types, and pure functions, proven against reference-domain acceptance tests.
 
 **Architecture:** This repo becomes a pnpm + Turborepo workspace with `packages/kernel` as its first package. The kernel has zero persistence or HTTP dependencies; it exports schemas, types, and pure functions only, built dual ESM/CJS with tsup. Every stored shape is JSON-safe (ISO date strings, integer minor units, no bigint). Products compose kernel types into concrete named types; the kernel never becomes a universal object table.
 
@@ -22,10 +22,10 @@
 - Every stored shape must satisfy `deepEqual(JSON.parse(JSON.stringify(x)), x)`.
 - Dates in stored shapes are ISO 8601 strings, never `Date`.
 - Money is integer minor units + ISO 4217 code. Mixed-currency arithmetic throws.
-- Package name `@apogee/kernel`, path `packages/kernel`, `private: false` (it will be consumed by other repos).
+- Package name `@de_canter/apogee-kernel`, path `packages/kernel`, `private: false` (it will be consumed by other repos).
 - Node `>=20`. `packageManager: pnpm@9.15.9` (the version installed on Selene).
 - Commit after every task (shared CLAUDE.md §7); branch `feature/kernel-primitives`, PR to `main`.
-- No incremental the reference product migration in this plan. the reference product domain appears only as acceptance tests (Task 9).
+- No incremental migration of the reference product in this plan. The reference product's domain appears only as acceptance tests (Task 9).
 
 ## File Structure
 
@@ -223,7 +223,7 @@ jobs:
 `packages/kernel/package.json`:
 ```json
 {
-  "name": "@apogee/kernel",
+  "name": "@de_canter/apogee-kernel",
   "version": "0.1.0",
   "description": "Apogee domain kernel: shared value objects, mixins, and entity categories",
   "license": "UNLICENSED",
@@ -334,7 +334,7 @@ describe('Ref', () => {
 
 - [ ] **Step 6: Run test to verify it fails**
 
-Run: `pnpm --filter @apogee/kernel test`
+Run: `pnpm --filter @de_canter/apogee-kernel test`
 Expected: FAIL, cannot resolve `../ref`.
 
 - [ ] **Step 7: Implement**
@@ -367,14 +367,14 @@ export * from './ref';
 
 - [ ] **Step 8: Run test, typecheck, lint, build**
 
-Run: `pnpm --filter @apogee/kernel test && pnpm typecheck && pnpm lint && pnpm build`
+Run: `pnpm --filter @de_canter/apogee-kernel test && pnpm typecheck && pnpm lint && pnpm build`
 Expected: 4 tests pass; typecheck/lint clean; `packages/kernel/dist/index.js`, `index.cjs`, `index.d.ts` exist.
 
 - [ ] **Step 9: Commit**
 
 ```bash
 git add -A
-git commit -m "feat(kernel): bootstrap workspace and @apogee/kernel with Ref
+git commit -m "feat(kernel): bootstrap workspace and @de_canter/apogee-kernel with Ref
 
 Adds pnpm/turbo workspace, tsup dual build, vitest, eslint flat config.
 New top-level deps: turbo, tsup, vitest, typescript-eslint, zod@4 (kernel).
@@ -471,7 +471,7 @@ describe('Money', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `pnpm --filter @apogee/kernel test money`
+Run: `pnpm --filter @de_canter/apogee-kernel test money`
 Expected: FAIL, modules not found.
 
 - [ ] **Step 3: Implement errors, rounding, money**
@@ -637,7 +637,7 @@ export * from './money';
 
 - [ ] **Step 4: Run tests, typecheck, lint**
 
-Run: `pnpm --filter @apogee/kernel test && pnpm typecheck && pnpm lint`
+Run: `pnpm --filter @de_canter/apogee-kernel test && pnpm typecheck && pnpm lint`
 Expected: all money/rounding tests pass. If `1.005 → 1.01` fails, the epsilon in `roundTo` is the culprit; keep `1e-9` and confirm `1.005 * 100` is `100.49999999999999`, which the epsilon absorbs.
 
 - [ ] **Step 5: Commit**
@@ -700,7 +700,7 @@ describe('Quantity', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `pnpm --filter @apogee/kernel test quantity`
+Run: `pnpm --filter @de_canter/apogee-kernel test quantity`
 Expected: FAIL, module not found.
 
 - [ ] **Step 3: Implement**
@@ -772,7 +772,7 @@ Add `export * from './quantity';` to `index.ts`.
 
 - [ ] **Step 4: Run tests, typecheck, lint**
 
-Run: `pnpm --filter @apogee/kernel test && pnpm typecheck && pnpm lint`
+Run: `pnpm --filter @de_canter/apogee-kernel test && pnpm typecheck && pnpm lint`
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
@@ -849,7 +849,7 @@ describe('Identifier', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `pnpm --filter @apogee/kernel test identifier`
+Run: `pnpm --filter @de_canter/apogee-kernel test identifier`
 Expected: FAIL.
 
 - [ ] **Step 3: Implement**
@@ -932,7 +932,7 @@ Add `export * from './identifier';` to `index.ts`.
 
 - [ ] **Step 4: Run tests, typecheck, lint**
 
-Run: `pnpm --filter @apogee/kernel test && pnpm typecheck && pnpm lint`
+Run: `pnpm --filter @de_canter/apogee-kernel test && pnpm typecheck && pnpm lint`
 Expected: PASS. With `exactOptionalPropertyTypes`, spreading `opts` containing `undefined` values fails parse only if a key is present with `undefined`; callers pass keys only when set.
 
 - [ ] **Step 5: Commit**
@@ -1025,7 +1025,7 @@ describe('Bitemporal asOf', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `pnpm --filter @apogee/kernel test time`
+Run: `pnpm --filter @de_canter/apogee-kernel test time`
 Expected: FAIL.
 
 - [ ] **Step 3: Implement**
@@ -1121,7 +1121,7 @@ Add `export * from './time';` to `index.ts`.
 
 - [ ] **Step 4: Run tests, typecheck, lint**
 
-Run: `pnpm --filter @apogee/kernel test && pnpm typecheck && pnpm lint`
+Run: `pnpm --filter @de_canter/apogee-kernel test && pnpm typecheck && pnpm lint`
 Expected: PASS, including the identifier suite after the swap.
 
 - [ ] **Step 5: Commit**
@@ -1214,7 +1214,7 @@ describe('Assertion', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `pnpm --filter @apogee/kernel test provenance`
+Run: `pnpm --filter @de_canter/apogee-kernel test provenance`
 Expected: FAIL.
 
 - [ ] **Step 3: Implement**
@@ -1314,7 +1314,7 @@ Add `export * from './provenance';` to `index.ts`.
 
 - [ ] **Step 4: Run tests, typecheck, lint**
 
-Run: `pnpm --filter @apogee/kernel test && pnpm typecheck && pnpm lint`
+Run: `pnpm --filter @de_canter/apogee-kernel test && pnpm typecheck && pnpm lint`
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
@@ -1338,7 +1338,7 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 **Interfaces:**
 - Consumes: `RefSchema`, `ISODateSchema`, `nowIso`, `KernelError`.
 - Produces: `LifecycleTransition<S> = { name: string; from: S | readonly S[]; to: S }`, `LifecycleDefinition<S> = { states: readonly S[]; initial: S; terminal: readonly S[]; transitions: readonly LifecycleTransition<S>[] }`, `defineLifecycle(def)` returning `Lifecycle<S>` with `can(from, to)`, `next(from): readonly LifecycleTransition<S>[]`, `assertTransition(from, to): LifecycleTransition<S>`, `isTerminal(s)`, `stateSchema` (Zod enum), `initialState(opts?)`, `transition(state, to, opts?)`; `LifecycleState<S> = { state: S; since: ISODate; reason?: string; by?: Ref }`; `IllegalTransitionError`, `InvalidLifecycleError` (thrown by `defineLifecycle` when transitions reference unknown states or terminal states have outgoing transitions).
-- Note: this is a **declaration**. Execution (guards, side effects, history) belongs to `@apogee/workflow-engine`, which will accept a `LifecycleDefinition` in a follow-on task there.
+- Note: this is a **declaration**. Execution (guards, side effects, history) belongs to `@de_canter/apogee-workflow-engine`, which will accept a `LifecycleDefinition` in a follow-on task there.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -1397,7 +1397,7 @@ describe('Lifecycle', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `pnpm --filter @apogee/kernel test lifecycle`
+Run: `pnpm --filter @de_canter/apogee-kernel test lifecycle`
 Expected: FAIL.
 
 - [ ] **Step 3: Implement**
@@ -1497,7 +1497,7 @@ Add `export * from './lifecycle';` to `index.ts`.
 
 - [ ] **Step 4: Run tests, typecheck, lint**
 
-Run: `pnpm --filter @apogee/kernel test && pnpm typecheck && pnpm lint`
+Run: `pnpm --filter @de_canter/apogee-kernel test && pnpm typecheck && pnpm lint`
 Expected: PASS. If `z.enum` complains about the tuple cast, use `z.enum([...def.states] as [S, ...S[]])`.
 
 - [ ] **Step 5: Commit**
@@ -1598,7 +1598,7 @@ describe('Tags', () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `pnpm --filter @apogee/kernel test role classification`
+Run: `pnpm --filter @de_canter/apogee-kernel test role classification`
 Expected: FAIL.
 
 - [ ] **Step 3: Implement**
@@ -1684,7 +1684,7 @@ Add `export * from './role';` and `export * from './classification';` to `index.
 
 - [ ] **Step 4: Run tests, typecheck, lint**
 
-Run: `pnpm --filter @apogee/kernel test && pnpm typecheck && pnpm lint`
+Run: `pnpm --filter @de_canter/apogee-kernel test && pnpm typecheck && pnpm lint`
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
@@ -1813,14 +1813,14 @@ describe('One order, six identity systems', () => {
 
 - [ ] **Step 4: Run the whole suite with coverage**
 
-Run: `pnpm --filter @apogee/kernel exec vitest run --coverage`
+Run: `pnpm --filter @de_canter/apogee-kernel exec vitest run --coverage`
 Expected: all suites pass; line coverage on `src/*.ts` at or above 90%. If any acceptance test needed a helper that does not exist, add it to the owning task's file with its own unit test and commit it under that task's scope name.
 
 - [ ] **Step 5: README**
 
 `packages/kernel/README.md` (full content):
 ```markdown
-# @apogee/kernel
+# @de_canter/apogee-kernel
 
 Shared domain vocabulary for Apogee products: value objects and mixins that
 every product composes into its own concrete types. Zero persistence, zero
@@ -1846,7 +1846,7 @@ HTTP. Spec: `docs/design/kernel-ontology.md`.
 1. Abstract at the core, concrete at the edges: products declare named types
    that compose these; no universal object table.
 2. Every stored shape is JSON-safe: ISO date strings, integer minor units.
-3. The kernel declares lifecycles; `@apogee/workflow-engine` executes them.
+3. The kernel declares lifecycles; `@de_canter/apogee-workflow-engine` executes them.
 4. An `ai` or `integration` provenance is not trusted until confirmed or above
    a caller-supplied confidence floor.
 
@@ -1854,7 +1854,7 @@ HTTP. Spec: `docs/design/kernel-ontology.md`.
 
 ```jsonc
 // package.json in the consuming repo
-"dependencies": { "@apogee/kernel": "github:de-canter/apogee#kernel-v0.1.0&path:packages/kernel" }
+"dependencies": { "@de_canter/apogee-kernel": "github:de-canter/apogee#kernel-v0.1.0&path:packages/kernel" }
 ```
 `pnpm install` builds it via `prepare`. See Step 6 in the Phase 1 plan for the
 fallback if `#path:` is unavailable in the consumer's pnpm.
@@ -1866,9 +1866,9 @@ Add to `packages/kernel/package.json` scripts: `"prepare": "tsup"` so a git cons
 
 ```bash
 mkdir -p "$SCRATCH/kernel-consumer" && cd "$SCRATCH/kernel-consumer"
-printf '%s' '{"name":"kernel-consumer","private":true,"type":"commonjs","dependencies":{"@apogee/kernel":"github:de-canter/apogee#feature/kernel-primitives&path:packages/kernel"}}' > package.json
+printf '%s' '{"name":"kernel-consumer","private":true,"type":"commonjs","dependencies":{"@de_canter/apogee-kernel":"github:de-canter/apogee#feature/kernel-primitives&path:packages/kernel"}}' > package.json
 pnpm install
-node -e "const k=require('@apogee/kernel'); console.log(k.formatMoney(k.money(123456,'USD')))"
+node -e "const k=require('@de_canter/apogee-kernel'); console.log(k.formatMoney(k.money(123456,'USD')))"
 ```
 Expected: prints `$1,234.56` from the CJS build. (Verified 2026-09-17 with pnpm 9.15.9: the ref must come before `&path:`; `#path:...&branch=...` is rejected.) If pnpm rejects `#path:`, the fallback is a `pnpm pack` tarball attached to the GitHub release (`kernel-v0.1.0`) and a `https://github.com/de-canter/apogee/releases/download/kernel-v0.1.0/apogee-kernel-0.1.0.tgz` dependency; record which mechanism worked in the README's "Consuming" section before Step 8.
 
@@ -1885,7 +1885,7 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 
 ```bash
 git push -u origin feature/kernel-primitives
-gh pr create --repo de-canter/apogee --base main --title "feat(kernel): @apogee/kernel Phase 1 primitives" --body-file docs/plans/2026-09-17-apogee-kernel-primitives.md
+gh pr create --repo de-canter/apogee --base main --title "feat(kernel): @de_canter/apogee-kernel Phase 1 primitives" --body-file docs/plans/2026-09-17-apogee-kernel-primitives.md
 ```
 After merge (human): `git tag kernel-v0.1.0 && git push origin kernel-v0.1.0`. Then move this plan to `docs/plans/completed/` with a one-paragraph outcome note at the top.
 
@@ -1900,6 +1900,6 @@ After merge (human): `git tag kernel-v0.1.0 && git push origin kernel-v0.1.0`. T
 ## Follow-on plans (to be written when this ships)
 
 1. `docs/plans/<date>-apogee-kernel-entities.md` — Phase 2 entity categories, `extendEntity`, Versioned mixin, Fulfillment, Permission, Rule hook shape.
-2. `docs/plans/<date>-apogee-kernel-mongoose.md` — `@apogee/kernel-mongoose` sub-schemas and discriminator bases.
+2. `docs/plans/<date>-apogee-kernel-mongoose.md` — `@de_canter/apogee-kernel-mongoose` sub-schemas and discriminator bases.
 3. `docs/plans/<date>-workflow-engine-lifecycle.md` — `StateMachine` accepts a kernel `LifecycleDefinition`.
-4. In the the reference product repo: the clean-room rewrite plan, gated on 1 to 3 being merged and tagged.
+4. In the reference product's repo: the clean-room rewrite plan, gated on 1 to 3 being merged and tagged.

@@ -1,6 +1,6 @@
-import type { ModelId, Usage } from '@apogee/ai';
-import { assertion, nowIso, type Assertion, type Ref } from '@apogee/kernel';
-import { composePrompt, toSystemBlocks } from '@apogee/prompts';
+import type { ModelId, Usage } from '@de_canter/apogee-ai';
+import { assertion, nowIso, type Assertion, type Ref } from '@de_canter/apogee-kernel';
+import { composePrompt, toSystemBlocks } from '@de_canter/apogee-prompts';
 import { z } from 'zod';
 import { newDocumentRef } from './classify';
 import { combineConfidence, confidence, type Confidence } from './confidence';

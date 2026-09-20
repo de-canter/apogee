@@ -1,6 +1,6 @@
-import type { ContentBlock, ModelClient, ModelEvent, ModelRole, RawUsage, Usage } from '@apogee/ai';
-import { nowIso, type ISODate } from '@apogee/kernel';
-import { composePrompt, toSystemBlocks, type Contributor, type Prompt } from '@apogee/prompts';
+import type { ContentBlock, ModelClient, ModelEvent, ModelRole, RawUsage, Usage } from '@de_canter/apogee-ai';
+import { nowIso, type ISODate } from '@de_canter/apogee-kernel';
+import { composePrompt, toSystemBlocks, type Contributor, type Prompt } from '@de_canter/apogee-prompts';
 import { compactHistory, type CompactionOptions } from './compaction';
 import type { AgentEvent, TurnStopReason } from './events';
 import { newMessageId, toModelMessages, type AgentMessage, type ToolCallRecord } from './messages';

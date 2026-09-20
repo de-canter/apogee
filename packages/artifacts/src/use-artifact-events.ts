@@ -1,4 +1,4 @@
-import { nowIso, type ISODate } from '@apogee/kernel';
+import { nowIso, type ISODate } from '@de_canter/apogee-kernel';
 import { useEffect, useMemo } from 'react';
 
 export type ArtifactEventType = 'artifact_shown' | 'artifact_field_change' | 'artifact_submit' | 'artifact_action';

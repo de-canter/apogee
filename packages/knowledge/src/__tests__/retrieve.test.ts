@@ -1,4 +1,4 @@
-import { createFakeModelClient, type SystemBlock } from '@apogee/ai';
+import { createFakeModelClient, type SystemBlock } from '@de_canter/apogee-ai';
 import { describe, expect, it } from 'vitest';
 import { chunkMarkdown, type Chunk } from '../chunk';
 import { answer, formatRetrieval, isHelpQuery, knowledgeContributor, knowledgePromptRegistry, retrieve } from '../retrieve';

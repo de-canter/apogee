@@ -1,4 +1,4 @@
-# Plan B2 — `@apogee/agent` + `@apogee/agent-react` + `@apogee/artifacts` Implementation Plan
+# Plan B2 — `@de_canter/apogee-agent` + `@de_canter/apogee-agent-react` + `@de_canter/apogee-artifacts` Implementation Plan
 
 > **Outcome (2026-09-18):** Completed. Merged via de-canter/apogee#8; tagged `ai-v0.2.0`, `agent-v0.1.0`, `agent-react-v0.1.0`, `artifacts-v0.1.0`. agent 29 tests / 99%; agent-react 12 / 100%; artifacts 7 / 100%. Deviation: the end-to-end acceptance test lives in agent-react (dev-dep cycle avoidance). The apogee.build chat demo moved to plan B6a.
 
@@ -9,7 +9,7 @@
 
 **Goal:** Ship the agentic session (tool loop, compaction, config memory, SSE encoding, persistence ports), the React client (SSE decoder, reducer, hook, unstyled shells), and the artifact protocol (descriptor, registry, renderer, actions, interaction telemetry), all at v0.1.0, tested without network or browser beyond jsdom.
 
-**Architecture:** `@apogee/agent` runs the loop on top of `@apogee/ai`'s `stream` and `@apogee/prompts`' `composePrompt`, emitting a single `AgentEvent` stream that is both the in-process API and, encoded one frame per event, the SSE wire protocol. Every tool call carries the provider's `toolUseId` end to end; every turn ends with accumulated usage; tool failures are `is_error` tool results. Persistence, memory, and telemetry are ports with in-memory implementations. `@apogee/agent-react` decodes the same events into a pure reducer that a hook wraps. `@apogee/artifacts` is the tool-result-as-UI protocol: a descriptor emitted by tools, a registry the host fills with components, and hooks that turn card interactions into the next agent message.
+**Architecture:** `@de_canter/apogee-agent` runs the loop on top of `@de_canter/apogee-ai`'s `stream` and `@de_canter/apogee-prompts`' `composePrompt`, emitting a single `AgentEvent` stream that is both the in-process API and, encoded one frame per event, the SSE wire protocol. Every tool call carries the provider's `toolUseId` end to end; every turn ends with accumulated usage; tool failures are `is_error` tool results. Persistence, memory, and telemetry are ports with in-memory implementations. `@de_canter/apogee-agent-react` decodes the same events into a pure reducer that a hook wraps. `@de_canter/apogee-artifacts` is the tool-result-as-UI protocol: a descriptor emitted by tools, a registry the host fills with components, and hooks that turn card interactions into the next agent message.
 
 **Tech Stack:** TypeScript strict, Zod 4, Vitest 4 (+ jsdom, Testing Library for the two React packages), tsup, React 18 or 19 as a peer.
 
@@ -17,8 +17,8 @@
 
 ## Global Constraints
 
-- Packages: `packages/agent` (`@apogee/agent`), `packages/agent-react` (`@apogee/agent-react`), `packages/artifacts` (`@apogee/artifacts`). Same build/test shape as `packages/ai`.
-- `@apogee/ai` grows `tool_use` and `tool_result` content blocks (Task 1) and is bumped to 0.2.0.
+- Packages: `packages/agent` (`@de_canter/apogee-agent`), `packages/agent-react` (`@de_canter/apogee-agent-react`), `packages/artifacts` (`@de_canter/apogee-artifacts`). Same build/test shape as `packages/ai`.
+- `@de_canter/apogee-ai` grows `tool_use` and `tool_result` content blocks (Task 1) and is bumped to 0.2.0.
 - No network in tests: agent tests use `createFakeModelClient`; React tests use jsdom and scripted event iterables.
 - Domain vocabulary is injected: the agent's context type, the tool set, the prompt, the artifact card components, and the artifact action types all come from the host. Nothing in these packages knows what an order is.
 - Sharp edges to design away (from the survey): usage on every turn; server-minted message ids and provider tool ids on the wire; `tool_result` events with `isError`; artifacts extracted from tool results and persisted on the message; `is_error: true` on failed tool results; max rounds enforced in the one loop; hooks survive restore because they are session options, not route state; idle-based session eviction; bounded config memory.
@@ -61,7 +61,7 @@ packages/artifacts/src/
 
 ---
 
-### Task 1: Tool-use content blocks in `@apogee/ai`
+### Task 1: Tool-use content blocks in `@de_canter/apogee-ai`
 
 **Files:** Modify `packages/ai/src/types.ts`, `packages/ai/src/params.ts`, `packages/ai/package.json` (version 0.2.0). Test: `packages/ai/src/__tests__/params.test.ts`.
 
@@ -87,7 +87,7 @@ it('maps tool_use and tool_result blocks for multi-round loops', () => {
 
 ---
 
-### Task 2: `@apogee/agent` — tools, messages, events
+### Task 2: `@de_canter/apogee-agent` — tools, messages, events
 
 **Files:** Create `packages/agent/{package.json,tsconfig.json,tsup.config.ts,vitest.config.ts}`, `src/tool.ts`, `src/messages.ts`, `src/events.ts`, `src/index.ts`. Tests: `src/__tests__/tool.test.ts`, `src/__tests__/messages.test.ts`.
 
@@ -104,7 +104,7 @@ it('maps tool_use and tool_result blocks for multi-round loops', () => {
 - `newMessageId()` via `nanoid`-style 21-char id (implement with `crypto.randomUUID()` to avoid a dependency).
 
 - [ ] **Step 1: Failing tests** — `tool.test.ts`: `defineTool` infers input; registry `definitions()` yields `{ name, description, inputSchema }` with `inputSchema.type === 'object'` and is referentially stable across calls; `add/remove`; `artifactsOf` merges singular + plural; `toolResultContent` is JSON. `messages.test.ts`: `toModelMessages` on a five-message history (user with annotation, assistant with blocks, user tool_result blocks, summary, user) yields the six model messages in order with the annotation appended and the summary expanded; empty user content dropped.
-- [ ] **Step 2: Implement.** `package.json` deps: `@apogee/ai: workspace:*`, `@apogee/kernel: workspace:*`, `@apogee/prompts: workspace:*`, `zod`. Dev: same as ai plus `@types/node`.
+- [ ] **Step 2: Implement.** `package.json` deps: `@de_canter/apogee-ai: workspace:*`, `@de_canter/apogee-kernel: workspace:*`, `@de_canter/apogee-prompts: workspace:*`, `zod`. Dev: same as ai plus `@types/node`.
 - [ ] **Step 3: Verify, commit** `feat(agent): add tool definitions, registry, agent messages, and event types`.
 
 ---
@@ -134,7 +134,7 @@ it('maps tool_use and tool_result blocks for multi-round loops', () => {
 **Files:** `src/compaction.ts`; test `src/__tests__/compaction.test.ts`.
 
 **Interfaces:**
-- `COMPACTION_PROMPT = definePrompt<{ conversation: string }>({ name: 'agent.compact-history', version: '1.0.0', sections: [text('instructions', <the the reference product summarization text verbatim>), fromContext('conversation', c => 'Here is the conversation history to summarize:\n\n' + c.conversation)] })`.
+- `COMPACTION_PROMPT = definePrompt<{ conversation: string }>({ name: 'agent.compact-history', version: '1.0.0', sections: [text('instructions', <the reference product's summarization text verbatim>), fromContext('conversation', c => 'Here is the conversation history to summarize:\n\n' + c.conversation)] })`.
 - `CompactionOptions = { client: ModelClient; budgetTokens?: number (80_000); thresholdRatio?: number (0.7); keepRecentPairs?: number (6); estimateTokens?: (text: string) => number (ceil(len/4)); role?: ModelRole ('fast'); maxTokens?: number (2048) }`.
 - `estimateHistoryTokens(history, estimate)`; `compactHistory(history: AgentMessage[], opts): Promise<{ history: AgentMessage[]; compacted: boolean; summary?: AgentMessage }>`. Rules: only when estimated tokens > budget × ratio and more than `keepRecentPairs × 2` eligible messages; older messages (prior `summary` rendered as `[Previous Summary]: …`, others as `User: …` / `Assistant: …`, `\n\n`-joined) go to `client.generate` with the composed prompt; the result becomes one `summary` message at the head; recent messages kept verbatim; an empty summary leaves history unchanged with `compacted: false`.
 - `pruneToBudget(history, budgetTokens, estimate)`: pair-wise drop from the front until under budget (the secondary guard).
@@ -175,11 +175,11 @@ it('maps tool_use and tool_result blocks for multi-round loops', () => {
 
 ---
 
-### Task 7: `@apogee/agent-react` — decoder, reducer, hook, shells
+### Task 7: `@de_canter/apogee-agent-react` — decoder, reducer, hook, shells
 
 **Files:** Create `packages/agent-react/{package.json,tsconfig.json,tsup.config.ts,vitest.config.ts}`, `src/sse-decoder.ts`, `src/reducer.ts`, `src/use-agent-session.ts`, `src/components.tsx`, `src/index.ts`, `src/__tests__/setup.ts` (imports `@testing-library/jest-dom/vitest`). Tests: `sse-decoder.test.ts`, `reducer.test.ts`, `use-agent-session.test.tsx`, `components.test.tsx`.
 
-**Toolchain:** `package.json` peers `react: ^18 || ^19`, `react-dom: ^18 || ^19`; deps `@apogee/agent: workspace:*`; dev adds `react`, `react-dom`, `@types/react`, `@types/react-dom`, `@testing-library/react`, `@testing-library/jest-dom`, `jsdom`. `tsconfig.json` adds `"jsx": "react-jsx"`, `"lib": ["ES2022", "DOM", "DOM.Iterable"]`. `vitest.config.ts` sets `environment: 'jsdom'`, `setupFiles`. tsup `external: ['react', 'react-dom']`.
+**Toolchain:** `package.json` peers `react: ^18 || ^19`, `react-dom: ^18 || ^19`; deps `@de_canter/apogee-agent: workspace:*`; dev adds `react`, `react-dom`, `@types/react`, `@types/react-dom`, `@testing-library/react`, `@testing-library/jest-dom`, `jsdom`. `tsconfig.json` adds `"jsx": "react-jsx"`, `"lib": ["ES2022", "DOM", "DOM.Iterable"]`. `vitest.config.ts` sets `environment: 'jsdom'`, `setupFiles`. tsup `external: ['react', 'react-dom']`.
 
 **Interfaces:**
 - `decodeSseStream(body: ReadableStream<Uint8Array>): AsyncIterable<AgentEvent>`: buffers text, splits on `\n\n`, parses lines starting with `data:`; ignores blank and comment lines; a malformed JSON frame yields `{ type: 'error', error: { code: 'BAD_FRAME', message } }` and continues.
@@ -192,7 +192,7 @@ it('maps tool_use and tool_result blocks for multi-round loops', () => {
 
 ---
 
-### Task 8: `@apogee/artifacts` — registry, renderer, container, actions, events
+### Task 8: `@de_canter/apogee-artifacts` — registry, renderer, container, actions, events
 
 **Files:** Create `packages/artifacts/*` (same toolchain as agent-react), `src/types.ts`, `src/registry.ts`, `src/ArtifactContainer.tsx`, `src/ArtifactRenderer.tsx`, `src/use-artifact-actions.ts`, `src/use-artifact-events.ts`, `src/index.ts`; tests for each.
 
@@ -214,7 +214,7 @@ it('maps tool_use and tool_result blocks for multi-round loops', () => {
 
 **Files:** `packages/agent/src/__tests__/acceptance/end-to-end.test.ts`; READMEs; PR.
 
-- [ ] **Step 1: Acceptance test**: build a session with two tools on a tiny neutral domain (a `notes` list in `ctx`: `add_note` returns an artifact `{ type: 'note-card', id, data }`, `list_notes` returns data), the memory tool, the memory contributor, an in-memory message store, and a telemetry sink; run three turns with a scripted fake client (one with a tool round, one that updates memory, one plain); pipe the third run through `agentEventsToReadableStream` and decode it with `@apogee/agent-react`'s `decodeSseStream` (imported from its `src` via a relative path is not allowed across packages; instead add `@apogee/agent-react` as a devDependency of `agent` and import it), and reduce with `reduceAgentState`; assert the UI state's final message equals the persisted one and the memory content appears in the third system prompt.
+- [ ] **Step 1: Acceptance test**: build a session with two tools on a tiny neutral domain (a `notes` list in `ctx`: `add_note` returns an artifact `{ type: 'note-card', id, data }`, `list_notes` returns data), the memory tool, the memory contributor, an in-memory message store, and a telemetry sink; run three turns with a scripted fake client (one with a tool round, one that updates memory, one plain); pipe the third run through `agentEventsToReadableStream` and decode it with `@de_canter/apogee-agent-react`'s `decodeSseStream` (imported from its `src` via a relative path is not allowed across packages; instead add `@de_canter/apogee-agent-react` as a devDependency of `agent` and import it), and reduce with `reduceAgentState`; assert the UI state's final message equals the persisted one and the memory content appears in the third system prompt.
 - [ ] **Step 2: Full pipeline** `pnpm typecheck && pnpm lint && pnpm build && pnpm test` sequentially; coverage ≥ 90% per package.
 - [ ] **Step 3: Push, PR** with the plan as body; after merge tag `agent-v0.1.0`, `agent-react-v0.1.0`, `artifacts-v0.1.0`, `ai-v0.2.0`; file the plan.
 
@@ -224,5 +224,5 @@ it('maps tool_use and tool_result blocks for multi-round loops', () => {
 
 - **§3.3 coverage:** `AgentSession<TContext>` (T5), `Tool<TContext>` with Zod (T2), events (T2/T5), bounded rounds + per-round usage + hooks via telemetry (T5), compaction (T4), config memory + built-in tool (T3), SSE (T6), ports with in-memory impls (T3). Admin assistant as a composition: demonstrated by T9's memory + tools acceptance test; the config-tool families arrive with kernel Phase 2.
 - **§3.4 coverage:** `useAgentSession`, decoder, shells (T7). **§3.5:** descriptor (T2), registry/renderer/container/actions/events (T8).
-- **Deferred:** the apogee.build chat demo (plan B6a); a Mongoose adapter for the stores (`@apogee/agent-mongoose`, later).
-- **Type consistency:** `ArtifactDescriptor` is defined once in `@apogee/agent/tool.ts` and imported by both React packages; `AgentEvent` is defined once in `events.ts` and consumed by `sse.ts`, the decoder, and the reducer; `ToolResult`'s `artifact`/`artifacts` feed `artifactsOf` (T2) used by the loop (T5).
+- **Deferred:** the apogee.build chat demo (plan B6a); a Mongoose adapter for the stores (`@de_canter/apogee-agent-mongoose`, later).
+- **Type consistency:** `ArtifactDescriptor` is defined once in `@de_canter/apogee-agent/tool.ts` and imported by both React packages; `AgentEvent` is defined once in `events.ts` and consumed by `sse.ts`, the decoder, and the reducer; `ToolResult`'s `artifact`/`artifacts` feed `artifactsOf` (T2) used by the loop (T5).

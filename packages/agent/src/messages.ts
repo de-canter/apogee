@@ -1,5 +1,5 @@
-import type { ContentBlock, Message, Usage } from '@apogee/ai';
-import type { ISODate } from '@apogee/kernel';
+import type { ContentBlock, Message, Usage } from '@de_canter/apogee-ai';
+import type { ISODate } from '@de_canter/apogee-kernel';
 import type { ArtifactDescriptor, ToolResult } from './tool';
 
 export interface ToolCallRecord {

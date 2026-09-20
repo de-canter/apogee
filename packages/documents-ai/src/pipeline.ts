@@ -1,4 +1,4 @@
-import { nowIso, type ISODate } from '@apogee/kernel';
+import { nowIso, type ISODate } from '@de_canter/apogee-kernel';
 import { DocumentsError } from './errors';
 
 export type StageStatus = 'pending' | 'running' | 'completed' | 'failed' | 'skipped';

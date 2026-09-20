@@ -1,4 +1,4 @@
-# @apogee/kernel
+# @de_canter/apogee-kernel
 
 Shared domain vocabulary for Apogee products: value objects and mixins that
 every product composes into its own concrete types. Zero persistence, zero
@@ -24,7 +24,7 @@ HTTP. Spec: `docs/design/kernel-ontology.md`.
 1. Abstract at the core, concrete at the edges: products declare named types
    that compose these; no universal object table.
 2. Every stored shape is JSON-safe: ISO date strings, integer minor units.
-3. The kernel declares lifecycles; `@apogee/workflow-engine` executes them.
+3. The kernel declares lifecycles; `@de_canter/apogee-workflow-engine` executes them.
 4. An `ai` or `integration` provenance is not trusted until confirmed or above
    a caller-supplied confidence floor.
 

@@ -1,13 +1,13 @@
 /**
  * Spec §3.9 through the admin assistant: a manager drafts, tests, approves, and runs a pattern
- * against a vendor API through @apogee/agent tools, then the vendor breaks, the run is dead-lettered,
+ * against a vendor API through @de_canter/apogee-agent tools, then the vendor breaks, the run is dead-lettered,
  * and replaying it succeeds once the vendor recovers; an inbound courier webhook is classified.
  */
 import { createHmac } from 'node:crypto';
-import { createAgentSession, type AgentEvent } from '@apogee/agent';
-import { createFakeModelClient, type FakeTurn, type GenerateRequest } from '@apogee/ai';
-import { isoDate, ref } from '@apogee/kernel';
-import { definePrompt, text } from '@apogee/prompts';
+import { createAgentSession, type AgentEvent } from '@de_canter/apogee-agent';
+import { createFakeModelClient, type FakeTurn, type GenerateRequest } from '@de_canter/apogee-ai';
+import { isoDate, ref } from '@de_canter/apogee-kernel';
+import { definePrompt, text } from '@de_canter/apogee-prompts';
 import { describe, expect, it } from 'vitest';
 import { createInMemoryExecutionAudit } from '../audit';
 import { receiveWebhook } from '../inbound';

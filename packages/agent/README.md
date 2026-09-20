@@ -1,6 +1,6 @@
-# @apogee/agent
+# @de_canter/apogee-agent
 
-The agentic session: a tool loop over `@apogee/ai`, one event stream that is
+The agentic session: a tool loop over `@de_canter/apogee-ai`, one event stream that is
 also the SSE wire protocol, history compaction, bounded config memory, and
 persistence ports with in-memory implementations. Spec:
 `docs/design/ai-abstractions.md` §3.3.

@@ -1,5 +1,5 @@
-import type { Usage } from '@apogee/ai';
-import { composePrompt, toSystemBlocks } from '@apogee/prompts';
+import type { Usage } from '@de_canter/apogee-ai';
+import { composePrompt, toSystemBlocks } from '@de_canter/apogee-prompts';
 import type { Dimensions, DimensionShape } from './dimensions';
 import { AiFindingsSchema, domainOf, requireClient, RULE_VALIDATOR_PROMPT, type RuleEngineOptions } from './prompts';
 import { conditionsIdentical, conditionsNarrower, conditionsOverlap, ruleSchema, type CheckOperator, type Rule } from './rule';

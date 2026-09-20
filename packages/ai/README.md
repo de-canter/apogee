@@ -1,4 +1,4 @@
-# @apogee/ai
+# @de_canter/apogee-ai
 
 One model client for every AI call in an Apogee product. Vision and PDF input,
 structured output validated by Zod, prompt caching on by default, models chosen
@@ -36,7 +36,7 @@ in this package is the only place that does. Everything else takes a `ModelClien
 ## Example
 
 ```ts
-import { createAnthropicModelClient, staticResolver } from '@apogee/ai';
+import { createAnthropicModelClient, staticResolver } from '@de_canter/apogee-ai';
 import { z } from 'zod';
 
 const client = createAnthropicModelClient({
@@ -45,7 +45,7 @@ const client = createAnthropicModelClient({
 });
 
 const { value } = await client.generateObject(
-  z.object({ grantor: z.string(), grantee: z.string() }),
+  z.object({ vendor: z.string(), customer: z.string() }),
   { model: 'extraction', messages: [{ role: 'user', content: [{ type: 'document', source: { type: 'base64', mediaType: 'application/pdf', data: pdf } }, { type: 'text', text: 'Extract the parties.' }] }] },
 );
 ```

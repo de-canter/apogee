@@ -1,4 +1,4 @@
-import { isoDate } from '@apogee/kernel';
+import { isoDate } from '@de_canter/apogee-kernel';
 import { describe, expect, it } from 'vitest';
 import { SUMMARY_ASSISTANT_ACK, SUMMARY_USER_PREFIX, newMessageId, toModelMessages, type AgentMessage } from '../messages';
 

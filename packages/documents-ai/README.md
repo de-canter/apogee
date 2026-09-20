@@ -1,4 +1,4 @@
-# @apogee/documents-ai
+# @de_canter/apogee-documents-ai
 
 Classify, extract, confirm. The host declares its document types and, per
 type, a Zod schema of the fields it wants; the package routes text, images,

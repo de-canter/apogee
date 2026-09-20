@@ -2,10 +2,10 @@
  * Spec §7 criterion: round-trip a natural-language rule to a confirmed Rule and evaluate
  * it in both layers, with the condition dimensions supplied by the host.
  */
-import { createAgentSession, createToolRegistry, type AgentEvent } from '@apogee/agent';
-import { createFakeModelClient, type FakeTurn, type GenerateRequest } from '@apogee/ai';
-import { isoDate, ref } from '@apogee/kernel';
-import { composePrompt, definePrompt, slot, text } from '@apogee/prompts';
+import { createAgentSession, createToolRegistry, type AgentEvent } from '@de_canter/apogee-agent';
+import { createFakeModelClient, type FakeTurn, type GenerateRequest } from '@de_canter/apogee-ai';
+import { isoDate, ref } from '@de_canter/apogee-kernel';
+import { composePrompt, definePrompt, slot, text } from '@de_canter/apogee-prompts';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { createInMemoryRuleAudit } from '../audit';

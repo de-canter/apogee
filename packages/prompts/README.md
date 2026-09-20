@@ -1,4 +1,4 @@
-# @apogee/prompts
+# @de_canter/apogee-prompts
 
 Named, versioned prompts composed from sections. One way to store prompts
 instead of six. Spec: `docs/design/ai-abstractions.md` §3.2.
@@ -50,5 +50,5 @@ product keep tenant overrides in its database and merge them at compose time.
 
 `evalPrompt(prompt, cases, { client, judge?, role? })` composes each case,
 calls the client, scores the output (default: substring judge), and reports
-the mean score and total cost. Use `createFakeModelClient` from `@apogee/ai`
+the mean score and total cost. Use `createFakeModelClient` from `@de_canter/apogee-ai`
 in tests; a real client spends money.

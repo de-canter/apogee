@@ -1,6 +1,6 @@
-import type { Usage } from '@apogee/ai';
-import { nowIso, type ISODate } from '@apogee/kernel';
-import { composePrompt, toSystemBlocks } from '@apogee/prompts';
+import type { Usage } from '@de_canter/apogee-ai';
+import { nowIso, type ISODate } from '@de_canter/apogee-kernel';
+import { composePrompt, toSystemBlocks } from '@de_canter/apogee-prompts';
 import { evaluateChecks, type CheckResult } from './checks';
 import type { DimensionShape, Facts } from './dimensions';
 import { domainOf, GATE_EVALUATION_PROMPT, GateVerdictSchema, type GateVerdict, type RuleEngineOptions } from './prompts';

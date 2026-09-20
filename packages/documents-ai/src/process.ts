@@ -1,4 +1,4 @@
-import { assertion, nowIso, type Ref } from '@apogee/kernel';
+import { assertion, nowIso, type Ref } from '@de_canter/apogee-kernel';
 import { classify, newDocumentRef, type Classification, type ClassifyOptions } from './classify';
 import { confidence } from './confidence';
 import { runFromClassification, runFromExtraction, type DocumentAuditSink } from './correction';

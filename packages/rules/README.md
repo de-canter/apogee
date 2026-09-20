@@ -1,4 +1,4 @@
-# @apogee/rules
+# @de_canter/apogee-rules
 
 Natural-language business rules for an AI assistant: the host declares what a
 rule can condition on, an administrator describes a rule in plain language, the
@@ -14,7 +14,7 @@ two layers. Spec: `docs/design/ai-abstractions.md` §3.6.
 | Rule | `Rule<S>`, `defineRule`, `ruleSchema`, `findMatchingRules`, `matchesConditions` | Conditions typed by the dimensions, instruction, actions, structured checks, priority, kernel `Provenance` |
 | Checks | `evaluateChecks`, `resolvePath`, `CheckResult` | Deterministic checks (`exists`, `not_empty`, `eq`, `gt`, `matches`, `min_count`, ...) against a subject object |
 | Evaluate | `evaluateGate(rules, engine, { facts, subject })`, `evaluateRule` | Layer 1 conditions and checks; layer 2 one model call over the instructions; `decidedBy` says which layer decided |
-| Compile | `compileRules`, `formatRule`, `rulesContributor` | Matching rules as a prompt section; a `@apogee/prompts` contributor for a `rules` slot |
+| Compile | `compileRules`, `formatRule`, `rulesContributor` | Matching rules as a prompt section; a `@de_canter/apogee-prompts` contributor for a `rules` slot |
 | Parse | `parseRule(text, engine)` → `ParsedRule`, `confirmRule`, `rejectRule` | Natural language to a proposed `Assertion` with confidence and ambiguities; confirmation records who and when |
 | Validate | `validateRule`, `validateRules`, `structuralDiagnostics`, `crossRuleDiagnostics` | S0xx structural, C0xx cross-rule, optional A0xx model checks |
 | Conflicts | `detectConflicts`, `deterministicConflicts`, `resolutionsFor` | Identical or nested conditions, priority ties, and (with `ai`) contradictory instructions, each with resolutions |
@@ -22,7 +22,7 @@ two layers. Spec: `docs/design/ai-abstractions.md` §3.6.
 | Simulate | `simulate(rules, scenarios, { dims })` | Which rules match a scenario, their checks, the compiled section; no model |
 | Store | `RuleStore`, `createInMemoryRuleStore`, `createRuleLoader` | Persistence port; DB-first loader with a TTL cache and a fallback |
 | Audit | `RuleAuditSink`, `createInMemoryRuleAudit` | Every rule firing and every admin decision, queryable |
-| Tools | `ruleTools({ engine, store, audit, actorFromCtx })` | Admin tool set for `@apogee/agent`: propose, confirm, reject, list, toggle, delete, simulate, check conflicts |
+| Tools | `ruleTools({ engine, store, audit, actorFromCtx })` | Admin tool set for `@de_canter/apogee-agent`: propose, confirm, reject, list, toggle, delete, simulate, check conflicts |
 | Prompts | `rulesPromptRegistry()`, `RULE_PARSER_PROMPT`, ... | The five registered prompts this package sends |
 
 ## Guarantees

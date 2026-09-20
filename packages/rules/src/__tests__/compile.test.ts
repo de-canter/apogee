@@ -1,4 +1,4 @@
-import { composePrompt, definePrompt, slot, text } from '@apogee/prompts';
+import { composePrompt, definePrompt, slot, text } from '@de_canter/apogee-prompts';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { compileRules, formatRule, rulesContributor } from '../compile';

@@ -1,5 +1,5 @@
-import { createFakeModelClient } from '@apogee/ai';
-import { isoDate, ref } from '@apogee/kernel';
+import { createFakeModelClient } from '@de_canter/apogee-ai';
+import { isoDate, ref } from '@de_canter/apogee-kernel';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { classify } from '../classify';

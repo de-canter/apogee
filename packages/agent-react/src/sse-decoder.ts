@@ -1,4 +1,4 @@
-import type { AgentEvent } from '@apogee/agent';
+import type { AgentEvent } from '@de_canter/apogee-agent';
 
 function parseFrame(frame: string): AgentEvent | undefined {
   const data = frame
@@ -14,7 +14,7 @@ function parseFrame(frame: string): AgentEvent | undefined {
   }
 }
 
-/** Decode an SSE body produced by `@apogee/agent`'s encoder back into events. */
+/** Decode an SSE body produced by `@de_canter/apogee-agent`'s encoder back into events. */
 export async function* decodeSseStream(body: ReadableStream<Uint8Array>): AsyncGenerator<AgentEvent, void, undefined> {
   const reader = body.getReader();
   const decoder = new TextDecoder();

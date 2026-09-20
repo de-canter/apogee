@@ -1,6 +1,6 @@
-import type { Usage } from '@apogee/ai';
-import { nowIso, type ISODate } from '@apogee/kernel';
-import { composePrompt, toSystemBlocks } from '@apogee/prompts';
+import type { Usage } from '@de_canter/apogee-ai';
+import { nowIso, type ISODate } from '@de_canter/apogee-kernel';
+import { composePrompt, toSystemBlocks } from '@de_canter/apogee-prompts';
 import type { DimensionShape } from './dimensions';
 import { AiConflictsSchema, domainOf, requireClient, RULE_CONFLICT_PROMPT, type RuleEngineOptions } from './prompts';
 import { conditionsIdentical, conditionsNarrower, conditionsOverlap, normalizeConditions, type Rule } from './rule';

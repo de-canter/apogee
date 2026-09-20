@@ -1,4 +1,4 @@
-import { nowIso, ProvenanceSchema, RefSchema, type ISODate, type Provenance, type Ref } from '@apogee/kernel';
+import { nowIso, ProvenanceSchema, RefSchema, type ISODate, type Provenance, type Ref } from '@de_canter/apogee-kernel';
 import { z } from 'zod';
 import type { Conditions, Dimensions, DimensionShape, Facts } from './dimensions';
 

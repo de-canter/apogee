@@ -1,8 +1,17 @@
 {
-  "name": "@apogee/artifacts",
-  "version": "0.1.0",
+  "name": "@de_canter/apogee-artifacts",
+  "version": "0.2.0",
+  "license": "Apache-2.0",
+  "homepage": "https://apogee.build",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/de-canter/apogee.git",
+    "directory": "packages/artifacts"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "description": "Tool results as UI: artifact descriptor registry, renderer, container, action dispatch, and batched interaction events",
-  "license": "UNLICENSED",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -30,8 +39,8 @@
     "lint": "eslint src"
   },
   "dependencies": {
-    "@apogee/agent": "workspace:*",
-    "@apogee/kernel": "workspace:*"
+    "@de_canter/apogee-agent": "workspace:*",
+    "@de_canter/apogee-kernel": "workspace:*"
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",

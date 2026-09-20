@@ -1,9 +1,9 @@
-# B3 kickoff notes — `@apogee/rules` (behavior engine lift)
+# B3 kickoff notes — `@de_canter/apogee-rules` (behavior engine lift)
 
 **Created:** 2026-09-18, written before a context compaction so the survey facts survive.
 **Spec:** `docs/design/ai-abstractions.md` §3.6. **Prerequisites:** B1, B2 merged (ai 0.2.0, prompts 0.1.1, agent 0.1.0, kernel 0.1.0).
 
-## Source in the reference product (`the reference product's repo`)
+## Source in the reference product
 
 Survey 2026-09-18: ~7,900 LOC non-test across ~22 files; the cleanest extraction in the repo.
 
@@ -15,7 +15,7 @@ Survey 2026-09-18: ~7,900 LOC non-test across ~22 files; the cleanest extraction
 - Tools: `chat/tools/behavior-rule-tools.ts` (371), `admin-behavior-rule-tools.ts` (325), `admin-gate-rule-tools.ts` (273).
 - Routes: `routes/admin/behavior-rules.ts` (625), `routes/admin/rule-simulation.ts` (273), `routes/behavior-audit.ts` (224).
 - Rule shape: `{ ruleId, name, category: document|workflow|task|notification|validation|compliance|gate, conditions, instruction, suggestedActions, defaultAction, gate?, structuredChecks[], priority, enabled, version, companyId, isSystem, publishedFromEnterpriseId }`.
-- Every LLM call there uses `@anthropic-ai/sdk` directly with `systemDefaultsService.getDefaultValue('ai','defaultModel')`; all become `@apogee/ai` roles.
+- Every LLM call there uses `@anthropic-ai/sdk` directly with `systemDefaultsService.getDefaultValue('ai','defaultModel')`; all become `@de_canter/apogee-ai` roles.
 
 ## What is product-specific (and how to remove it)
 
@@ -25,11 +25,11 @@ Only the enum vocabularies inside `RuleConditions` (`documentType`, `orderStatus
 
 - `Rule` shape as above with `conditions` typed by host dimensions and kernel `Provenance`.
 - `parseRule(text)` → kernel `Assertion` (object: `Rule`, provenance ai + confidence + ambiguities); admin confirms.
-- `validateRule`, `detectConflicts(rules)`, `suggestRules(auditLog)` through `@apogee/ai` `generateObject` with registered prompts (`@apogee/prompts`).
+- `validateRule`, `detectConflicts(rules)`, `suggestRules(auditLog)` through `@de_canter/apogee-ai` `generateObject` with registered prompts (`@de_canter/apogee-prompts`).
 - `evaluate(rule, facts)`: structured checks (deterministic) then LLM instruction; result says which layer decided.
 - `compileRulesSection(rules, context)`: a prompts `Contributor` for the agent's `rules` slot.
 - `simulate(rule, scenarios)`, `RuleAudit` sink, `RuleStore` port with DB-first/file-fallback loader.
-- Demo (apogee.build): admin assistant = `@apogee/agent` + rule tools + memory on the rental domain: "when a rental over $2,000 is created, require a deposit note".
+- Demo (apogee.build): admin assistant = `@de_canter/apogee-agent` + rule tools + memory on the rental domain: "when a rental over $2,000 is created, require a deposit note".
 
 ## Toolchain reminders
 

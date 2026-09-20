@@ -7,9 +7,9 @@
 **Created:** 2026-09-18
 **Origin:** `docs/design/ai-abstractions.md` §5 (showcase) and §6 (B6). Prerequisites B1 and B2 are merged and tagged. Consumption spike 2026-09-18: `github:…#path:` fails for packages with `workspace:*` deps (pnpm clones the subdirectory without workspace context); packed tarballs + `pnpm.overrides` for transitive packages work.
 
-**Goal:** Make every `@apogee/*` package consumable from any repo through GitHub Release tarballs, then turn apogee.build from a static landing page into the living showcase with a generated package index, rendered package READMEs, and the first live demo: an agent chat on the equipment-rental demo domain, running the real model when a key is present and a scripted fake otherwise.
+**Goal:** Make every `@de_canter/apogee-*` package consumable from any repo through GitHub Release tarballs, then turn apogee.build from a static landing page into the living showcase with a generated package index, rendered package READMEs, and the first live demo: an agent chat on the equipment-rental demo domain, running the real model when a key is present and a scripted fake otherwise.
 
-**Architecture:** In the apogee repo, a `release.yml` workflow packs one package per tag (`<name>-v<version>`) and attaches the `.tgz` to a GitHub Release; a `docs/consuming.md` shows the dependency plus overrides block. In `apogee-build`, the site moves to pnpm, depends on the six tarballs, and gets three surfaces: `/` (hero + package index generated from a manifest), `/packages/[name]` (README rendered from the installed package), `/demo/chat` (client built on `@apogee/agent-react` + `@apogee/artifacts`, server route built on `@apogee/agent` with `agentEventsToReadableStream`). The demo domain lives in `src/demo/rental/` on kernel nouns.
+**Architecture:** In the apogee repo, a `release.yml` workflow packs one package per tag (`<name>-v<version>`) and attaches the `.tgz` to a GitHub Release; a `docs/consuming.md` shows the dependency plus overrides block. In `apogee-build`, the site moves to pnpm, depends on the six tarballs, and gets three surfaces: `/` (hero + package index generated from a manifest), `/packages/[name]` (README rendered from the installed package), `/demo/chat` (client built on `@de_canter/apogee-agent-react` + `@de_canter/apogee-artifacts`, server route built on `@de_canter/apogee-agent` with `agentEventsToReadableStream`). The demo domain lives in `src/demo/rental/` on kernel nouns.
 
 **Tech Stack:** apogee repo: GitHub Actions. apogee-build: Next.js 16 App Router, React 19, Tailwind v4, pnpm 9, Vitest 4 (route + tools tests with `createFakeModelClient`), `marked` for README rendering, Vercel (auto-deploy from `main`).
 
@@ -30,15 +30,15 @@
 ```
 apogee/                                     (Tasks 1–2)
 ├── .github/workflows/release.yml           # tag push or manual: pack + release
-├── docs/consuming.md                       # how any repo depends on @apogee/*
-└── packages/prompts/package.json           # peer @apogee/ai ">=0.1.0"
+├── docs/consuming.md                       # how any repo depends on @de_canter/apogee-*
+└── packages/prompts/package.json           # peer @de_canter/apogee-ai ">=0.1.0"
 
 apogee-build/                               (Tasks 3–7)
 ├── package.json pnpm-lock.yaml .npmrc      # pnpm, tarball deps, overrides
 ├── vitest.config.ts  eslint.config.mjs (existing)
 ├── src/app/
 │   ├── layout.tsx page.tsx globals.css     # existing, page.tsx regenerates packages from manifest
-│   ├── packages/[name]/page.tsx            # README rendered from node_modules/@apogee/<name>/README.md
+│   ├── packages/[name]/page.tsx            # README rendered from node_modules/@de_canter/apogee-<name>/README.md
 │   ├── demo/chat/page.tsx                  # client demo
 │   └── api/agent/route.ts                  # POST -> SSE
 ├── src/packages.ts                         # manifest: name, tagline, status, version (read from node_modules package.json)
@@ -56,7 +56,7 @@ apogee-build/                               (Tasks 3–7)
 
 ### Task 1: Release workflow + consuming doc (apogee repo)
 
-**Files:** Create `.github/workflows/release.yml`, `docs/consuming.md`; Modify `packages/prompts/package.json` (`peerDependencies["@apogee/ai"] = ">=0.1.0"`), `packages/ai/README.md` and `packages/kernel/README.md` consuming sections (point to `docs/consuming.md`).
+**Files:** Create `.github/workflows/release.yml`, `docs/consuming.md`; Modify `packages/prompts/package.json` (`peerDependencies["@de_canter/apogee-ai"] = ">=0.1.0"`), `packages/ai/README.md` and `packages/kernel/README.md` consuming sections (point to `docs/consuming.md`).
 
 **Interfaces:**
 - Trigger on `push: tags: ['*-v*']` and `workflow_dispatch` with input `tag` (e.g. `agent-v0.1.0`).
@@ -71,7 +71,7 @@ apogee-build/                               (Tasks 3–7)
 
 ### Task 2: Re-verify consumption from the published URLs
 
-- [ ] In a scratch directory, `package.json` with `@apogee/agent`, `@apogee/agent-react`, `@apogee/artifacts`, `@apogee/ai`, `@apogee/prompts`, `@apogee/kernel` as tarball URLs, `react`/`react-dom` 19, and `pnpm.overrides` for the six; `pnpm install`; `node -e "require('@apogee/agent')"` prints a function. Record the exact block that worked into `docs/consuming.md` if it differs (commit as `docs(consuming): verified block`).
+- [ ] In a scratch directory, `package.json` with `@de_canter/apogee-agent`, `@de_canter/apogee-agent-react`, `@de_canter/apogee-artifacts`, `@de_canter/apogee-ai`, `@de_canter/apogee-prompts`, `@de_canter/apogee-kernel` as tarball URLs, `react`/`react-dom` 19, and `pnpm.overrides` for the six; `pnpm install`; `node -e "require('@de_canter/apogee-agent')"` prints a function. Record the exact block that worked into `docs/consuming.md` if it differs (commit as `docs(consuming): verified block`).
 
 ---
 
@@ -79,7 +79,7 @@ apogee-build/                               (Tasks 3–7)
 
 **Files:** Delete `package-lock.json`; Modify `package.json` (add `"packageManager": "pnpm@9.15.9"`, deps: six tarballs, `marked`, `zod`; devDeps: `vitest`, `@vitest/coverage-v8`; scripts `test`, `typecheck`); Create `.npmrc` (`auto-install-peers=true`), `vitest.config.ts` (node environment, `src/**/*.test.ts`).
 
-- [ ] **Step 1:** `pnpm install`; `pnpm build` (Next) passes with the packages resolvable: add a temporary `src/__tests__/smoke.test.ts` that imports `createFakeModelClient` from `@apogee/ai` and `createAgentSession` from `@apogee/agent` and asserts they are functions.
+- [ ] **Step 1:** `pnpm install`; `pnpm build` (Next) passes with the packages resolvable: add a temporary `src/__tests__/smoke.test.ts` that imports `createFakeModelClient` from `@de_canter/apogee-ai` and `createAgentSession` from `@de_canter/apogee-agent` and asserts they are functions.
 - [ ] **Step 2:** Commit `chore: move to pnpm and install @apogee packages from release tarballs`.
 
 ---
@@ -107,7 +107,7 @@ apogee-build/                               (Tasks 3–7)
 - `server.ts`: `getModelClient()` → `createAnthropicModelClient({ resolveModel: staticResolver({ default: 'claude-haiku-4-5', fast: 'claude-haiku-4-5' }) })` when `process.env.ANTHROPIC_API_KEY` is set, else `createFakeModelClient(demoScript)`; `isDemoMode()`. `sessions = createSessionRegistry<AgentSession<RentalCtx>>({ idleMs: 30 * 60_000 })`; `getOrCreateSession(sessionId)` builds a session with `createRentalWorld()`, tools, prompt, in-memory message store, `maxRounds: 6`, `model: 'fast'`, `compaction: { budgetTokens: 20_000 }`. `rateLimit(ip)` → `{ ok: boolean; retryAfterSec? }` with the constants above.
 - `route.ts`: `POST` reads `{ message, annotations?, artifactAction? }` (Zod), reads or sets a `apogee-demo-session` cookie (random id), applies the rate limit (429 with JSON body when exceeded), runs `session.run(message, { annotations })`, returns `new Response(agentEventsToReadableStream(events), { headers: { ...SSE_HEADERS, 'x-apogee-demo-mode': isDemoMode() ? '1' : '0' } })`. `GET` returns `{ demoMode, sessionId, messages }` for reload. Export `runtime = 'nodejs'`.
 
-- [ ] **Step 1: Failing test** calls the exported `POST` with a `Request` (no key in env → demo mode): the response is `text/event-stream`, decoding the body with `decodeSseStream` from `@apogee/agent-react` yields a `turn_end`; a second call with the same cookie continues the session (history length grows); 21 calls from one IP within the window → 429.
+- [ ] **Step 1: Failing test** calls the exported `POST` with a `Request` (no key in env → demo mode): the response is `text/event-stream`, decoding the body with `decodeSseStream` from `@de_canter/apogee-agent-react` yields a `turn_end`; a second call with the same cookie continues the session (history length grows); 21 calls from one IP within the window → 429.
 - [ ] **Step 2: Implement. Step 3: Verify, commit** `feat(demo): add agent SSE route with session registry, demo mode, and rate limit`.
 
 ---
@@ -129,8 +129,8 @@ apogee-build/                               (Tasks 3–7)
 
 **Files:** `src/packages.ts`, `src/components/PackagesSection.tsx` (regenerate from manifest), `src/app/packages/[name]/page.tsx`, `src/components/Header.tsx` (add Demo link), `src/components/GetStartedSection.tsx` (real install block from `docs/consuming.md`), `src/components/CodeExample.tsx` (real snippet: `createAgentSession` + `agentEventsToReadableStream`), `README.md`.
 
-- `packages.ts`: array of `{ name, tagline, status: 'shipped' | 'planned', color }` for kernel, ai, prompts, agent, agent-react, artifacts (shipped) and rules, documents-ai, knowledge, integrations (planned); `version` read at build time from `require('@apogee/<name>/package.json')` for shipped ones.
-- `packages/[name]/page.tsx`: `generateStaticParams` over shipped names; reads `node_modules/@apogee/<name>/README.md` with `fs` at build time, renders with `marked` into a prose container; shows version, install line, and a link to the demo for `agent`, `agent-react`, `artifacts`.
+- `packages.ts`: array of `{ name, tagline, status: 'shipped' | 'planned', color }` for kernel, ai, prompts, agent, agent-react, artifacts (shipped) and rules, documents-ai, knowledge, integrations (planned); `version` read at build time from `require('@de_canter/apogee-<name>/package.json')` for shipped ones.
+- `packages/[name]/page.tsx`: `generateStaticParams` over shipped names; reads `node_modules/@de_canter/apogee-<name>/README.md` with `fs` at build time, renders with `marked` into a prose container; shows version, install line, and a link to the demo for `agent`, `agent-react`, `artifacts`.
 
 - [ ] **Step 1:** Implement; `pnpm typecheck && pnpm lint && pnpm build && pnpm test`.
 - [ ] **Step 2: Commit** `feat(site): generate package index from the workspace, render package READMEs, real install and code examples`.
