@@ -17,6 +17,7 @@ Scope: every path ever committed, every blob on every branch, excluding
 | Package source (`packages/*/src`) | no product names, no internal hosts |
 | Product names in docs, plans, `CLAUDE.md`, `.claude-shared/`, `scripts/` | scrubbed 2026-09-19; the origin product is now "the reference product" |
 | Absolute local paths and machine names in plans | scrubbed 2026-09-19 |
+| Git history | rewritten 2026-09-20; verified no revision, message, or path carries the name |
 
 What a reader will still see:
 
@@ -39,15 +40,16 @@ What a reader will still see:
 - [x] `de_canter` org created on npm (2026-09-19)
 - [x] `publishConfig.access: public` in every package; `release.yml`
       publishes with provenance when `NPM_TOKEN` is set
-- [ ] Add the `NPM_TOKEN` repo secret: a granular access token with
-      read/write on the `@de_canter` scope, bypassing 2FA for automation.
-- [ ] Decide where `.claude-shared/` and `scripts/` live. Options: leave them
-      (public but harmless), or move them to a private ops repo and update the
-      `@../apogee/.claude-shared/CLAUDE.md` import in each product repo.
-- [ ] Tag and release every package at its new version so the tarball URLs in
-      `docs/consuming.md` resolve. Then update apogee.build's imports and
-      install block, and re-vendor in each consumer.
-- [ ] Squash nothing. History is clean; keep it.
+- [x] `NPM_TOKEN` repo secret added (2026-09-20); every package published at its
+      new version the same day
+- [x] `.claude-shared/` and `scripts/` stay in the repo (public but harmless).
+      Revisit if the harness grows product-specific.
+- [x] Every package tagged and released at its new version (2026-09-20).
+- [ ] apogee.build installs from npm and drops the vendored tarballs.
+- [x] History rewritten with `git filter-repo` (2026-09-20) so no revision names
+      the reference product or carries a local path, then pushed to a fresh
+      repository. The original, with its pull-request history, stays private
+      as `de-canter/apogee-archive`.
 - [ ] Flip visibility on GitHub. Confirm the license badge shows Apache-2.0.
 
 ## npm

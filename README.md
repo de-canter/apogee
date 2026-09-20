@@ -44,9 +44,13 @@ Each package README has its surface table, guarantees, and an example.
 
 ## Using the packages
 
-Until the packages are on npm, they are distributed as tarballs attached to
-GitHub Releases, one release per `<name>-v<version>` tag. Consumers vendor the
-`.tgz` files and add `pnpm.overrides`; see [`docs/consuming.md`](docs/consuming.md).
+```bash
+pnpm add @de_canter/apogee-kernel @de_canter/apogee-ai
+```
+
+Every package is on npm under the `@de_canter` scope. Each `<name>-v<version>`
+tag also attaches a tarball to a GitHub Release; see
+[`docs/consuming.md`](docs/consuming.md).
 
 ## Working in this repo
 
