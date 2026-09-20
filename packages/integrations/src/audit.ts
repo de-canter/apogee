@@ -55,7 +55,9 @@ export function preview(text: string): string {
 
 export function createInMemoryExecutionAudit(opts: { now?: () => ISODate; clock?: () => number } = {}): ExecutionAuditSink {
   const now = opts.now ?? nowIso;
-  const clock = opts.clock ?? (() => Date.now());
+  // The health window is measured against the same clock that stamps records,
+  // so an injected `now` never drifts away from a real-time window.
+  const clock = opts.clock ?? (() => Date.parse(now()));
   const records: ExecutionRecord[] = [];
   const seq = new Map<string, number>();
   const clone = (r: ExecutionRecord): ExecutionRecord => structuredClone(r);
