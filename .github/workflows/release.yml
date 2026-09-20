@@ -44,8 +44,10 @@ jobs:
         if: env.NODE_AUTH_TOKEN != ''
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          pnpm -C "packages/${{ steps.tag.outputs.name }}" publish --access public --provenance --no-git-checks
+        # Run from inside the package: `pnpm -C <dir> publish` forwards the
+        # directory to `npm publish` as a stray positional argument (EUSAGE).
+        working-directory: packages/${{ steps.tag.outputs.name }}
+        run: pnpm publish --access public --provenance --no-git-checks
       - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
