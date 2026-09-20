@@ -6,7 +6,7 @@ import type { IntegrationPattern } from './pattern';
 const MINUTE = 60_000;
 const HOUR = 3_600_000;
 
-export interface RateLimits { maxPerMinute?: number; maxPerHour?: number }
+export interface RateLimits { maxPerMinute?: number | undefined; maxPerHour?: number | undefined }
 export interface RateLimiter {
   check(key: string, limits: RateLimits): { allowed: boolean; retryAfterMs?: number };
   record(key: string): void;
