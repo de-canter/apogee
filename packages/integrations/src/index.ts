@@ -5,3 +5,7 @@ export * from './transforms';
 export * from './vault';
 export * from './auth';
 export * from './resilience';
+export * from './audit';
+export * from './prompts';
+export * from './execute';
+export * from './inbound';
