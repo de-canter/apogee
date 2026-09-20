@@ -1,8 +1,14 @@
 {
   "name": "@apogee/prompts",
   "version": "0.1.1",
+  "license": "Apache-2.0",
+  "homepage": "https://apogee.build",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/de-canter/apogee.git",
+    "directory": "packages/prompts"
+  },
   "description": "Apogee prompt registry: named, versioned prompts composed from sections with a cache-aware boundary and contributor slots",
-  "license": "UNLICENSED",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",

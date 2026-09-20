@@ -6,7 +6,7 @@ an agentic session, and natural-language business rules into things a
 product can compose. Every package is domain-agnostic; the product supplies
 the vocabulary. The live showcase is [apogee.build](https://apogee.build).
 
-Private repo. © de|canter LLC.
+Apache-2.0. © de_canter LLC (de|canter). See [`docs/open-source.md`](docs/open-source.md) for the path to public.
 
 ## Packages
 
@@ -44,8 +44,8 @@ Each package README has its surface table, guarantees, and an example.
 
 ## Using the packages
 
-Packages are distributed as tarballs attached to GitHub Releases, one release
-per `<name>-v<version>` tag. Because the repo is private, consumers vendor the
+Until the packages are on npm, they are distributed as tarballs attached to
+GitHub Releases, one release per `<name>-v<version>` tag. Consumers vendor the
 `.tgz` files and add `pnpm.overrides`; see [`docs/consuming.md`](docs/consuming.md).
 
 ## Working in this repo
@@ -75,3 +75,10 @@ tarball to a GitHub Release.
   holds what shipped, each with an outcome note.
 - [`docs/consuming.md`](docs/consuming.md): installing the packages elsewhere.
 - [`docs/TODO.md`](docs/TODO.md): the action list and the queue of plans.
+- [`docs/open-source.md`](docs/open-source.md): the audit and the remaining
+  steps before the repo goes public.
+- [`CONTRIBUTING.md`](CONTRIBUTING.md): how to propose changes.
+
+## License
+
+Apache License 2.0. See [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE).

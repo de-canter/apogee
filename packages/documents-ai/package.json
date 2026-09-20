@@ -1,8 +1,14 @@
 {
   "name": "@apogee/documents-ai",
   "version": "0.1.0",
+  "license": "Apache-2.0",
+  "homepage": "https://apogee.build",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/de-canter/apogee.git",
+    "directory": "packages/documents-ai"
+  },
   "description": "Apogee documents: host-declared taxonomy, classify and extract as assertions with per-field confidence, corrections and audit, cross-document reconciliation, a staged resumable pipeline",
-  "license": "UNLICENSED",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",

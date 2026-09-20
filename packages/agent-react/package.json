@@ -1,8 +1,14 @@
 {
   "name": "@apogee/agent-react",
   "version": "0.1.0",
+  "license": "Apache-2.0",
+  "homepage": "https://apogee.build",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/de-canter/apogee.git",
+    "directory": "packages/agent-react"
+  },
   "description": "React client for @apogee/agent: SSE decoder, pure reducer, useAgentSession, and unstyled chat shells",
-  "license": "UNLICENSED",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",

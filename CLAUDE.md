@@ -2,8 +2,10 @@
 
 @.claude-shared/CLAUDE.md
 
-Apogee is the shared TypeScript framework for Verve Technologies products
-(the reference product, The Somm, NailNotes, MacMethod). Private, internal use only.
+Apogee is de|canter's TypeScript framework for production AI applications,
+used by Verve Technologies products (the reference product, The Somm, NailNotes,
+MacMethod). Licensed Apache-2.0; the repo goes public once
+`docs/open-source.md` is closed out. Nothing product-specific belongs here.
 
 ## Orientation (read in this order at session start)
 
