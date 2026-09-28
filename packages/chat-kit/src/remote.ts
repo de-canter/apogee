@@ -4,13 +4,13 @@ import { AnyEnvelopeSchema, AnyListEnvelopeSchema, describeEnvelope, type Envelo
 import { ChatKitError, CHAT_KIT_ERROR_CODES, type ChatKitErrorCode } from './errors';
 import { jsonSchemaStandard } from './json-schema';
 import type { Kit } from './kit';
-import type { KitManifest } from './manifest';
+import { KitManifestSchema, type KitManifest } from './manifest';
 import type { AuthInfo } from './ports';
+import { KIT_WRAP_HEADER } from './http';
 
 export { jsonSchemaStandard } from './json-schema';
+export { KitManifestSchema } from './manifest';
 export type { KitManifest, CapabilityManifestEntry } from './manifest';
-
-export const KIT_TEXT_HEADER = 'x-kit-text';
 
 export interface RemoteCallResult { status: number; body: unknown; text?: string | undefined }
 export type RemoteCall = (capability: string, args: unknown, auth: AuthInfo | undefined) => Promise<RemoteCallResult>;
@@ -36,9 +36,16 @@ function toError(status: number, body: unknown): ChatKitError {
 
 /** A Kit whose capabilities live behind HTTP: schemas from the manifest, calls forwarded, errors rethrown with their codes. */
 export function createRemoteKit(opts: RemoteKitOptions): Kit {
+  const parsedManifest = KitManifestSchema.safeParse(opts.manifest);
+  if (!parsedManifest.success) {
+    const issue = parsedManifest.error.issues[0];
+    const where = issue && issue.path.length > 0 ? `${issue.path.join('.')}: ` : '';
+    throw new Error(`createRemoteKit: invalid manifest: ${where}${issue?.message ?? 'unknown issue'}`);
+  }
+  const manifest: KitManifest = parsedManifest.data;
   const texts = new WeakMap<object, string>();
   const infos = new Map<string, CapabilityInfo>();
-  for (const c of opts.manifest.capabilities) {
+  for (const c of manifest.capabilities) {
     // CapabilityInfo.input/output are typed as zod (local kits are always zod); a remote kit's
     // capabilities carry a Standard JSON Schema instead. See the Task 3 report for why the type
     // was not widened to a union: it would ripple into pre-existing tests that call
@@ -76,28 +83,28 @@ export interface HttpKitCallOptions {
   fetch?: typeof fetch | undefined;
 }
 
-const BASE64URL_RE = /^[A-Za-z0-9_-]+$/;
-
-/** `Buffer.from(_, 'base64url')` never throws (invalid chars are just skipped), so the regex is the only guard. */
-function decodeText(header: string | null): string | undefined {
-  if (!header || !BASE64URL_RE.test(header)) return undefined;
-  return Buffer.from(header, 'base64url').toString('utf8');
+/** A `{ envelope, text }` body from a host that honoured `x-kit-wrap: 1`. */
+function unwrap(body: unknown): { envelope: unknown; text: string } | undefined {
+  if (typeof body !== 'object' || body === null || !('envelope' in body)) return undefined;
+  const { envelope, text } = body as { envelope: unknown; text?: unknown };
+  return typeof text === 'string' ? { envelope, text } : undefined;
 }
 
-/** The default RemoteCall: JSON POST with the caller's bearer token and any static headers (an edge secret, say). */
+/**
+ * The default RemoteCall: JSON POST with the caller's bearer token and any static headers (an edge secret, say).
+ * Asks for the wrapped `{ envelope, text }` body (`x-kit-wrap: 1`) and accepts a bare envelope from a plain host.
+ */
 export function httpKitCall(opts: HttpKitCallOptions): RemoteCall {
   const f = opts.fetch ?? fetch;
   const base = opts.baseUrl.replace(/\/$/, '');
   return async (capability, args, auth) => {
-    const headers: Record<string, string> = { 'content-type': 'application/json', accept: 'application/json', ...(opts.headers ?? {}) };
+    const headers: Record<string, string> = { 'content-type': 'application/json', accept: 'application/json', ...(opts.headers ?? {}), [KIT_WRAP_HEADER]: '1' };
     if (auth?.token) headers['authorization'] = `Bearer ${auth.token}`;
     const res = await f(`${base}/${encodeURIComponent(capability)}`, { method: 'POST', headers, body: JSON.stringify(args ?? {}) });
     const raw = await res.text();
     let body: unknown = raw;
     try { body = raw ? JSON.parse(raw) : null; } catch { /* keep the raw text */ }
-    const text = decodeText(res.headers.get(KIT_TEXT_HEADER));
-    const out: RemoteCallResult = { status: res.status, body };
-    if (text !== undefined) out.text = text;
-    return out;
+    const wrapped = res.status >= 200 && res.status < 300 ? unwrap(body) : undefined;
+    return wrapped ? { status: res.status, body: wrapped.envelope, text: wrapped.text } : { status: res.status, body };
   };
 }

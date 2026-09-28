@@ -2,7 +2,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { createHttpHandler } from '../http';
 import { createKit } from '../kit';
 import { manifestOf } from '../manifest';
-import { createRemoteKit, httpKitCall, KIT_TEXT_HEADER, type RemoteCall } from '../remote';
+import { createRemoteKit, httpKitCall, KitManifestSchema, type KitManifest, type RemoteCall } from '../remote';
+import { KIT_WRAP_HEADER } from '../http';
 import { ChatKitError } from '../errors';
 import { makeCtx, seed, ticket, type Principal } from './fixtures/ticket';
 
@@ -23,6 +24,16 @@ describe('createRemoteKit', () => {
     const std = (triage.input as unknown as { '~standard': { validate(v: unknown): unknown } })['~standard'];
     expect(std.validate({ id: 't1', assignee: 'bob' })).toEqual({ value: { id: 't1', assignee: 'bob' } });
     expect('issues' in (std.validate({ id: 't1' }) as object)).toBe(true);
+  });
+  it('rejects an invalid manifest with a clear error', () => {
+    const call: RemoteCall = () => Promise.reject(new Error('unused'));
+    const errorBody = { error: { code: 'UNAUTHENTICATED', message: 'Not authenticated' } } as unknown as KitManifest;
+    expect(() => createRemoteKit({ manifest: errorBody, call })).toThrow(/^createRemoteKit: invalid manifest: /);
+    const v2 = { ...manifest, version: 2 } as unknown as KitManifest;
+    expect(() => createRemoteKit({ manifest: v2, call })).toThrow(/^createRemoteKit: invalid manifest: version/);
+    const noSchema = { version: 1, capabilities: [{ ...manifest.capabilities[0], input_schema: 'nope' }] } as unknown as KitManifest;
+    expect(() => createRemoteKit({ manifest: noSchema, call })).toThrow(/^createRemoteKit: invalid manifest: capabilities\.0\.input_schema/);
+    expect(KitManifestSchema.safeParse(manifest).success).toBe(true);
   });
   it('proxies a call and returns the envelope', async () => {
     const remote = createRemoteKit({ manifest, call: viaHttp });
@@ -61,29 +72,80 @@ describe('createRemoteKit', () => {
   });
 });
 
+const jsonResponse = (body: unknown, status = 200): Response =>
+  new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
+const asFetch = (f: unknown): typeof fetch => f as typeof fetch;
+
 describe('httpKitCall', () => {
-  it('posts JSON with the bearer token and static headers, and decodes the text header', async () => {
+  it('posts JSON with the bearer token, static headers and the wrap header, and unwraps { envelope, text }', async () => {
     const fetchMock = vi.fn((url: string, init: RequestInit) => {
       expect(url).toBe('https://api.example.com/api/v1/kit/ticket_get');
-      expect((init.headers as Record<string, string>)['authorization']).toBe('Bearer tok');
-      expect((init.headers as Record<string, string>)['x-edge']).toBe('s3cret');
+      const h = init.headers as Record<string, string>;
+      expect(h['authorization']).toBe('Bearer tok');
+      expect(h['x-edge']).toBe('s3cret');
+      expect(h[KIT_WRAP_HEADER]).toBe('1');
       expect(init.body).toBe(JSON.stringify({ id: 't1' }));
-      const text = Buffer.from('hello', 'utf8').toString('base64url');
-      return Promise.resolve(new Response(JSON.stringify({ resource: 'ticket' }), { status: 200, headers: { 'content-type': 'application/json', [KIT_TEXT_HEADER]: text } }));
+      return Promise.resolve(jsonResponse({ envelope: { resource: 'ticket' }, text: 'hello' }));
     });
-    const call = httpKitCall({ baseUrl: 'https://api.example.com/api/v1/kit', headers: { 'x-edge': 's3cret' }, fetch: fetchMock as unknown as typeof fetch });
+    const call = httpKitCall({ baseUrl: 'https://api.example.com/api/v1/kit', headers: { 'x-edge': 's3cret' }, fetch: asFetch(fetchMock) });
     const r = await call('ticket_get', { id: 't1' }, { token: 'tok' });
     expect(r).toEqual({ status: 200, body: { resource: 'ticket' }, text: 'hello' });
+    expect(fetchMock).toHaveBeenCalledOnce();
   });
-  it('omits Authorization without a token, tolerates a bad text header and a non-JSON body', async () => {
+  it('accepts a bare envelope on a 2xx from a plain host (no text)', async () => {
+    const call = httpKitCall({ baseUrl: 'https://api.example.com/api/v1/kit', fetch: asFetch(() => Promise.resolve(jsonResponse({ resource: 'ticket' }))) });
+    const r = await call('ticket_get', { id: 't1' }, { token: 'tok' });
+    expect(r).toEqual({ status: 200, body: { resource: 'ticket' } });
+  });
+  it('returns a 40 KB text in a wrapped body intact', async () => {
+    const big = 'Château — 2019 · '.repeat(2400);
+    expect(big.length).toBeGreaterThan(40_000);
+    const call = httpKitCall({ baseUrl: 'https://api.example.com/api/v1/kit', fetch: asFetch(() => Promise.resolve(jsonResponse({ envelope: { resource: 'ticket' }, text: big }))) });
+    const r = await call('ticket_list', {}, { token: 'tok' });
+    expect(r.text).toBe(big);
+  });
+  it('omits Authorization without a token and tolerates a non-JSON body', async () => {
     const fetchMock = vi.fn((_url: string, init: RequestInit) => {
       expect('authorization' in (init.headers as Record<string, string>)).toBe(false);
-      return Promise.resolve(new Response('nope', { status: 401, headers: { [KIT_TEXT_HEADER]: '%%%' } }));
+      return Promise.resolve(new Response('nope', { status: 401 }));
     });
-    const call = httpKitCall({ baseUrl: 'https://api.example.com/api/v1/kit', fetch: fetchMock as unknown as typeof fetch });
+    const call = httpKitCall({ baseUrl: 'https://api.example.com/api/v1/kit', fetch: asFetch(fetchMock) });
     const r = await call('ticket_get', { id: 't1' }, undefined);
     expect(r.status).toBe(401);
     expect(r.body).toBe('nope');
     expect(r.text).toBeUndefined();
+  });
+  it('does not unwrap a non-2xx body that happens to look wrapped', async () => {
+    const body = { envelope: { resource: 'ticket' }, text: 'x' };
+    const call = httpKitCall({ baseUrl: 'https://api.example.com/api/v1/kit', fetch: asFetch(() => Promise.resolve(jsonResponse(body, 500))) });
+    const r = await call('ticket_get', {}, undefined);
+    expect(r).toEqual({ status: 500, body });
+  });
+});
+
+describe('wrapped transport end to end', () => {
+  const wrappedFetch = (textOverride?: string) => asFetch(async (url: string, init: RequestInit) => {
+    const capability = decodeURIComponent(url.split('/').pop() ?? '');
+    const h = init.headers as Record<string, string>;
+    const token = h['authorization']?.replace(/^Bearer /, '');
+    const r = await handle({ capability, args: JSON.parse(init.body as string) as unknown, auth: token ? { token } : undefined, wrap: h[KIT_WRAP_HEADER] === '1' });
+    const body = textOverride !== undefined && r.status === 200 ? { ...(r.body as object), text: textOverride } : r.body;
+    return jsonResponse(body, r.status);
+  });
+  it('carries a non-ASCII describe text through createRemoteKit(...).describe', async () => {
+    const remote = createRemoteKit({ manifest, call: httpKitCall({ baseUrl: 'https://api.example.com/api/v1/kit', fetch: wrappedFetch('Château — 2019') }) });
+    const e = await remote.call('ticket_get', { id: 't1' }, { token: 'ann' });
+    expect(e).toMatchObject({ resource: 'ticket', id: 't1' });
+    expect(remote.describe('ticket_get', e)).toBe('Château — 2019');
+  });
+  it('falls back to describeEnvelope when the host drops the wrapper', async () => {
+    const plain = asFetch(async (url: string, init: RequestInit) => {
+      const capability = decodeURIComponent(url.split('/').pop() ?? '');
+      const r = await handle({ capability, args: JSON.parse(init.body as string) as unknown, auth: { token: 'ann' } });
+      return jsonResponse(r.body, r.status);
+    });
+    const remote = createRemoteKit({ manifest, call: httpKitCall({ baseUrl: 'https://api.example.com/api/v1/kit', fetch: plain }) });
+    const e = await remote.call('ticket_get', { id: 't1' }, { token: 'ann' });
+    expect(JSON.parse(remote.describe('ticket_get', e))).toMatchObject({ id: 't1' });
   });
 });
