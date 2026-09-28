@@ -51,6 +51,14 @@ describe('createRemoteKit', () => {
     const e2 = await custom.call('ticket_get', { id: 't1' }, { token: 'ann' });
     expect(custom.describe('ticket_get', e2)).toBe('server says hi');
   });
+  it('proxies the list capability through the http handler', async () => {
+    const remote = createRemoteKit({ manifest, call: viaHttp });
+    // ann owns t1 + t2 from the seed; create a third so a limit-2 page has a next cursor.
+    await remote.call('ticket_create', { title: 'New' }, { token: 'ann' });
+    const page = await remote.call('ticket_list', { limit: 2 }, { token: 'ann' });
+    expect('items' in page && page.items.length).toBe(2);
+    expect('items' in page && page.next_cursor).toBe('t2');
+  });
 });
 
 describe('httpKitCall', () => {

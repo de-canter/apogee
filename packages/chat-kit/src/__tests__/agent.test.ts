@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { createToolRegistry } from '@de_canter/apogee-agent';
 import { toAgentTools } from '../agent';
 import { createKit } from '../kit';
+import { manifestOf } from '../manifest';
+import { createRemoteKit } from '../remote';
 import { makeCtx, seed, ticket, type Principal } from './fixtures/ticket';
 
 interface AgentCtx { userToken: string | undefined }
@@ -33,6 +35,12 @@ describe('toAgentTools', () => {
     expect(r).toMatchObject({ success: false, error: 'ILLEGAL_TRANSITION', data: { error: { code: 'ILLEGAL_TRANSITION' } } });
     const r2 = await t.execute({ id: 't1', assignee: 'bob' } as never, { ...ctx, ctx: { userToken: undefined } });
     expect(r2).toMatchObject({ success: false, error: 'UNAUTHENTICATED' });
+  });
+  it('rejects a remote kit: its capabilities carry JSON Schema, not zod', () => {
+    const remote = createRemoteKit({ manifest: manifestOf(kit), call: () => Promise.reject(new Error('unused')) });
+    expect(() => toAgentTools<AgentCtx>(remote, { auth: () => undefined })).toThrow(
+      /toAgentTools requires a local kit \(zod input schemas\); got a remote kit capability: /,
+    );
   });
   it('a throwing host describe falls back to the default message', async () => {
     const loud = { ...ticket, capabilities: () => ticket.capabilities().map((c) => ({ ...c, describe: (): string => { throw new Error('describe bug'); } })) };

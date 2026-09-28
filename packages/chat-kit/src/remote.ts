@@ -76,13 +76,12 @@ export interface HttpKitCallOptions {
   fetch?: typeof fetch | undefined;
 }
 
+const BASE64URL_RE = /^[A-Za-z0-9_-]+$/;
+
+/** `Buffer.from(_, 'base64url')` never throws (invalid chars are just skipped), so the regex is the only guard. */
 function decodeText(header: string | null): string | undefined {
-  if (!header) return undefined;
-  try {
-    return Buffer.from(header, 'base64url').toString('utf8');
-  } catch {
-    return undefined;
-  }
+  if (!header || !BASE64URL_RE.test(header)) return undefined;
+  return Buffer.from(header, 'base64url').toString('utf8');
 }
 
 /** The default RemoteCall: JSON POST with the caller's bearer token and any static headers (an edge secret, say). */
@@ -98,7 +97,7 @@ export function httpKitCall(opts: HttpKitCallOptions): RemoteCall {
     try { body = raw ? JSON.parse(raw) : null; } catch { /* keep the raw text */ }
     const text = decodeText(res.headers.get(KIT_TEXT_HEADER));
     const out: RemoteCallResult = { status: res.status, body };
-    if (text !== undefined && /^[A-Za-z0-9_-]+$/.test(res.headers.get(KIT_TEXT_HEADER) ?? '')) out.text = text;
+    if (text !== undefined) out.text = text;
     return out;
   };
 }
