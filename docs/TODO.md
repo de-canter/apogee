@@ -27,7 +27,7 @@ Updated 2026-09-18. Things only you can do, plus the queue.
 6. Workflow-engine hook: `StateMachine` accepts a kernel `LifecycleDefinition`.
 7. The reference product's clean-room rewrite plan (in its own repo), gated on 1–6.
 8. **C1** `@de_canter/apogee-chat-kit` + `@de_canter/apogee-chat-kit-app` — done: apogee#3 merged, `chat-kit-v0.1.0` and `chat-kit-app-v0.1.0` released with tarballs. Plan filed under `docs/plans/completed/`. The reference product's chat-native POC consumes them next.
-9. **C2** chat-kit 0.2.0 (manifest + remote kit) — built on feature/remote-kit; PR pending after final review; after merge tag chat-kit-v0.2.0.
+9. **C2** chat-kit 0.2.0 (manifest + remote kit) — done: apogee#5 merged, `chat-kit-v0.2.0` released with its tarball. Plan filed under `docs/plans/completed/`.
 
 ## Local gotchas
 
