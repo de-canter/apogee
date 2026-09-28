@@ -5,3 +5,4 @@ export * from './capability';
 export * from './actions';
 export * from './resource';
 export * from './kit';
+export * from './standalone';

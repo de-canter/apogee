@@ -76,6 +76,11 @@ export const RESERVED_CAPABILITY_NAMES = ['get', 'list', 'create'] as const;
 const NAME_RE = /^[a-z][a-z0-9_]*$/;
 const IdSchema = z.string().min(1);
 
+/** Throws when `name` is not snake_case. Shared by defineResource and defineCapability. */
+export function assertSnakeCase(kind: string, name: string): void {
+  if (!NAME_RE.test(name)) throw new Error(`${kind} name "${name}" must be snake_case`);
+}
+
 function arr<S extends string>(s: S | readonly S[]): readonly S[] {
   return Array.isArray(s) ? (s as readonly S[]) : [s as S];
 }
