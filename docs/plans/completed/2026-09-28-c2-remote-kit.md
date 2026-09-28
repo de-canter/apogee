@@ -1,5 +1,7 @@
 # Plan C2 — chat-kit 0.2.0: manifest + remote kit Implementation Plan
 
+> **Outcome (2026-09-28):** Completed. Merged via de-canter/apogee#5 (f837451); tagged `chat-kit-v0.2.0` with its tarball on the GitHub Release. chat-kit 109 tests / 97.3% statements. Deviation from this plan's text: the model-facing `text` no longer travels in an `x-kit-text` response header (Node's fetch rejects headers above ~16 KiB); the remote kit sends `x-kit-wrap: 1` and the host answers `{ envelope, text }` in the body, plain hosts keep the bare envelope (`createHttpHandler`'s `wrap` + `wantsWrap`). Also: manifest validated with `KitManifestSchema`; one lazily compiled Ajv per remote kit with zod's extra formats registered; 400/402/403 mapped; `httpKitCall` has `timeoutMs`; `toAgentTools` refuses remote kits; `./remote` is Node-runtime only. Deferred: widening `CapabilityInfo.input/output` to `z.ZodType | StandardJsonSchema`.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Created:** 2026-09-28
