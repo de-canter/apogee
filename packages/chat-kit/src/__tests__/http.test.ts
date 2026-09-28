@@ -14,6 +14,7 @@ describe('createHttpHandler', () => {
     const r = await handle({ capability: 'ticket_get', args: { id: 't1' }, auth: { token: 'ann' } });
     expect(r.status).toBe(200);
     expect(r.body).toMatchObject({ resource: 'ticket', id: 't1' });
+    expect(JSON.parse(r.text ?? '')).toMatchObject({ resource: 'ticket', id: 't1' });
   });
   it.each([
     ['ticket_triage', { id: 't2', assignee: 'b' }, { token: 'ann' }, 409, 'ILLEGAL_TRANSITION'],
@@ -24,6 +25,7 @@ describe('createHttpHandler', () => {
     const r = await handle({ capability, args, auth });
     expect(r.status).toBe(status);
     expect(r.body).toMatchObject({ error: { code } });
+    expect(r.text).toBeUndefined();
   });
   it('exports the status map', () => { expect(STATUS_BY_CODE.ENTITLEMENT).toBe(402); });
 });
