@@ -3,7 +3,10 @@ import { z } from 'zod';
 import { createHttpHandler } from '../http';
 import { createKit } from '../kit';
 import { manifestOf } from '../manifest';
-import { createRemoteKit, httpKitCall, KitManifestSchema, type KitManifest, type RemoteCall } from '../remote';
+import {
+  createRemoteKit, httpKitCall, jsonSchemaStandard, KitManifestSchema,
+  type KitManifest, type RemoteCall, type StandardIssue, type StandardJsonSchema, type StandardResult,
+} from '../remote';
 import { KIT_WRAP_HEADER } from '../http';
 import { ChatKitError } from '../errors';
 import { makeCtx, seed, ticket, type Principal } from './fixtures/ticket';
@@ -35,6 +38,12 @@ describe('createRemoteKit', () => {
     const noSchema = { version: 1, capabilities: [{ ...manifest.capabilities[0], input_schema: 'nope' }] } as unknown as KitManifest;
     expect(() => createRemoteKit({ manifest: noSchema, call })).toThrow(/^createRemoteKit: invalid manifest: capabilities\.0\.input_schema/);
     expect(KitManifestSchema.safeParse(manifest).success).toBe(true);
+  });
+  it('exports the Standard JSON Schema types from ./remote', () => {
+    const std: StandardJsonSchema = jsonSchemaStandard({ type: 'string' });
+    const r: StandardResult = std['~standard'].validate(1);
+    const issues: StandardIssue[] = 'issues' in r ? r.issues : [];
+    expect(issues.length).toBeGreaterThan(0);
   });
   it('proxies a call and returns the envelope', async () => {
     const remote = createRemoteKit({ manifest, call: viaHttp });

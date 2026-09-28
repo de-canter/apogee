@@ -9,6 +9,7 @@ import { KitManifestSchema, type KitManifest } from './manifest';
 import type { AuthInfo } from './ports';
 
 export { jsonSchemaStandard } from './json-schema';
+export type { JsonSchemaStandardOptions, StandardIssue, StandardJsonSchema, StandardResult } from './json-schema';
 export { KitManifestSchema } from './manifest';
 export type { KitManifest, CapabilityManifestEntry } from './manifest';
 

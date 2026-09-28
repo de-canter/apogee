@@ -288,14 +288,18 @@ Each tool's `execute` calls `kit.call` and returns `ToolResult { success: true, 
 ### 5.3 HTTP (`@de_canter/apogee-chat-kit/http`)
 
 ```ts
-export interface HttpCall { capability: string; args: unknown; auth: AuthInfo | undefined }
+export interface HttpCall { capability: string; args: unknown; auth: AuthInfo | undefined; wrap?: boolean | undefined }
 export interface HttpResult { status: number; body: unknown; text?: string | undefined }
 export function createHttpHandler(kit: Kit): (call: HttpCall) => Promise<HttpResult>;
+export const KIT_WRAP_HEADER = 'x-kit-wrap';
+export function wantsWrap(headers: { get(name: string): string | null } | Record<string, string | string[] | undefined>): boolean;
 export const STATUS_BY_CODE: Record<ChatKitErrorCode, number>;
 // ILLEGAL_TRANSITION 409, NOT_FOUND 404, INVALID_INPUT 400, UNAUTHENTICATED 401, FORBIDDEN 403, ENTITLEMENT 402, INTERNAL 500
 ```
 
-Framework glue is the host's: one Fastify route `POST /api/v1/kit/:capability` that builds `HttpCall` from `request.params`, `request.body`, and its own auth plugin's output. `HttpResult.text` is the same model-facing text `describe()` produces on success (`undefined` on error); a host that wants to hand it to a remote kit (§5.4) writes it into a response header rather than the JSON body, since the body is the envelope itself.
+Framework glue is the host's: one Fastify route `POST /api/v1/kit/:capability` that builds `HttpCall` from `request.params`, `request.body`, its own auth plugin's output, and `wrap: wantsWrap(request.headers)`, then writes `reply.code(r.status).send(r.body)`. `HttpResult.text` is the same model-facing text `describe()` produces on success (falling back to `describeEnvelope` when the host's describe throws; `undefined` on error).
+
+The body is the bare envelope by default, so plain clients (the fragment runtime's `httpTransport`, a PWA) are unaffected. When `wrap` is true — a remote kit asks with `x-kit-wrap: 1` (`wantsWrap` is true only for the exact value `'1'`, reading a fetch `Headers` or a Node/Fastify header record case-insensitively) — a **success** body is `{ envelope, text }` instead; the status is unchanged and error bodies are never wrapped. The text rides in the body, not a response header, because Node's fetch rejects responses whose headers exceed ~16 KiB and a list's text can get there.
 
 ### 5.4 Remote kit (`@de_canter/apogee-chat-kit/remote`)
 
@@ -314,10 +318,13 @@ export interface KitManifest { version: 1; capabilities: CapabilityManifestEntry
 export function manifestOf(kit: Kit): KitManifest;   // exported from the package root
 ```
 
-`jsonSchemaStandard(schema)` wraps a raw JSON Schema as a Standard Schema (`~standard`, vendor `apogee-chat-kit`) whose `validate` compiles and runs the schema through Ajv 2020 (`strict: false`, formats loaded) and whose `jsonSchema.input`/`.output` return the schema unchanged; `createRemoteKit` uses it to give each manifest entry an `input`/`output` that satisfies the same shape a local `CapabilityInfo` exposes, even though it did not come from zod.
+`jsonSchemaStandard(schema, { ajv? })` wraps a raw JSON Schema as a Standard Schema (`~standard`, vendor `apogee-chat-kit`) whose `validate` compiles the schema lazily (on the first call) and runs it through Ajv 2020 (`strict: false`, ajv-formats loaded, plus the formats `z.toJSONSchema` can emit that ajv-formats lacks — `cuid`, `cuid2`, `ulid`, `nanoid`, `jwt`, `e164`, `emoji`, `base64`, `base64url`, `cidrv4`, `cidrv6`, `xid`, `ksuid` — registered as pass-through so Ajv prints no `unknown format` warnings; `ipv4`/`ipv6` keep ajv-formats' real checks), and whose `jsonSchema.input`/`.output` return the schema unchanged. It uses the supplied Ajv instance, else a shared one; `createRemoteKit` creates one Ajv per kit. `manifestOf` recognises such a schema (`'~standard'` with vendor `apogee-chat-kit`) and emits its `jsonSchema` instead of calling `z.toJSONSchema`, so `manifestOf(createRemoteKit({ manifest: m, call }))` equals `m`.
+
+**Runtime:** `./remote` is Node-runtime only. Ajv generates validator code with `new Function`, which the Edge Runtime and Cloudflare Workers forbid; run the edge MCP server on a Node function.
 
 ```ts
-export const KIT_TEXT_HEADER = 'x-kit-text';   // 'x-kit-text'
+export const KitManifestSchema: z.ZodType<KitManifest>;   // also exported from the package root
+export type { StandardJsonSchema, StandardResult, StandardIssue, JsonSchemaStandardOptions };
 
 export interface RemoteCallResult { status: number; body: unknown; text?: string | undefined }
 export type RemoteCall = (capability: string, args: unknown, auth: AuthInfo | undefined) => Promise<RemoteCallResult>;
@@ -328,21 +335,31 @@ export interface HttpKitCallOptions {
   baseUrl: string;                              // capability name is appended as a path segment
   headers?: Record<string, string> | undefined; // static headers, e.g. an edge secret
   fetch?: typeof fetch | undefined;
+  timeoutMs?: number | undefined;               // whole-call deadline, default 30000
 }
 export function httpKitCall(opts: HttpKitCallOptions): RemoteCall;
 ```
 
 `createRemoteKit` semantics:
 
+- the manifest is parsed with `KitManifestSchema` first (`version: 1`, every entry's fields, `input_schema`/`output_schema` objects); anything else — an error body fetched by mistake, a `version: 2` manifest — throws `createRemoteKit: invalid manifest: <path>: <first issue>`.
 - `list()` / `get(name)` read the manifest; each entry's `input`/`output` are `jsonSchemaStandard(entry.input_schema / .output_schema)`, cast to `z.ZodType` for `CapabilityInfo` (see the limitation below).
-- `call(name, args, auth)` calls `name` against the manifest (`NOT_FOUND` if unlisted), invokes `opts.call(name, args, auth)`, and:
+- `call(name, args, auth)` calls `name` against the manifest (`NOT_FOUND` if unlisted), invokes `opts.call(name, args, auth)` (a `ChatKitError` it throws passes through unchanged; any other throw becomes `INTERNAL` `Remote kit call failed`), and:
   - a 2xx status is parsed as an `Envelope` or `ListEnvelope` (tried in that order via the shared contract schemas); a body that matches neither throws `ChatKitError('INTERNAL', 'Remote kit returned a non-envelope body')`.
   - a non-2xx status expects `{ error: { code, message, details?, allowed_next_actions? } }` (the shape `ChatKitError.toJSON()` produces) and rethrows the same `ChatKitError`, preserving `code`, `details`, and `allowed_next_actions`.
-  - a non-2xx body that isn't that shape maps by status: 401 → `UNAUTHENTICATED`, 404 → `NOT_FOUND`, anything else → `INTERNAL` (`Remote kit returned <status>`).
+  - a non-2xx body that isn't that shape maps by status: 400 → `INVALID_INPUT`, 401 → `UNAUTHENTICATED`, 402 → `ENTITLEMENT`, 403 → `FORBIDDEN`, 404 → `NOT_FOUND`, keeping the body's string `message` (`{ message }` or `{ error: { message } }`) when it has one; anything else → `INTERNAL` (`Remote kit returned <status>`, never the foreign message, which may carry upstream internals).
   - when the transport result carries `text`, it is associated with the parsed envelope so `describe()` returns it verbatim instead of falling back to `describeEnvelope`.
 - `describe(name, result)` returns the associated `text` when the transport supplied one, else `describeEnvelope(result)` — the same default a local kit uses.
 
-`httpKitCall` builds the default `RemoteCall`: `POST {baseUrl}/{encodeURIComponent(capability)}` with `content-type`/`accept: application/json`, the caller's bearer token (`auth.token`) as `authorization: Bearer <token>` when present, and any static `headers` merged in first (so a caller-supplied `authorization` header, if any were passed as a static header, would be overridden by the bearer token — static headers are meant for transport-level secrets, not per-call auth). The response body is read as text, then JSON-parsed if non-empty (kept as the raw string on a parse failure — a non-JSON error page from a proxy, say — so `toError` still has something to report). The `x-kit-text` response header, if present and matching `^[A-Za-z0-9_-]+$` (base64url alphabet), is decoded as UTF-8 into `RemoteCallResult.text`; any other value is treated as absent rather than throwing, since `Buffer.from(_, 'base64url')` silently drops invalid characters instead of erroring.
+`httpKitCall` builds the default `RemoteCall`: `POST {baseUrl}/{encodeURIComponent(capability)}` with `content-type`/`accept: application/json`, `x-kit-wrap: 1`, the caller's bearer token (`auth.token`) as `authorization: Bearer <token>` when present, and any static `headers` merged in first (so a caller-supplied `authorization` header, if any were passed as a static header, would be overridden by the bearer token — static headers are meant for transport-level secrets, not per-call auth). The response body is read as text, then JSON-parsed if non-empty (kept as the raw string on a parse failure — a non-JSON error page from a proxy, say — so `toError` still has something to report). On a 2xx, a `{ envelope, text }` body (object with an `envelope` key and a string `text`) is unwrapped into `RemoteCallResult.body`/`.text`; any other 2xx body (a bare envelope from a host that dropped or ignored the header) is passed through with no `text`, so `describe()` falls back to `describeEnvelope`. Non-2xx bodies are never unwrapped. The whole call (request and body read) is bounded by `timeoutMs` via `AbortSignal.timeout`, raced against the signal so a fetch that ignores it still settles; past the deadline it rejects with `ChatKitError('INTERNAL', 'Remote kit call timed out after <n>ms')`, which `createRemoteKit` passes through. Other fetch failures are rethrown as-is (and become `INTERNAL` in `createRemoteKit`).
+
+**Divergences from a local kit.** A remote kit advertises the same JSON Schemas and returns the same envelopes, but it is not byte-for-byte the local pipeline at the edge:
+
+- validation messages are Ajv's, not zod's (the MCP SDK reports them as `Input validation error: …` before the call leaves the edge);
+- zod refinements, transforms and custom checks have no JSON Schema form, so the edge does not enforce them — the API still does, and its `INVALID_INPUT` comes back through the error mapping;
+- string formats differ in strictness (Ajv's `uri`, `email`, etc. are not zod's regexes; zod-only formats are pass-through at the edge and rely on the `pattern` zod emits alongside them);
+- types JSON Schema cannot represent are serialized as `{}` (`unrepresentable: 'any'`), so the edge accepts anything there;
+- unknown keys in a success body are stripped by the contract schemas when the envelope is re-parsed at the edge.
 
 **Limitation:** `CapabilityInfo.input`/`.output` are typed as `z.ZodType` because a local kit's capabilities are always zod. A remote kit's capabilities are Standard JSON Schemas (`jsonSchemaStandard`) cast to `z.ZodType` at the type level so `createRemoteKit` can return a `Kit` at all — the cast does not make them real zod schemas, so `.parse`/`.safeParse` and other zod-specific methods are not actually present at runtime. Any consumer of `CapabilityInfo` beyond `list()`/`get()` must therefore guard against a remote capability rather than trust the type. `toAgentTools` (§5.2) is the one place in this package that does: it checks each capability at runtime and throws `toAgentTools requires a local kit (zod input schemas); got a remote kit capability: <name>` instead of building a malformed agent tool.
 
