@@ -178,6 +178,46 @@ importers:
         specifier: ^4.0.0
         version: 4.1.11(@types/node@22.20.3)(@vitest/coverage-v8@4.1.11)(jsdom@26.1.0)(vite@8.3.0(@types/node@22.20.3)(esbuild@0.27.7))
 
+  packages/chat-kit:
+    dependencies:
+      '@de_canter/apogee-kernel':
+        specifier: workspace:*
+        version: link:../kernel
+      zod:
+        specifier: ^4.0.0
+        version: 4.6.5
+    devDependencies:
+      '@de_canter/apogee-agent':
+        specifier: workspace:*
+        version: link:../agent
+      '@de_canter/apogee-ai':
+        specifier: workspace:*
+        version: link:../ai
+      '@modelcontextprotocol/client':
+        specifier: ^2.1.0
+        version: 2.1.0
+      '@modelcontextprotocol/ext-apps':
+        specifier: ^2.0.0
+        version: 2.0.0(@modelcontextprotocol/client@2.1.0)(@modelcontextprotocol/core@2.1.0)(@modelcontextprotocol/server@2.1.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(zod@4.6.5)
+      '@modelcontextprotocol/server':
+        specifier: ^2.1.0
+        version: 2.1.0
+      '@types/node':
+        specifier: ^22
+        version: 22.20.3
+      '@vitest/coverage-v8':
+        specifier: ^4.0.0
+        version: 4.1.11(vitest@4.1.11)
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.1(postcss@8.5.28)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.6.0
+        version: 5.9.3
+      vitest:
+        specifier: ^4.0.0
+        version: 4.1.11(@types/node@22.20.3)(@vitest/coverage-v8@4.1.11)(jsdom@26.1.0)(vite@8.3.0(@types/node@22.20.3)(esbuild@0.27.7))
+
   packages/documents-ai:
     dependencies:
       '@de_canter/apogee-ai':
@@ -652,6 +692,36 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
+
+  '@modelcontextprotocol/client@2.1.0':
+    resolution: {integrity: sha512-mDVhoy5WjDb0U+4dQPzLcciC2erSex/GRVQqnoZdiuMoE3YiTZdiS7ezNcFwX4XEOWOaj7jZr0kLYnILnL8orA==}
+    engines: {node: '>=20'}
+
+  '@modelcontextprotocol/core@2.1.0':
+    resolution: {integrity: sha512-YdFj5gMRHr0gYNAhTbQDgjLHiEJdIAUYxomhKseUNye7ZGlISQmUoLh2sveFFCiQ7j2YMffT1kgSND0FSfIFjQ==}
+    engines: {node: '>=20'}
+
+  '@modelcontextprotocol/ext-apps@2.0.0':
+    resolution: {integrity: sha512-a6tXzFcIbIIdnqumQ7W8Oxd8W/KAPkAKYpoxpD9nDgxZ24ywgxG5pK/8G9W5pOFUygS7gWHQhPv8cwRB44/8yg==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      '@modelcontextprotocol/client': ^2.0.0
+      '@modelcontextprotocol/core': ^2.0.0
+      '@modelcontextprotocol/server': ^2.0.0
+      react: ^17.0.0 || ^18.0.0 || ^19.0.0
+      react-dom: ^17.0.0 || ^18.0.0 || ^19.0.0
+      zod: ^4.2.0
+    peerDependenciesMeta:
+      '@modelcontextprotocol/server':
+        optional: true
+      react:
+        optional: true
+      react-dom:
+        optional: true
+
+  '@modelcontextprotocol/server@2.1.0':
+    resolution: {integrity: sha512-FdvwZU5N03O77Suh35JqjAqq5R1ZTEPFtwu6N4BgBq28qrQtrCnpbLL5U2pwYCuE194jAw0xnlOVmIqhfoYuUQ==}
+    engines: {node: '>=20'}
 
   '@napi-rs/lzma-linux-x64-gnu@1.5.1':
     resolution: {integrity: sha512-oTXEIha4SsuXdTA4Iyskj0kpdx2yVXdhd75c2v3xGrHFfVMsbhTPZU/nMPL4sWKo4pBHm3aucLaqGlF696dTyQ==}
@@ -1291,6 +1361,14 @@ packages:
     resolution: {integrity: sha512-kVscqXk4OCp68SZ0dkgEKVi6/8ij300KBWTJq32P/dYeWTSwK41WyTxalN1eRmA5Z9UU/LX9D7FWSmV9SAYx6g==}
     engines: {node: '>=0.10.0'}
 
+  eventsource-parser@3.1.1:
+    resolution: {integrity: sha512-EKN1vKAMcZ8MlYMpaNuxN6R9yakzH6uajHcHVTqWJzvu5pWw9DyhbP35HH8MVBQ+dZjAfDxk+A8NiR9KWaXiyQ==}
+    engines: {node: '>=18.0.0'}
+
+  eventsource@3.0.7:
+    resolution: {integrity: sha512-CRT1WTyuQoD771GW56XEZFQ/ZoSfWid1alKGDYMmkt2yl8UXrVR4pspqWNEcqKvVIzg6PAltWjxcSSPrboA4iA==}
+    engines: {node: '>=18.0.0'}
+
   expect-type@1.4.0:
     resolution: {integrity: sha512-KfYbmpRm0VbLjEvVa9yGwCi9GI34xvi7A/HXYWQO65CSD2u3MczUJSuwXKFIxlGsgBQizV9q5J9NHj4VG0n+pA==}
     engines: {node: '>=12.0.0'}
@@ -1415,6 +1493,9 @@ packages:
   istanbul-reports@3.2.0:
     resolution: {integrity: sha512-HGYWWS/ehqTV3xN10i23tkPkpH46MLCIMFNCaaKNavAXTF1RkqxawEPtnjnGZ6XKSInBKkiOA5BKS+aZiY3AvA==}
     engines: {node: '>=8'}
+
+  jose@6.2.12:
+    resolution: {integrity: sha512-9NiFmJEex0sy2Dk58j2UGBSHgUs2ypF9eZSu4L6vjOX3Dp96Sw1F3uL+H+D1sx02jZZdzUT0HgvCy59CuvXcWw==}
 
   joycon@3.1.1:
     resolution: {integrity: sha512-34wB/Y7MW7bzjKRjUKTa46I2Z7eV62Rkhva+KkopW7Qvv/OSWBqvkSY7vusOPrNuZcUG3tApvdVgNB8POj3SPw==}
@@ -1643,6 +1724,10 @@ packages:
   pirates@4.0.7:
     resolution: {integrity: sha512-TfySrs/5nm8fQJDcBDuUng3VOUKsd7S+zqvbOTiGXHfxX4wK31ard+hoNuvkicM/2YFzlpDgABOevKSsB4G/FA==}
     engines: {node: '>= 6'}
+
+  pkce-challenge@5.0.1:
+    resolution: {integrity: sha512-wQ0b/W4Fr01qtpHlqSqspcj3EhBvimsdh0KlHhH8HRZnMsEa0ea2fTULOXOS9ccQr3om+GcGRk4e+isrZWV8qQ==}
+    engines: {node: '>=16.20.0'}
 
   pkg-types@1.3.1:
     resolution: {integrity: sha512-/Jm5M4RvtBFVkKWRu2BLUTNP8/M2a+UwuAX+ae4770q1qVGtfjG+WTCupoZixokjmHiry8uI+dlY8KXYV5HVVQ==}
@@ -2250,6 +2335,36 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
 
+  '@modelcontextprotocol/client@2.1.0':
+    dependencies:
+      '@modelcontextprotocol/core': 2.1.0
+      cross-spawn: 7.0.6
+      eventsource: 3.0.7
+      eventsource-parser: 3.1.1
+      jose: 6.2.12
+      pkce-challenge: 5.0.1
+      zod: 4.6.5
+
+  '@modelcontextprotocol/core@2.1.0':
+    dependencies:
+      zod: 4.6.5
+
+  '@modelcontextprotocol/ext-apps@2.0.0(@modelcontextprotocol/client@2.1.0)(@modelcontextprotocol/core@2.1.0)(@modelcontextprotocol/server@2.1.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(zod@4.6.5)':
+    dependencies:
+      '@modelcontextprotocol/client': 2.1.0
+      '@modelcontextprotocol/core': 2.1.0
+      '@standard-schema/spec': 1.1.0
+      zod: 4.6.5
+    optionalDependencies:
+      '@modelcontextprotocol/server': 2.1.0
+      react: 19.3.0
+      react-dom: 19.3.0(react@19.3.0)
+
+  '@modelcontextprotocol/server@2.1.0':
+    dependencies:
+      '@modelcontextprotocol/core': 2.1.0
+      zod: 4.6.5
+
   '@napi-rs/lzma-linux-x64-gnu@1.5.1':
     optional: true
 
@@ -2834,6 +2949,12 @@ snapshots:
 
   esutils@2.0.3: {}
 
+  eventsource-parser@3.1.1: {}
+
+  eventsource@3.0.7:
+    dependencies:
+      eventsource-parser: 3.1.1
+
   expect-type@1.4.0: {}
 
   fast-deep-equal@3.1.3: {}
@@ -2940,6 +3061,8 @@ snapshots:
     dependencies:
       html-escaper: 2.0.2
       istanbul-lib-report: 3.0.1
+
+  jose@6.2.12: {}
 
   joycon@3.1.1: {}
 
@@ -3148,6 +3271,8 @@ snapshots:
   picomatch@4.0.7: {}
 
   pirates@4.0.7: {}
+
+  pkce-challenge@5.0.1: {}
 
   pkg-types@1.3.1:
     dependencies:
