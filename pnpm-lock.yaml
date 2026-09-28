@@ -190,9 +190,6 @@ importers:
       '@de_canter/apogee-agent':
         specifier: workspace:*
         version: link:../agent
-      '@de_canter/apogee-ai':
-        specifier: workspace:*
-        version: link:../ai
       '@modelcontextprotocol/client':
         specifier: ^2.1.0
         version: 2.1.0
