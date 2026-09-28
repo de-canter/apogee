@@ -12,6 +12,7 @@ export interface TransitionRule<TView, S extends string> extends ActionRule<TVie
   to: readonly S[];
 }
 
+/** @internal */
 export interface ActionSource<TView, S extends string, TPrincipal> {
   name: string;
   transitionRules: Record<string, TransitionRule<TView, S>>;
@@ -19,6 +20,7 @@ export interface ActionSource<TView, S extends string, TPrincipal> {
   policy?: ((t: { name: string; to: readonly S[] }, current: Current<TView, S>, principal: TPrincipal) => boolean) | undefined;
 }
 
+/** @internal */
 export function action(capability: string, title: string, args: Record<string, unknown>, intent?: ActionIntent): ActionDescriptor {
   return intent === undefined ? { capability, title, args } : { capability, title, args, intent };
 }

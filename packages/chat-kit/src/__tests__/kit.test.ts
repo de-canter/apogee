@@ -236,6 +236,32 @@ describe('createKit', () => {
     expect('items' in rest && rest.items.map((i) => i.id)).toEqual([created.id]);
   });
 
+  it('create or list returning a state outside the lifecycle is INTERNAL', async () => {
+    const odd = defineResource<ReturnType<typeof makeCtx>, Principal, TicketView, TicketState>({
+      name: 'odd', lifecycle: ticketLifecycle, view: TicketView,
+      load: () => Promise.resolve(null),
+      create: { input: z.object({}), title: 'New', execute: () => Promise.resolve({ id: 'o1', state: 'archived' as TicketState, view: { title: 'x', assignee: null, notes: [] } }) },
+      list: { input: z.object({}), title: 'List', execute: () => Promise.resolve({ items: [{ id: 'o1', state: 'archived' as TicketState, view: { title: 'x', assignee: null, notes: [] } }], next_cursor: null }) },
+      transitions: {},
+    });
+    const kit = createKit<ReturnType<typeof makeCtx>, Principal>({ resources: [odd], ctx: makeCtx(), principal });
+    await expect(kit.call('odd_create', {}, auth)).rejects.toMatchObject({ code: 'INTERNAL', message: /unknown state archived/ });
+    await expect(kit.call('odd_list', {}, auth)).rejects.toMatchObject({ code: 'INTERNAL', message: /unknown state archived/ });
+  });
+
+  it('list text uses the resource describe per item', async () => {
+    const described = defineResource<ReturnType<typeof makeCtx>, Principal, TicketView, TicketState>({
+      name: 'desc', lifecycle: ticketLifecycle, view: TicketView,
+      load: () => Promise.resolve(null),
+      list: { input: z.object({}), title: 'List', execute: () => Promise.resolve({ items: [{ id: 'd1', state: 'open', view: { title: 'Leak', assignee: null, notes: [] } }], next_cursor: null }) },
+      transitions: {},
+      describe: (view, state) => `${view.title} is ${state}`,
+    });
+    const kit = createKit<ReturnType<typeof makeCtx>, Principal>({ resources: [described], ctx: makeCtx(), principal });
+    const page = await kit.call('desc_list', {}, auth);
+    expect(JSON.parse(kit.describe('desc_list', page))).toEqual({ resource: 'desc', items: [{ id: 'd1', state: 'open', summary: 'Leak is open' }], next_cursor: null, next: [] });
+  });
+
   it('describe uses the resource describe or the default', () => {
     const { kit } = kitFor();
     const e = { resource: 'ticket', id: 't1', state: 'open', data: { title: 'Leak', assignee: null, notes: [] }, allowed_next_actions: [], at: '2026-09-27T00:00:00.000Z' };

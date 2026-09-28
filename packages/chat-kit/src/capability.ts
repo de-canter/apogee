@@ -3,6 +3,7 @@ import type { Envelope, ListEnvelope } from './contract';
 import { ChatKitError } from './errors';
 import type { EntitlementCall, EntitlementPort } from './ports';
 
+/** @internal */
 export interface RunContext<TCtx, TPrincipal> {
   ctx: TCtx;
   principal: TPrincipal;
@@ -20,6 +21,7 @@ export interface CapabilityInfo {
   ui?: string | undefined;
 }
 
+/** @internal */
 export interface CapabilitySpec<TCtx, TPrincipal> extends CapabilityInfo {
   describe(result: Envelope | ListEnvelope): string;
   /** Receives already-parsed input. Throws ChatKitError; anything else is INTERNAL. */
@@ -28,7 +30,7 @@ export interface CapabilitySpec<TCtx, TPrincipal> extends CapabilityInfo {
 
 export interface GuardedResult<T> { result: T; entitlementView: unknown }
 
-/** Pipeline steps 5–7: assert, execute, settle (always, even on throw). */
+/** @internal Pipeline steps 5–7: assert, execute, settle (always, even on throw). */
 export async function guarded<TPrincipal, T>(
   port: EntitlementPort<TPrincipal>,
   call: EntitlementCall<TPrincipal>,

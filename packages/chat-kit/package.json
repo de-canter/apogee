@@ -27,7 +27,7 @@
     "zod": "^4.0.0"
   },
   "peerDependencies": {
-    "@de_canter/apogee-agent": "workspace:*",
+    "@de_canter/apogee-agent": ">=0.1.0",
     "@modelcontextprotocol/ext-apps": "^2.0.0",
     "@modelcontextprotocol/server": "^2.1.0"
   },

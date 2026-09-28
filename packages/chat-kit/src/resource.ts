@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { InvalidLifecycleError, nowIso, type Lifecycle } from '@de_canter/apogee-kernel';
 import { action, deriveActions, type ActionSource, type Current, type TransitionRule, type ActionRule } from './actions';
 import { guarded, type CapabilitySpec, type RunContext } from './capability';
-import { describeEnvelope, envelopeSchema, listEnvelopeSchema, type ActionIntent, type Envelope, type ListEnvelope } from './contract';
+import { describeEnvelope, envelopeSchema, isListEnvelope, listEnvelopeSchema, type ActionIntent, type Envelope, type ListEnvelope } from './contract';
 import { ChatKitError, type IllegalTransitionDetails } from './errors';
 import type { EntitlementCall } from './ports';
 
@@ -73,11 +73,12 @@ export interface Resource<TCtx, TPrincipal, TView, S extends string> extends Act
   envelope(id: string, current: Current<TView, S>, principal: TPrincipal, extra?: { entitlement?: unknown; ui?: string | undefined }): Envelope<TView>;
 }
 
+/** @internal */
 export const RESERVED_CAPABILITY_NAMES = ['get', 'list', 'create'] as const;
 const NAME_RE = /^[a-z][a-z0-9_]*$/;
 const IdSchema = z.string().min(1);
 
-/** Throws when `name` is not snake_case. Shared by defineResource and defineCapability. */
+/** @internal Throws when `name` is not snake_case. Shared by defineResource and defineCapability. */
 export function assertSnakeCase(kind: string, name: string): void {
   if (!NAME_RE.test(name)) throw new Error(`${kind} name "${name}" must be snake_case`);
 }
@@ -124,8 +125,18 @@ export function defineResource<TCtx, TPrincipal, TView, S extends string>(
   const uiFor = (local: string): string | undefined => def.ui?.[local];
   const describeOne = (e: Envelope<TView>): string =>
     def.describe ? def.describe(e.data, e.state as S) : describeEnvelope(e);
+  const describeList = (e: ListEnvelope): string => {
+    if (!def.describe) return describeEnvelope(e);
+    const d = def.describe;
+    return JSON.stringify({
+      resource: e.resource,
+      items: e.items.map((i) => ({ id: i.id, state: i.state, summary: d(i.data as TView, i.state as S) })),
+      next_cursor: e.next_cursor,
+      next: e.allowed_next_actions.map((a) => a.capability),
+    });
+  };
   const describeAny = (e: Envelope | ListEnvelope): string =>
-    'items' in e ? describeEnvelope(e) : describeOne(e as Envelope<TView>);
+    isListEnvelope(e) ? describeList(e) : describeOne(e as Envelope<TView>);
 
   const self: Resource<TCtx, TPrincipal, TView, S> = {
     name: def.name,
@@ -150,6 +161,9 @@ export function defineResource<TCtx, TPrincipal, TView, S extends string>(
         caps.push({ name: `${def.name}_${name}`, title, description: description ?? title, resource: def.name, input, output: out, ui, describe: describeAny, run });
       };
 
+      const checkState = (state: string, where: string): void => {
+        if (!states.has(state)) throw new ChatKitError('INTERNAL', `${where} returned unknown state ${state}`);
+      };
       const checkView = (view: TView, where: string): void => {
         const r = def.view.safeParse(view);
         if (!r.success) throw new ChatKitError('INTERNAL', `${where} returned an invalid view`, { details: r.error.issues });
@@ -180,7 +194,7 @@ export function defineResource<TCtx, TPrincipal, TView, S extends string>(
         const l = def.list;
         cap('list', l.title, l.description, l.input, listOutput, uiFor('list'), async (input, c) => {
           const { result } = await guarded(c.entitlement, callFor('list', c.principal, input), () => l.execute(input as Record<string, unknown>, { ctx: c.ctx, principal: c.principal }), c.onError);
-          for (const i of result.items) checkView(i.view, 'list');
+          for (const i of result.items) { checkState(i.state, `${def.name}_list`); checkView(i.view, `${def.name}_list`); }
           const e: ListEnvelope<TView> = {
             resource: def.name,
             items: result.items.map((i) => self.envelope(i.id, { state: i.state, view: i.view }, c.principal, { ui: uiFor('get') })),
@@ -198,7 +212,8 @@ export function defineResource<TCtx, TPrincipal, TView, S extends string>(
         const cr = def.create;
         cap('create', cr.title, cr.description, cr.input, output, uiFor('create'), async (input, c) => {
           const { result, entitlementView } = await guarded(c.entitlement, callFor('create', c.principal, input), () => cr.execute(input as Record<string, unknown>, { ctx: c.ctx, principal: c.principal }), c.onError);
-          checkView(result.view, 'create');
+          checkState(result.state, `${def.name}_create`);
+          checkView(result.view, `${def.name}_create`);
           return self.envelope(result.id, { state: result.state, view: result.view }, c.principal, { ui: uiFor('create') ?? uiFor('get'), entitlement: entitlementView });
         });
       }
