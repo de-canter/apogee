@@ -27,7 +27,7 @@ Updated 2026-09-18. Things only you can do, plus the queue.
 5. **Track A Phase 2** kernel entity categories (Party, Place, Resource tiers, Document, Event, Activity, Commitment + Fulfillment, Transaction) and `extendEntity`; then `@de_canter/apogee-kernel-mongoose`.
 6. Workflow-engine hook: `StateMachine` accepts a kernel `LifecycleDefinition`.
 7. The reference product's clean-room rewrite plan (in its own repo), gated on 1–6.
-8. **C1** `@de_canter/apogee-chat-kit` + `-app` — PR pending after final review; after merge tag `chat-kit-v0.1.0`, `chat-kit-app-v0.1.0`; the reference product's chat-native POC consumes them.
+8. **C1** `@de_canter/apogee-chat-kit` + `-app` — PR open: de-canter/apogee#3; after merge tag `chat-kit-v0.1.0`, `chat-kit-app-v0.1.0`; the reference product's chat-native POC consumes them.
 
 ## Local gotchas
 
