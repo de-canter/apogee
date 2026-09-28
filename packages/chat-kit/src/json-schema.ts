@@ -19,19 +19,44 @@ export interface StandardJsonSchema {
   readonly jsonSchema: Record<string, unknown>;
 }
 
-let ajv: Ajv2020 | undefined;
-function engine(): Ajv2020 {
-  if (!ajv) {
-    ajv = new Ajv2020({ allErrors: true, strict: false, useDefaults: false });
-    addFormats(ajv);
-  }
+export interface JsonSchemaStandardOptions {
+  /** The Ajv 2020 instance to compile with; defaults to a shared one from `createAjv()`. */
+  ajv?: Ajv2020 | undefined;
+}
+
+/**
+ * Formats `z.toJSONSchema` can emit that ajv-formats does not define. They are accepted as-is
+ * (zod also emits a `pattern` for most of them, which Ajv does enforce); registering them keeps
+ * Ajv from warning `unknown format "cuid" ignored` for every schema that uses one.
+ */
+const ZOD_ONLY_FORMATS = [
+  'cuid', 'cuid2', 'ulid', 'nanoid', 'jwt', 'e164', 'emoji', 'base64', 'base64url',
+  'cidrv4', 'cidrv6', 'ipv4', 'ipv6', 'xid', 'ksuid',
+] as const;
+
+/** An Ajv 2020 instance configured the way `jsonSchemaStandard` expects: formats loaded, zod-only formats pass-through. */
+export function createAjv(): Ajv2020 {
+  const ajv = new Ajv2020({ allErrors: true, strict: false, useDefaults: false });
+  addFormats(ajv);
+  // Only fill gaps: a format ajv-formats already validates (ipv4, ipv6) keeps its real check.
+  for (const name of ZOD_ONLY_FORMATS) if (!(name in ajv.formats)) ajv.addFormat(name, true);
   return ajv;
 }
 
-/** Wraps a JSON Schema (draft 2020-12) as a Standard Schema that validates with Ajv and advertises itself as JSON Schema. */
-export function jsonSchemaStandard(schema: Record<string, unknown>): StandardJsonSchema {
-  const validator: ValidateFunction = engine().compile(schema);
+let shared: Ajv2020 | undefined;
+function sharedAjv(): Ajv2020 {
+  shared ??= createAjv();
+  return shared;
+}
+
+/**
+ * Wraps a JSON Schema (draft 2020-12) as a Standard Schema that validates with Ajv and advertises itself as JSON Schema.
+ * The schema is compiled on the first `validate`, not here, so building a kit from a large manifest stays cheap.
+ */
+export function jsonSchemaStandard(schema: Record<string, unknown>, opts: JsonSchemaStandardOptions = {}): StandardJsonSchema {
+  let validator: ValidateFunction | undefined;
   const validate = (value: unknown): StandardResult => {
+    validator ??= (opts.ajv ?? sharedAjv()).compile(schema);
     if (validator(value)) return { value };
     const issues: StandardIssue[] = (validator.errors ?? []).map((e) => {
       const base: (string | number)[] = e.instancePath

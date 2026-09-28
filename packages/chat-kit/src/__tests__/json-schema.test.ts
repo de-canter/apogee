@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-import { jsonSchemaStandard } from '../json-schema';
+import { createAjv, jsonSchemaStandard } from '../json-schema';
 import { envelopeSchema } from '../contract';
 
 const Input = z.object({ id: z.string().min(1), limit: z.number().int().min(1).max(50).default(10) });
@@ -44,5 +44,33 @@ describe('jsonSchemaStandard', () => {
     const issue = 'issues' in bad ? bad.issues.find((i) => i.path?.join('.') === 'a.b') : undefined;
     expect(issue).toBeDefined();
     expect(issue?.path).toEqual(['a', 'b']);
+  });
+  it('uses a supplied Ajv instance and compiles lazily, once, on first validate', () => {
+    const ajv = createAjv();
+    const compile = vi.spyOn(ajv, 'compile');
+    const std = jsonSchemaStandard({ type: 'object', required: ['id'], properties: { id: { type: 'string' } } }, { ajv });
+    expect(compile).not.toHaveBeenCalled();
+    expect(std['~standard'].validate({ id: 'x' })).toEqual({ value: { id: 'x' } });
+    expect('issues' in std['~standard'].validate({})).toBe(true);
+    expect(compile).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('zod-only formats', () => {
+  afterEach(() => { vi.restoreAllMocks(); });
+  it('are pass-through: no unknown-format warning, and the rest of the schema still validates', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const schema = z.toJSONSchema(z.object({ id: z.cuid(), key: z.ulid(), token: z.jwt(), n: z.number() }), { target: 'draft-2020-12', io: 'input' });
+    const std = jsonSchemaStandard(schema);
+    const ok = { id: 'cjld2cjxh0000qzrmn831i7rn', key: '01ARZ3NDEKTSV4RRFFQ69G5FAV', token: 'not-checked', n: 1 };
+    expect(std['~standard'].validate(ok)).toEqual({ value: ok });
+    expect('issues' in std['~standard'].validate({ ...ok, n: 'one' })).toBe(true);
+    expect('issues' in std['~standard'].validate({ ...ok, id: 'x' })).toBe(true);   // zod's pattern still applies
+    expect(warn).not.toHaveBeenCalled();
+  });
+  it('keep the real ajv-formats validators for formats both libraries know', () => {
+    const std = jsonSchemaStandard({ type: 'string', format: 'ipv4' });
+    expect('value' in std['~standard'].validate('10.0.0.1')).toBe(true);
+    expect('issues' in std['~standard'].validate('not-an-ip')).toBe(true);
   });
 });

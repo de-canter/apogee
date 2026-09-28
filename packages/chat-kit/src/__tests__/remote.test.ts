@@ -1,4 +1,5 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { z } from 'zod';
 import { createHttpHandler } from '../http';
 import { createKit } from '../kit';
 import { manifestOf } from '../manifest';
@@ -47,6 +48,29 @@ describe('createRemoteKit', () => {
     expect((err as ChatKitError).allowed_next_actions?.map((a) => a.capability)).toEqual(['ticket_note']);
     await expect(remote.call('ticket_get', { id: 't1' }, undefined)).rejects.toMatchObject({ code: 'UNAUTHENTICATED' });
     await expect(remote.call('nope', {}, { token: 'ann' })).rejects.toMatchObject({ code: 'NOT_FOUND' });
+  });
+  it.each([
+    [400, 'INVALID_INPUT', 'Invalid input'],
+    [401, 'UNAUTHENTICATED', 'Not authenticated'],
+    [402, 'ENTITLEMENT', 'Payment required'],
+    [403, 'FORBIDDEN', 'Forbidden'],
+    [404, 'NOT_FOUND', 'Not found'],
+  ] as const)('maps a foreign %i body to %s', async (status, code, message) => {
+    const remote = createRemoteKit({ manifest, call: () => Promise.resolve({ status, body: '<html>nope</html>' }) });
+    await expect(remote.call('ticket_get', { id: 't1' }, { token: 'ann' })).rejects.toMatchObject({ code, message });
+    const withMessage = createRemoteKit({ manifest, call: () => Promise.resolve({ status, body: { statusCode: status, message: 'From the proxy' } }) });
+    await expect(withMessage.call('ticket_get', { id: 't1' }, { token: 'ann' })).rejects.toMatchObject({ code, message: 'From the proxy' });
+    const nested = createRemoteKit({ manifest, call: () => Promise.resolve({ status, body: { error: { code: 'NOT_A_CODE', message: 'Nested' } } }) });
+    await expect(nested.call('ticket_get', { id: 't1' }, { token: 'ann' })).rejects.toMatchObject({ code, message: 'Nested' });
+  });
+  it('passes a ChatKitError thrown by the transport through and turns any other throw into INTERNAL', async () => {
+    const own = new ChatKitError('FORBIDDEN', 'edge says no');
+    const passthrough = createRemoteKit({ manifest, call: () => Promise.reject(own) });
+    await expect(passthrough.call('ticket_get', { id: 't1' }, { token: 'ann' })).rejects.toBe(own);
+    const boom = createRemoteKit({ manifest, call: () => Promise.reject(new TypeError('fetch failed')) });
+    const err = await boom.call('ticket_get', { id: 't1' }, { token: 'ann' }).catch((e: unknown) => e);
+    expect(ChatKitError.is(err) && err.code).toBe('INTERNAL');
+    expect((err as ChatKitError).message).toBe('Remote kit call failed');
   });
   it('maps a non-error non-2xx body and a non-envelope 2xx body to INTERNAL', async () => {
     const remote = createRemoteKit({ manifest, call: () => Promise.resolve({ status: 502, body: '<html>bad gateway</html>' }) });
@@ -120,6 +144,51 @@ describe('httpKitCall', () => {
     const call = httpKitCall({ baseUrl: 'https://api.example.com/api/v1/kit', fetch: asFetch(() => Promise.resolve(jsonResponse(body, 500))) });
     const r = await call('ticket_get', {}, undefined);
     expect(r).toEqual({ status: 500, body });
+  });
+});
+
+describe('httpKitCall timeout', () => {
+  it('rejects with ChatKitError INTERNAL after timeoutMs when fetch never settles, and the remote kit passes it through', async () => {
+    const never = asFetch(() => new Promise<Response>(() => undefined));
+    const call = httpKitCall({ baseUrl: 'https://api.example.com/api/v1/kit', fetch: never, timeoutMs: 20 });
+    const err = await call('ticket_get', { id: 't1' }, { token: 'tok' }).catch((e: unknown) => e);
+    expect(ChatKitError.is(err) && err.code).toBe('INTERNAL');
+    expect((err as ChatKitError).message).toBe('Remote kit call timed out after 20ms');
+    const remote = createRemoteKit({ manifest, call });
+    await expect(remote.call('ticket_get', { id: 't1' }, { token: 'tok' })).rejects.toMatchObject({ code: 'INTERNAL', message: 'Remote kit call timed out after 20ms' });
+  });
+  it('hands fetch an abort signal and converts its TimeoutError', async () => {
+    const honours = asFetch((_url: string, init: RequestInit) => new Promise<Response>((_resolve, reject) => {
+      expect(init.signal).toBeInstanceOf(AbortSignal);
+      init.signal?.addEventListener('abort', () => { reject(init.signal?.reason as Error); });
+    }));
+    const call = httpKitCall({ baseUrl: 'https://api.example.com/api/v1/kit', fetch: honours, timeoutMs: 20 });
+    await expect(call('ticket_get', {}, undefined)).rejects.toMatchObject({ code: 'INTERNAL', message: 'Remote kit call timed out after 20ms' });
+  });
+  it('rethrows a non-timeout fetch failure unchanged', async () => {
+    const failing = asFetch(() => Promise.reject(new TypeError('fetch failed')));
+    const call = httpKitCall({ baseUrl: 'https://api.example.com/api/v1/kit', fetch: failing });
+    await expect(call('ticket_get', {}, undefined)).rejects.toThrow(TypeError);
+  });
+});
+
+describe('remote kit Ajv', () => {
+  afterEach(() => { vi.restoreAllMocks(); });
+  it('builds from a manifest with a zod-only format without warning, and still validates', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const withCuid: KitManifest = {
+      version: 1,
+      capabilities: [{
+        name: 'thing_get', title: 'Get', description: 'Get a thing', resource: 'thing',
+        input_schema: z.toJSONSchema(z.object({ id: z.cuid() }), { target: 'draft-2020-12', io: 'input' }),
+        output_schema: { type: 'object' },
+      }],
+    };
+    const remote = createRemoteKit({ manifest: withCuid, call: () => Promise.reject(new Error('unused')) });
+    const std = (remote.get('thing_get')!.input as unknown as { '~standard': { validate(v: unknown): unknown } })['~standard'];
+    expect(std.validate({ id: 'cjld2cjxh0000qzrmn831i7rn' })).toEqual({ value: { id: 'cjld2cjxh0000qzrmn831i7rn' } });
+    expect('issues' in (std.validate({ id: 7 }) as object)).toBe(true);
+    expect(warn).not.toHaveBeenCalled();
   });
 });
 
