@@ -6,3 +6,4 @@ export * from './actions';
 export * from './resource';
 export * from './kit';
 export * from './standalone';
+export * from './manifest';
