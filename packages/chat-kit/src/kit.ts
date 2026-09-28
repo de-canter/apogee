@@ -58,7 +58,11 @@ export function createKit<TCtx, TPrincipal>(opts: KitOptions<TCtx, TPrincipal>):
       try {
         return await c.run(parsed.data, { ctx: opts.ctx, principal, entitlement, onError });
       } catch (err) {
-        if (ChatKitError.is(err)) throw err;
+        if (ChatKitError.is(err)) {
+          // Kit-generated INTERNAL errors (invalid view, undeclared state) are host bugs too.
+          if (err.code === 'INTERNAL') onError(err, name);
+          throw err;
+        }
         onError(err, name);
         throw new ChatKitError('INTERNAL', 'Capability failed');
       }

@@ -22,6 +22,12 @@ export interface ChatKitErrorOptions {
   allowed_next_actions?: ActionDescriptor[] | undefined;
 }
 
+/**
+ * Brand set on every ChatKitError. Registered with Symbol.for so it is the same symbol across
+ * bundled copies of this module (one per entry point) and across the ESM/CJS dual-package hazard.
+ */
+const BRAND = Symbol.for('apogee.chat-kit.error');
+
 export class ChatKitError extends Error {
   readonly code: ChatKitErrorCode;
   readonly details: unknown;
@@ -33,6 +39,7 @@ export class ChatKitError extends Error {
     this.code = code;
     this.details = opts.details;
     this.allowed_next_actions = opts.allowed_next_actions;
+    Object.defineProperty(this, BRAND, { value: true, enumerable: false });
   }
 
   toJSON(): ChatKitErrorJson {
@@ -42,8 +49,9 @@ export class ChatKitError extends Error {
     return { error };
   }
 
+  /** Brand check, not instanceof: survives duplicated copies of the class. */
   static is(e: unknown): e is ChatKitError {
-    return e instanceof ChatKitError;
+    return typeof e === 'object' && e !== null && (e as Record<symbol, unknown>)[BRAND] === true && typeof (e as { code?: unknown }).code === 'string';
   }
 }
 

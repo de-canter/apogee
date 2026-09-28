@@ -47,6 +47,50 @@ describe('createKit', () => {
     expect(still.state).toBe('closed');
   });
 
+  it('policy is enforced at call time: a non-admin reopen is FORBIDDEN with the allowed list', async () => {
+    const { kit } = kitFor();
+    const err = await kit.call('ticket_reopen', { id: 't2' }, auth).catch((e: unknown) => e);
+    expect(ChatKitError.is(err) && err.code).toBe('FORBIDDEN');
+    expect((err as ChatKitError).allowed_next_actions?.map((a) => a.capability)).toEqual(['ticket_note']);
+    expect(((await kit.call('ticket_get', { id: 't2' }, auth)) as Envelope).state).toBe('closed');
+    const root = await kit.call('ticket_reopen', { id: 't2' }, { token: 'root' });
+    expect((root as Envelope).state).toBe('open');
+  });
+
+  it('a query whose when is false is ILLEGAL_TRANSITION with the allowed list', async () => {
+    const { kit } = kitFor();
+    await kit.call('ticket_triage', { id: 't1', assignee: 'bob' }, auth);
+    const err = await kit.call('ticket_refresh', { id: 't1' }, auth).catch((e: unknown) => e);
+    expect(ChatKitError.is(err) && err.code).toBe('ILLEGAL_TRANSITION');
+    expect((err as ChatKitError).details).toEqual({ resource: 'ticket', id: 't1', from: 'triaged', attempted: 'ticket_refresh', allowed: ['ticket_close', 'ticket_note'] });
+    expect((err as ChatKitError).allowed_next_actions?.map((a) => a.capability)).toEqual(['ticket_close', 'ticket_note']);
+  });
+
+  it('a transition whose when is false is ILLEGAL_TRANSITION and never executes', async () => {
+    const execute = vi.fn(() => Promise.resolve({ state: 'closed' as const, view: { title: 'x', assignee: null, notes: [] } }));
+    const gated = defineResource<ReturnType<typeof makeCtx>, Principal, TicketView, TicketState>({
+      name: 'gated', lifecycle: ticketLifecycle, view: TicketView,
+      load: () => Promise.resolve({ state: 'open', view: { title: 'x', assignee: null, notes: [] } }),
+      transitions: { close: { from: 'open', to: 'closed', input: z.object({}), title: 'Close', when: (c) => c.view.assignee !== null, execute } },
+    });
+    const kit = createKit<ReturnType<typeof makeCtx>, Principal>({ resources: [gated], ctx: makeCtx(), principal });
+    await expect(kit.call('gated_close', { id: 'g1' }, auth)).rejects.toMatchObject({ code: 'ILLEGAL_TRANSITION', details: { attempted: 'gated_close', allowed: [] } });
+    expect(execute).not.toHaveBeenCalled();
+  });
+
+  it('get runs through entitlement: the view lands on the envelope, a denial rejects', async () => {
+    const calls: string[] = [];
+    const port: EntitlementPort<Principal> = {
+      assert: (c) => { calls.push(`assert:${c.capability}`); return Promise.resolve({ ok: true, view: { reads: 1 } }); },
+      settle: (c, o) => { calls.push(`settle:${c.capability}:${o.success}`); return Promise.resolve(); },
+    };
+    const e = (await kitFor(port).kit.call('ticket_get', { id: 't1' }, auth)) as Envelope;
+    expect(e.entitlement).toEqual({ reads: 1 });
+    expect(calls).toEqual(['assert:ticket_get', 'settle:ticket_get:true']);
+    const deny: EntitlementPort<Principal> = { assert: () => Promise.resolve({ ok: false, reason: 'No reads left' }) };
+    await expect(kitFor(deny).kit.call('ticket_get', { id: 't1' }, auth)).rejects.toMatchObject({ code: 'ENTITLEMENT', message: 'No reads left' });
+  });
+
   it('maps errors: NOT_FOUND, INVALID_INPUT, UNAUTHENTICATED, unknown capability', async () => {
     const { kit } = kitFor();
     await expect(kit.call('ticket_get', { id: 't3' }, auth)).rejects.toMatchObject({ code: 'NOT_FOUND' });
@@ -71,7 +115,11 @@ describe('createKit', () => {
   });
 
   it('a denial short-circuits with ENTITLEMENT and never executes', async () => {
-    const port: EntitlementPort<Principal> = { assert: () => Promise.resolve({ ok: false, reason: 'Out of notes', allowed_next_actions: [{ capability: 'ticket_get', title: 'Back', args: { id: 't1' } }] }) };
+    const port: EntitlementPort<Principal> = {
+      assert: (c) => Promise.resolve(c.capability === 'ticket_note'
+        ? { ok: false, reason: 'Out of notes', allowed_next_actions: [{ capability: 'ticket_get', title: 'Back', args: { id: 't1' } }] }
+        : { ok: true }),
+    };
     const { kit } = kitFor(port);
     const err = await kit.call('ticket_note', { id: 't1', text: 'hi' }, auth).catch((e: unknown) => e);
     expect(err).toMatchObject({ code: 'ENTITLEMENT', message: 'Out of notes' });
@@ -113,9 +161,12 @@ describe('createKit', () => {
 
   it('a corrupted store row fails the load-time view check', async () => {
     const rows = makeCtx(structuredClone(seed));
-    const kit = createKit<ReturnType<typeof makeCtx>, Principal>({ resources: [ticket], ctx: rows, principal });
+    const onError = vi.fn();
+    const kit = createKit<ReturnType<typeof makeCtx>, Principal>({ resources: [ticket], ctx: rows, principal, onError });
     rows.rows.get('t1')!.view = { title: 'Leak', assignee: null, notes: 'not-an-array' as unknown as string[] };
-    await expect(kit.call('ticket_note', { id: 't1', text: 'x' }, auth)).rejects.toMatchObject({ code: 'INTERNAL', message: /invalid view/ });
+    const err = await kit.call('ticket_note', { id: 't1', text: 'x' }, auth).catch((e: unknown) => e);
+    expect(err).toMatchObject({ code: 'INTERNAL', message: /invalid view/ });
+    expect(onError).toHaveBeenCalledWith(err, 'ticket_note');
   });
 
   it('a transition whose execute returns an undeclared state is INTERNAL', async () => {

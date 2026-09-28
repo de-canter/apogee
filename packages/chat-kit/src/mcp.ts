@@ -1,5 +1,6 @@
 import type { McpServer, ServerContext } from '@modelcontextprotocol/server';
 import { registerAppResource, registerAppTool, RESOURCE_MIME_TYPE } from '@modelcontextprotocol/ext-apps/server';
+import { describeEnvelope, type Envelope, type ListEnvelope } from './contract';
 import { ChatKitError } from './errors';
 import type { Kit } from './kit';
 import type { AuthInfo } from './ports';
@@ -36,6 +37,21 @@ export function fragmentMeta(f: FragmentDef): Record<string, unknown> {
   return ui;
 }
 
+/** Model-facing error text. structuredContent is UI-only under MCP Apps, so the allowed next actions ride in the text. */
+function errorText(e: ChatKitError): string {
+  const names = (e.allowed_next_actions ?? []).map((a) => a.capability);
+  return names.length > 0 ? `${e.code}: ${e.message} Allowed next: ${names.join(', ')}` : `${e.code}: ${e.message}`;
+}
+
+/** kit.describe, falling back to the default describe when the host's describe throws. */
+function safeDescribe(kit: Kit, name: string, result: Envelope | ListEnvelope): string {
+  try {
+    return kit.describe(name, result);
+  } catch {
+    return describeEnvelope(result);
+  }
+}
+
 /** Registers every kit capability as an MCP tool (with UI metadata when the capability has a fragment) and every fragment as a ui:// resource. */
 export function registerKit(server: McpServer, kit: Kit, opts: RegisterKitOptions = {}): void {
   const auth = opts.auth ?? defaultAuth;
@@ -51,13 +67,15 @@ export function registerKit(server: McpServer, kit: Kit, opts: RegisterKitOption
         _meta: cap.ui !== undefined ? { ui: { resourceUri: cap.ui } } : {},
       },
       async (args: unknown, ctx: ServerContext) => {
+        let result: Envelope | ListEnvelope;
         try {
-          const result = await kit.call(cap.name, args, auth(ctx));
-          return { content: [{ type: 'text' as const, text: kit.describe(cap.name, result) }], structuredContent: result as unknown as Record<string, unknown> };
+          result = await kit.call(cap.name, args, auth(ctx));
         } catch (err) {
           const e = ChatKitError.is(err) ? err : new ChatKitError('INTERNAL', 'Capability failed');
-          return { isError: true, content: [{ type: 'text' as const, text: `${e.code}: ${e.message}` }], structuredContent: e.toJSON() as unknown as Record<string, unknown> };
+          return { isError: true, content: [{ type: 'text' as const, text: errorText(e) }], structuredContent: e.toJSON() as unknown as Record<string, unknown> };
         }
+        // The write has committed by now: a throwing host describe must not turn it into an error.
+        return { content: [{ type: 'text' as const, text: safeDescribe(kit, cap.name, result) }], structuredContent: result as unknown as Record<string, unknown> };
       },
     );
   }

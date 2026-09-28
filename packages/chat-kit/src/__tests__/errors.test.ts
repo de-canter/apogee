@@ -17,6 +17,16 @@ describe('ChatKitError', () => {
     expect(e.toJSON().error.details).toEqual({ resource: 'ticket', id: 't1', from: 'closed', attempted: 'ticket_triage', allowed: ['ticket_reopen'] });
     expect(e.toJSON().error.allowed_next_actions?.[0]?.capability).toBe('ticket_reopen');
   });
+  it('is() is a brand check that survives a second copy of the class', () => {
+    const copy = Object.assign(new Error('from another bundle'), { code: 'NOT_FOUND' });
+    Object.defineProperty(copy, Symbol.for('apogee.chat-kit.error'), { value: true });
+    expect(ChatKitError.is(copy)).toBe(true);
+    expect(ChatKitError.is(Object.assign(new Error('plain'), { code: 'NOT_FOUND' }))).toBe(false);
+    expect(ChatKitError.is(null)).toBe(false);
+    const noCode = new Error('no code');
+    Object.defineProperty(noCode, Symbol.for('apogee.chat-kit.error'), { value: true });
+    expect(ChatKitError.is(noCode)).toBe(false);
+  });
   it('maps every code to a status', () => {
     expect(STATUS_BY_CODE).toEqual({ ILLEGAL_TRANSITION: 409, NOT_FOUND: 404, INVALID_INPUT: 400, UNAUTHENTICATED: 401, FORBIDDEN: 403, ENTITLEMENT: 402, INTERNAL: 500 });
   });

@@ -34,4 +34,12 @@ describe('toAgentTools', () => {
     const r2 = await t.execute({ id: 't1', assignee: 'bob' } as never, { ...ctx, ctx: { userToken: undefined } });
     expect(r2).toMatchObject({ success: false, error: 'UNAUTHENTICATED' });
   });
+  it('a throwing host describe falls back to the default message', async () => {
+    const loud = { ...ticket, capabilities: () => ticket.capabilities().map((c) => ({ ...c, describe: (): string => { throw new Error('describe bug'); } })) };
+    const k = createKit<ReturnType<typeof makeCtx>, Principal>({ resources: [loud], ctx: makeCtx(structuredClone(seed)), principal: () => Promise.resolve({ user: 'ann', admin: false }) });
+    const t = toAgentTools<AgentCtx>(k, { auth: () => ({ token: 'ann' }) }).find((x) => x.name === 'ticket_get')!;
+    const r = await t.execute({ id: 't1' } as never, ctx);
+    expect(r.success).toBe(true);
+    expect(JSON.parse(r.message ?? '')).toMatchObject({ id: 't1', state: 'open' });
+  });
 });

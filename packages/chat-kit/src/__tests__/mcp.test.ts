@@ -37,6 +37,8 @@ describe('registerKit', () => {
 
   it('returns the envelope as structuredContent and a compact text for the model', async () => {
     const { client } = await harness('ann');
+    // listTools first so the client caches outputSchema and validates structuredContent against it.
+    await client.listTools();
     const res = await client.callTool({ name: 'ticket_triage', arguments: { id: 't1', assignee: 'bob' } });
     expect(res.isError).toBeFalsy();
     const env = AnyEnvelopeSchema.parse(res.structuredContent);
@@ -50,6 +52,25 @@ describe('registerKit', () => {
     const res = await client.callTool({ name: 'ticket_triage', arguments: { id: 't2', assignee: 'bob' } });
     expect(res.isError).toBe(true);
     expect(res.structuredContent).toMatchObject({ error: { code: 'ILLEGAL_TRANSITION', details: { from: 'closed' } } });
+    const text = (res.content as Array<{ type: string; text?: string }>)[0]?.text ?? '';
+    expect(text).toContain('ILLEGAL_TRANSITION: ');
+    expect(text).toContain('Allowed next: ticket_note');
+    expect((res.structuredContent as { error: { details: { allowed: string[] } } }).error.details.allowed).toEqual(['ticket_note']);
+  });
+
+  it('a throwing host describe falls back to the default text; the result still succeeds', async () => {
+    const loud = { ...ticket, capabilities: () => ticket.capabilities().map((c) => ({ ...c, describe: (): string => { throw new Error('describe bug'); } })) };
+    const kit = createKit<ReturnType<typeof makeCtx>, Principal>({ resources: [loud], ctx: makeCtx(structuredClone(seed)), principal: () => Promise.resolve({ user: 'ann', admin: false }) });
+    const server = new McpServer({ name: 'kit-test', version: '0.0.0' });
+    registerKit(server, kit, { auth: () => ({ token: 'ann' }) });
+    const [ct, st] = InMemoryTransport.createLinkedPair();
+    const client = new Client({ name: 'harness', version: '0.0.0' });
+    await server.connect(st);
+    await client.connect(ct);
+    const res = await client.callTool({ name: 'ticket_triage', arguments: { id: 't1', assignee: 'bob' } });
+    expect(res.isError).toBeFalsy();
+    const text = (res.content as Array<{ type: string; text?: string }>)[0]?.text ?? '';
+    expect(JSON.parse(text)).toMatchObject({ state: 'triaged' });
   });
 
   it('maps a missing principal to UNAUTHENTICATED', async () => {

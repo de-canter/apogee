@@ -4,6 +4,7 @@ import { action, deriveActions, type ActionSource, type Current, type Transition
 import { guarded, type CapabilitySpec, type RunContext } from './capability';
 import { describeEnvelope, envelopeSchema, listEnvelopeSchema, type ActionIntent, type Envelope, type ListEnvelope } from './contract';
 import { ChatKitError, type IllegalTransitionDetails } from './errors';
+import type { EntitlementCall } from './ports';
 
 export type { Current } from './actions';
 
@@ -160,17 +161,25 @@ export function defineResource<TCtx, TPrincipal, TView, S extends string>(
         return current;
       };
 
+      const callFor = (local: string, principal: TPrincipal, input: unknown): EntitlementCall<TPrincipal> =>
+        ({ principal, capability: `${def.name}_${local}`, resource: def.name, input });
+      const illegal = (id: string, local: string, current: Current<TView, S>, principal: TPrincipal): ChatKitError => {
+        const allowed = deriveActions(self, id, current, principal);
+        const details: IllegalTransitionDetails = { resource: def.name, id, from: current.state, attempted: `${def.name}_${local}`, allowed: allowed.map((a) => a.capability) };
+        return new ChatKitError('ILLEGAL_TRANSITION', `${def.name} ${id} is ${current.state}; ${def.name}_${local} is not allowed`, { details, allowed_next_actions: allowed });
+      };
+
       cap('get', `Get ${def.name}`, undefined, z.object({ id: IdSchema }), output, uiFor('get'), async (input, c) => {
         const { id } = input as { id: string };
-        const current = await loadOr404(id, c);
-        return self.envelope(id, current, c.principal, { ui: uiFor('get') });
+        // Steps 5 and 7 run for get too: the load is the "execute", so a metered read is charged.
+        const { result: current, entitlementView } = await guarded(c.entitlement, callFor('get', c.principal, input), () => loadOr404(id, c), c.onError);
+        return self.envelope(id, current, c.principal, { ui: uiFor('get'), entitlement: entitlementView });
       });
 
       if (def.list) {
         const l = def.list;
         cap('list', l.title, l.description, l.input, listOutput, uiFor('list'), async (input, c) => {
-          const call = { principal: c.principal, capability: `${def.name}_list`, resource: def.name, input };
-          const { result } = await guarded(c.entitlement, call, () => l.execute(input as Record<string, unknown>, { ctx: c.ctx, principal: c.principal }), c.onError);
+          const { result } = await guarded(c.entitlement, callFor('list', c.principal, input), () => l.execute(input as Record<string, unknown>, { ctx: c.ctx, principal: c.principal }), c.onError);
           for (const i of result.items) checkView(i.view, 'list');
           const e: ListEnvelope<TView> = {
             resource: def.name,
@@ -188,8 +197,7 @@ export function defineResource<TCtx, TPrincipal, TView, S extends string>(
       if (def.create) {
         const cr = def.create;
         cap('create', cr.title, cr.description, cr.input, output, uiFor('create'), async (input, c) => {
-          const call = { principal: c.principal, capability: `${def.name}_create`, resource: def.name, input };
-          const { result, entitlementView } = await guarded(c.entitlement, call, () => cr.execute(input as Record<string, unknown>, { ctx: c.ctx, principal: c.principal }), c.onError);
+          const { result, entitlementView } = await guarded(c.entitlement, callFor('create', c.principal, input), () => cr.execute(input as Record<string, unknown>, { ctx: c.ctx, principal: c.principal }), c.onError);
           checkView(result.view, 'create');
           return self.envelope(result.id, { state: result.state, view: result.view }, c.principal, { ui: uiFor('create') ?? uiFor('get'), entitlement: entitlementView });
         });
@@ -200,13 +208,11 @@ export function defineResource<TCtx, TPrincipal, TView, S extends string>(
         cap(name, t.title, t.description, t.input.extend({ id: IdSchema }), output, uiFor(name), async (input, c) => {
           const { id, ...rest } = input as { id: string } & Record<string, unknown>;
           const current = await loadOr404(id, c);
-          if (!rule.from.includes(current.state)) {
-            const allowed = deriveActions(self, id, current, c.principal);
-            const details: IllegalTransitionDetails = { resource: def.name, id, from: current.state, attempted: `${def.name}_${name}`, allowed: allowed.map((a) => a.capability) };
-            throw new ChatKitError('ILLEGAL_TRANSITION', `${def.name} ${id} is ${current.state}; ${def.name}_${name} is not allowed`, { details, allowed_next_actions: allowed });
+          if (!rule.from.includes(current.state) || (rule.when && !rule.when(current))) throw illegal(id, name, current, c.principal);
+          if (def.policy && !def.policy({ name, to: rule.to }, current, c.principal)) {
+            throw new ChatKitError('FORBIDDEN', `${def.name}_${name} is not permitted on ${def.name} ${id}`, { allowed_next_actions: deriveActions(self, id, current, c.principal) });
           }
-          const call = { principal: c.principal, capability: `${def.name}_${name}`, resource: def.name, input };
-          const { result, entitlementView } = await guarded(c.entitlement, call, () => t.execute(rest, { ctx: c.ctx, principal: c.principal, id, current }), c.onError);
+          const { result, entitlementView } = await guarded(c.entitlement, callFor(name, c.principal, input), () => t.execute(rest, { ctx: c.ctx, principal: c.principal, id, current }), c.onError);
           if (!rule.to.includes(result.state)) throw new ChatKitError('INTERNAL', `${def.name}_${name} returned undeclared state ${result.state}`);
           checkView(result.view, `${def.name}_${name}`);
           return self.envelope(id, result, c.principal, { ui: uiFor(name) ?? uiFor('get'), entitlement: entitlementView });
@@ -217,8 +223,8 @@ export function defineResource<TCtx, TPrincipal, TView, S extends string>(
         cap(name, q.title, q.description, q.input.extend({ id: IdSchema }), output, uiFor(name), async (input, c) => {
           const { id, ...rest } = input as { id: string } & Record<string, unknown>;
           const current = await loadOr404(id, c);
-          const call = { principal: c.principal, capability: `${def.name}_${name}`, resource: def.name, input };
-          const { result, entitlementView } = await guarded(c.entitlement, call, () => q.execute(rest, { ctx: c.ctx, principal: c.principal, id, current }), c.onError);
+          if (q.when && !q.when(current)) throw illegal(id, name, current, c.principal);
+          const { result, entitlementView } = await guarded(c.entitlement, callFor(name, c.principal, input), () => q.execute(rest, { ctx: c.ctx, principal: c.principal, id, current }), c.onError);
           checkView(result.view, `${def.name}_${name}`);
           return self.envelope(id, { state: current.state, view: result.view }, c.principal, { ui: uiFor(name) ?? uiFor('get'), entitlement: entitlementView });
         });
