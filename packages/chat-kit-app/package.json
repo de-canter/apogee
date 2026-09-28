@@ -1,0 +1,50 @@
+{
+  "name": "@de_canter/apogee-chat-kit-app",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "homepage": "https://apogee.build",
+  "repository": { "type": "git", "url": "https://github.com/de-canter/apogee.git", "directory": "packages/chat-kit-app" },
+  "publishConfig": { "access": "public" },
+  "description": "Fragment runtime for @de_canter/apogee-chat-kit: render an envelope inside an MCP Apps host or a product app, act through tools, one React card for both",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".":       { "types": "./dist/index.d.ts", "import": "./dist/index.js", "require": "./dist/index.cjs" },
+    "./react": { "types": "./dist/react.d.ts", "import": "./dist/react.js", "require": "./dist/react.cjs" }
+  },
+  "files": ["dist", "README.md"],
+  "sideEffects": false,
+  "scripts": {
+    "prepare": "tsup", "build": "tsup", "dev": "tsup --watch", "clean": "rm -rf dist",
+    "test": "vitest run", "test:watch": "vitest", "typecheck": "tsc --noEmit", "lint": "eslint src"
+  },
+  "dependencies": {
+    "@de_canter/apogee-chat-kit": "workspace:*",
+    "zod": "^4.0.0"
+  },
+  "peerDependencies": {
+    "@modelcontextprotocol/ext-apps": "^2.0.0",
+    "react": "^18.0.0 || ^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": { "optional": true }
+  },
+  "devDependencies": {
+    "@de_canter/apogee-kernel": "workspace:*",
+    "@modelcontextprotocol/client": "^2.1.0",
+    "@modelcontextprotocol/ext-apps": "^2.0.0",
+    "@testing-library/jest-dom": "^6.6.0",
+    "@testing-library/react": "^16.3.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitest/coverage-v8": "^4.0.0",
+    "jsdom": "^26.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.6.0",
+    "vitest": "^4.0.0"
+  }
+}
