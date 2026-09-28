@@ -1,15 +1,15 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { App, AppEventMap } from '@modelcontextprotocol/ext-apps';
 import { AnyEnvelopeSchema, AnyListEnvelopeSchema, describeEnvelope, type ActionDescriptor, type Envelope, type ListEnvelope } from '@de_canter/apogee-chat-kit';
-import { parseToolResult, type FragmentError, type ToolResultLike } from './parse';
+import { parseToolResult, toolResultText, type FragmentError, type ToolResultLike } from './parse';
 
 export interface EnvelopeTransport {
   /** Rejects with a FragmentError-shaped object. */
   call(capability: string, args: Record<string, unknown>): Promise<Envelope | ListEnvelope>;
-  /** Pushes from the host (tool results). Returns an unsubscribe. */
-  subscribe?(onEnvelope: (e: Envelope) => void, onError: (e: FragmentError) => void): () => void;
+  /** Pushes from the host (tool results). Returns an unsubscribe. May replay the latest push immediately. */
+  subscribe?(onEnvelope: (e: Envelope | ListEnvelope) => void, onError: (e: FragmentError) => void): () => void;
   /** After a successful act, e.g. tell the model what changed. */
-  afterAct?(e: Envelope): Promise<void>;
+  afterAct?(e: Envelope | ListEnvelope): Promise<void>;
 }
 
 function toFragmentError(err: unknown): FragmentError {
@@ -35,29 +35,51 @@ function fragmentError(code: string, message: string): Error & { code: string } 
   return Object.assign(new Error(message), { code });
 }
 
-/** For fragments: tools/call through the App, results parsed as envelopes, model context updated after each act. */
+/**
+ * For fragments: tools/call through the App, results parsed as envelopes, model context updated after each act.
+ *
+ * Build it BEFORE `fragment.connect()`: it listens for `toolresult` from construction and remembers the
+ * latest one, so a provider that subscribes later (in a React effect) still gets the host's one-shot
+ * initial tool result replayed.
+ */
 export function mcpAppTransport(app: App): EnvelopeTransport {
+  type Latest = { envelope: Envelope | ListEnvelope } | { error: FragmentError };
+  let latest: Latest | null = null;
+  const envListeners = new Set<(e: Envelope | ListEnvelope) => void>();
+  const errListeners = new Set<(e: FragmentError) => void>();
+  // The server's describe text for each envelope this transport produced, for afterAct.
+  const texts = new WeakMap<object, string>();
+
+  // The multi-listener API, not the exclusive `ontoolresult` setter, so this composes with
+  // createFragment's own listener on the same App. It stays for the transport's lifetime.
+  app.addEventListener('toolresult', (params: AppEventMap['toolresult']) => {
+    const parsed = parseToolResult(params as ToolResultLike);
+    latest = parsed;
+    if ('envelope' in parsed) for (const l of envListeners) l(parsed.envelope);
+    else for (const l of errListeners) l(parsed.error);
+  });
+
   return {
     async call(capability, args) {
-      const result = await app.callServerTool({ name: capability, arguments: args });
-      const parsed = parseToolResult(result as ToolResultLike);
+      const result = (await app.callServerTool({ name: capability, arguments: args })) as ToolResultLike;
+      const parsed = parseToolResult(result);
       if ('error' in parsed) throw fragmentErrorFrom(parsed.error);
+      const text = toolResultText(result);
+      if (text !== undefined) texts.set(parsed.envelope, text);
       return parsed.envelope;
     },
     subscribe(onEnvelope, onError) {
-      // Use the multi-listener API, not the `ontoolresult` setter: that setter is exclusive and
-      // would silently steal the "toolresult" slot from createFragment's own handler when both
-      // run against the same App (the SDK warns "ontoolresult handler replaced" when it happens).
-      const handler = (params: AppEventMap['toolresult']) => {
-        const parsed = parseToolResult(params as ToolResultLike);
-        if ('envelope' in parsed) onEnvelope(parsed.envelope);
-        else onError(parsed.error);
-      };
-      app.addEventListener('toolresult', handler);
-      return () => { app.removeEventListener('toolresult', handler); };
+      if (latest) {
+        if ('envelope' in latest) onEnvelope(latest.envelope);
+        else onError(latest.error);
+      }
+      envListeners.add(onEnvelope);
+      errListeners.add(onError);
+      return () => { envListeners.delete(onEnvelope); errListeners.delete(onError); };
     },
     async afterAct(e) {
-      await app.updateModelContext({ content: [{ type: 'text', text: describeEnvelope(e) }], structuredContent: e as unknown as Record<string, unknown> }).catch(() => undefined);
+      const text = texts.get(e) ?? describeEnvelope(e);
+      await app.updateModelContext({ content: [{ type: 'text', text }], structuredContent: e as unknown as Record<string, unknown> }).catch(() => undefined);
     },
   };
 }
@@ -89,7 +111,8 @@ export function httpTransport(call: (capability: string, args: Record<string, un
 }
 
 export interface EnvelopeState<TView> {
-  envelope: Envelope<TView> | null;
+  /** A single envelope or a list envelope; `isListEnvelope` from chat-kit tells them apart. */
+  envelope: Envelope<TView> | ListEnvelope<TView> | null;
   status: 'idle' | 'acting' | 'error';
   error: FragmentError | null;
   act: (action: ActionDescriptor, extraArgs?: Record<string, unknown>) => Promise<void>;
@@ -97,9 +120,9 @@ export interface EnvelopeState<TView> {
 
 const Ctx = createContext<EnvelopeState<unknown> | null>(null);
 
-export function EnvelopeProvider<TView>(props: { transport: EnvelopeTransport; initial?: Envelope<TView> | undefined; children: ReactNode }) {
+export function EnvelopeProvider<TView>(props: { transport: EnvelopeTransport; initial?: Envelope<TView> | ListEnvelope<TView> | undefined; children: ReactNode }) {
   const { transport } = props;
-  const [envelope, setEnvelope] = useState<Envelope<TView> | null>(props.initial ?? null);
+  const [envelope, setEnvelope] = useState<Envelope<TView> | ListEnvelope<TView> | null>(props.initial ?? null);
   const [status, setStatus] = useState<EnvelopeState<TView>['status']>('idle');
   const [error, setError] = useState<FragmentError | null>(null);
   const pending = useRef(false);
@@ -107,7 +130,7 @@ export function EnvelopeProvider<TView>(props: { transport: EnvelopeTransport; i
   useEffect(() => {
     if (!transport.subscribe) return undefined;
     return transport.subscribe(
-      (e) => { setEnvelope(e as Envelope<TView>); setError(null); setStatus('idle'); },
+      (e) => { setEnvelope(e as Envelope<TView> | ListEnvelope<TView>); setError(null); setStatus('idle'); },
       (e) => { setError(e); setStatus('error'); },
     );
   }, [transport]);
@@ -119,8 +142,7 @@ export function EnvelopeProvider<TView>(props: { transport: EnvelopeTransport; i
     setError(null);
     try {
       const next = await transport.call(action.capability, { ...action.args, ...extraArgs });
-      if ('items' in next) throw fragmentError('INVALID_INPUT', 'Expected a single envelope');
-      setEnvelope(next as Envelope<TView>);
+      setEnvelope(next as Envelope<TView> | ListEnvelope<TView>);
       setStatus('idle');
       if (transport.afterAct) await transport.afterAct(next);
     } catch (err) {
