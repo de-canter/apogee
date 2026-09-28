@@ -14,7 +14,8 @@
     ".":       { "types": "./dist/index.d.ts", "import": "./dist/index.js", "require": "./dist/index.cjs" },
     "./mcp":   { "types": "./dist/mcp.d.ts",   "import": "./dist/mcp.js",   "require": "./dist/mcp.cjs" },
     "./agent": { "types": "./dist/agent.d.ts", "import": "./dist/agent.js", "require": "./dist/agent.cjs" },
-    "./http":  { "types": "./dist/http.d.ts",  "import": "./dist/http.js",  "require": "./dist/http.cjs" }
+    "./http":  { "types": "./dist/http.d.ts",  "import": "./dist/http.js",  "require": "./dist/http.cjs" },
+    "./remote": { "types": "./dist/remote.d.ts", "import": "./dist/remote.js", "require": "./dist/remote.cjs" }
   },
   "files": ["dist", "README.md"],
   "sideEffects": false,
