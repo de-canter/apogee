@@ -33,10 +33,19 @@ export function jsonSchemaStandard(schema: Record<string, unknown>): StandardJso
   const validator: ValidateFunction = engine().compile(schema);
   const validate = (value: unknown): StandardResult => {
     if (validator(value)) return { value };
-    const issues: StandardIssue[] = (validator.errors ?? []).map((e) => ({
-      message: e.message ?? 'invalid',
-      path: e.instancePath ? e.instancePath.split('/').slice(1).map((s) => (/^\d+$/.test(s) ? Number(s) : s)) : undefined,
-    }));
+    const issues: StandardIssue[] = (validator.errors ?? []).map((e) => {
+      const base: (string | number)[] = e.instancePath
+        ? e.instancePath.split('/').slice(1).map((s) => (/^\d+$/.test(s) ? Number(s) : s))
+        : [];
+      const path = [...base];
+      // A missing required property is reported against the *parent* instancePath, so the
+      // property name itself must be appended for the path to point at the actual failure.
+      if (e.keyword === 'required') {
+        const missing = (e.params as { missingProperty?: string }).missingProperty;
+        if (missing !== undefined) path.push(missing);
+      }
+      return { message: e.message ?? 'invalid', path: path.length > 0 ? path : undefined };
+    });
     return { issues };
   };
   return {

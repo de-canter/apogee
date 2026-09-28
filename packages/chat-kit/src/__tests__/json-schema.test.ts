@@ -24,4 +24,25 @@ describe('jsonSchemaStandard', () => {
     const bad = std['~standard'].validate({ resource: 'ticket', id: 't1', state: 'open', data: { title: 'x' }, allowed_next_actions: [], at: 'yesterday' });
     expect('issues' in bad).toBe(true);
   });
+  it('reports a missing required top-level property with its path', () => {
+    const schema = z.toJSONSchema(Input, { target: 'draft-2020-12', io: 'input' });
+    const std = jsonSchemaStandard(schema);
+    const bad = std['~standard'].validate({});
+    expect('issues' in bad).toBe(true);
+    const issue = 'issues' in bad ? bad.issues.find((i) => i.path?.join('.') === 'id') : undefined;
+    expect(issue).toBeDefined();
+    expect(issue?.path).toEqual(['id']);
+  });
+  it('reports a missing required nested property with its full path', () => {
+    const schema = {
+      type: 'object',
+      properties: { a: { type: 'object', required: ['b'], properties: { b: { type: 'string' } } } },
+    };
+    const std = jsonSchemaStandard(schema);
+    const bad = std['~standard'].validate({ a: {} });
+    expect('issues' in bad).toBe(true);
+    const issue = 'issues' in bad ? bad.issues.find((i) => i.path?.join('.') === 'a.b') : undefined;
+    expect(issue).toBeDefined();
+    expect(issue?.path).toEqual(['a', 'b']);
+  });
 });
