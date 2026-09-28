@@ -144,14 +144,15 @@ export function defineResource<TCtx, TPrincipal, TView, S extends string>(
         caps.push({ name: `${def.name}_${name}`, title, description: description ?? title, resource: def.name, input, output: out, ui, describe: describeAny, run });
       };
 
-      const loadOr404 = async (id: string, c: RunContext<TCtx, TPrincipal>): Promise<Current<TView, S>> => {
-        const current = await def.load(id, { ctx: c.ctx, principal: c.principal });
-        if (!current) throw new ChatKitError('NOT_FOUND', `No ${def.name} ${id}`);
-        return current;
-      };
       const checkView = (view: TView, where: string): void => {
         const r = def.view.safeParse(view);
         if (!r.success) throw new ChatKitError('INTERNAL', `${where} returned an invalid view`, { details: r.error.issues });
+      };
+      const loadOr404 = async (id: string, c: RunContext<TCtx, TPrincipal>): Promise<Current<TView, S>> => {
+        const current = await def.load(id, { ctx: c.ctx, principal: c.principal });
+        if (!current) throw new ChatKitError('NOT_FOUND', `No ${def.name} ${id}`);
+        checkView(current.view, `${def.name} load`);
+        return current;
       };
 
       cap('get', `Get ${def.name}`, undefined, z.object({ id: IdSchema }), output, uiFor('get'), async (input, c) => {
