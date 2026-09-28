@@ -15,6 +15,7 @@ One resource declaration becomes MCP tools with structured output and linked MCP
 | MCP | `registerKit(server, kit, { fragments })` from `./mcp` | SDK 2 `registerAppTool` with `outputSchema` + `_meta.ui`; fragments as `ui://` resources |
 | Agent | `toAgentTools(kit, { auth })` from `./agent` | `apogee-agent` tools; envelope in `data` and as an artifact typed by resource |
 | HTTP | `createHttpHandler(kit)` from `./http` | `{ status, body }`; 409/404/400/401/403/402/500 |
+| Remote | `createRemoteKit({ manifest, call })`, `httpKitCall({ baseUrl, headers?, fetch? })` from `./remote`; `manifestOf(kit)` from the root | a `Kit` whose capabilities live behind HTTP, built from a JSON Schema manifest instead of zod; `KIT_TEXT_HEADER` (`x-kit-text`) carries the model-facing text as a base64url response header |
 
 ## Guarantees
 
@@ -25,6 +26,7 @@ One resource declaration becomes MCP tools with structured output and linked MCP
 - `execute` results are checked against the declared target states and the view schema; a mismatch is `INTERNAL`, never a protocol error.
 - Definition-time validation against the kernel lifecycle: unknown states, illegal pairs, reserved or colliding names, and inputs that declare `id` all throw at startup.
 - The kit carries no model identifiers and never imports a model client.
+- A remote kit (`createRemoteKit`) produces the same `tools/list` entries and the same success/error results as the local kit it proxies; errors keep their code and allowed actions.
 
 ## Example
 
@@ -52,3 +54,41 @@ const scan = defineResource<Ctx, Principal, ScanView, ScanState>({
 const kit = createKit({ resources: [scan], ctx, principal: resolveClerkPrincipal, entitlement: billingPort });
 registerKit(server, kit, { fragments: [{ uri: 'ui://product/scan-card.html', name: 'Scan card', html: scanCardHtml, prefersBorder: false }] });
 ```
+
+## Edge MCP proxies, product API rules
+
+Split the kit across two processes: the product API owns the kit (lifecycle, entitlement, storage) and answers a fragment's `tools/call`; an edge MCP server holds no domain code and just forwards. The API side serves the manifest and an HTTP handler:
+
+```ts
+// product API
+import { manifestOf } from '@de_canter/apogee-chat-kit';
+import { createHttpHandler } from '@de_canter/apogee-chat-kit/http';
+import { KIT_TEXT_HEADER } from '@de_canter/apogee-chat-kit/remote';
+
+const kit = createKit({ resources: [scan], ctx, principal: resolveClerkPrincipal, entitlement: billingPort });
+const handleKitCall = createHttpHandler(kit);
+
+app.get('/api/v1/kit/manifest', (req, res) => res.json(manifestOf(kit)));
+app.post('/api/v1/kit/:capability', async (req, res) => {
+  const result = await handleKitCall({ capability: req.params.capability, args: req.body, auth: req.authInfo });
+  if (result.text !== undefined) res.setHeader(KIT_TEXT_HEADER, Buffer.from(result.text, 'utf8').toString('base64url'));
+  res.status(result.status).json(result.body);
+});
+```
+
+The edge side has no zod schemas and no domain types — it fetches the manifest once and rebuilds a `Kit` that forwards every call:
+
+```ts
+// edge MCP
+import { createRemoteKit, httpKitCall } from '@de_canter/apogee-chat-kit/remote';
+import { registerKit } from '@de_canter/apogee-chat-kit/mcp';
+
+const manifest = await fetch(`${baseUrl}/api/v1/kit/manifest`).then((r) => r.json());
+const remote = createRemoteKit({
+  manifest,
+  call: httpKitCall({ baseUrl: `${baseUrl}/api/v1/kit`, headers: { 'x-edge-key': secret } }),
+});
+registerKit(server, remote, { fragments });
+```
+
+`toAgentTools` requires a local kit (it needs zod input schemas to build agent tool definitions); it throws if handed a remote kit's capabilities.
