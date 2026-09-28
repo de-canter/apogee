@@ -314,12 +314,13 @@ export interface FragmentContext<TView> {
 export function createFragment<TView>(opts: {
   name: string; version: string;
   render: (c: FragmentContext<TView>) => void;
+  view?: ZodType<TView>;                // validates data (single envelope or each list item)
   theme?: ThemeMap;                     // host tokens → product CSS custom properties
   app?: App;                            // injectable for tests
-}): { connect(): Promise<void>; destroy(): void };
+}): { app: App; connect(transport?: Transport): Promise<void>; destroy(): void };   // default transport: PostMessageTransport(window.parent)
 ```
 
-Behavior: constructs `new App({ name, version })`; registers `ontoolresult` (parses `structuredContent` with `envelopeSchema(unknown)`; an `isError` result sets `error`), `ontoolinput` (ignored beyond marking `status`), `onhostcontextchanged` (updates `host`, applies theme), `onteardown`; then `connect(new PostMessageTransport())`. `act` sets `status: 'acting'`, calls `app.callServerTool({ name: action.capability, arguments: { ...action.args, ...extraArgs } })`, replaces `envelope` from `structuredContent`, then `app.updateModelContext({ content: [{ type: 'text', text: <the tool result's first text block, else describeEnvelope(envelope)> }], structuredContent: envelope })` so the model knows what the user did inside the card. Every state change calls `render`; a throwing `render` becomes `status: 'error'` (`INTERNAL`). Handlers are registered with `addEventListener` before `connect`, as the ext-apps SDK requires, and removed by `destroy()`; `onteardown` destroys the fragment.
+Behavior: uses `opts.app` or constructs `new App({ name, version })`; before `connect`, as the ext-apps SDK requires, registers with `app.addEventListener` a `toolresult` listener (parses `structuredContent` as an envelope OR a list envelope via `envelopeSchema(view)` / `listEnvelopeSchema(view)`; an `isError` result sets `error`; anything else is `INVALID_INPUT`), a `toolinput` listener (ignored), and a `hostcontextchanged` listener (updates `host`, applies theme), and sets `onteardown` (destroys the fragment). `connect(transport?)` connects over the given transport or `new PostMessageTransport(window.parent, window.parent)`, reads the host context, and renders. `act` sets `status: 'acting'`, calls `app.callServerTool({ name: action.capability, arguments: { ...action.args, ...extraArgs } })`, replaces `envelope` from `structuredContent`, then `app.updateModelContext({ content: [{ type: 'text', text: <the tool result's first text block, else describeEnvelope(envelope)> }], structuredContent: envelope })` so the model knows what the user did inside the card. Every state change calls `render`; a throwing `render` becomes `status: 'error'` (`INTERNAL`). `destroy()` removes the listeners and closes the connection; after it, `render` and `act` are no-ops.
 
 `applyTheme(host, map)`: `map` is `{ [productVar: string]: (host: HostStyle) => string }`; default map writes `--ck-surface`, `--ck-text`, `--ck-accent` from the host's variables and theme. Products supply their own map.
 

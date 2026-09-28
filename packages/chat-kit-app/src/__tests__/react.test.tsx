@@ -220,6 +220,10 @@ describe('mcpAppTransport', () => {
     await vi.waitFor(() => expect(host.contextUpdates).toHaveLength(1));
     const update = host.contextUpdates[0] as { content: Array<{ text: string }> };
     expect(update.content[0]!.text).toBe(TRIAGED_TEXT);
+    // A provider remounted on the same transport replays the acted state, not the initial push.
+    mcp.unmount();
+    const again = render(<EnvelopeProvider transport={transport}><TicketCard /></EnvelopeProvider>, { container: document.createElement('div') });
+    await vi.waitFor(() => expect(again.container.querySelector('article')).toHaveAttribute('data-state', 'triaged'));
   });
 
   it('afterAct falls back to describeEnvelope for an envelope it did not produce', async () => {

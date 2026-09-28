@@ -63,6 +63,8 @@ export function mcpAppTransport(app: App): EnvelopeTransport {
     async call(capability, args) {
       const result = (await app.callServerTool({ name: capability, arguments: args })) as ToolResultLike;
       const parsed = parseToolResult(result);
+      // The latest state is what a remounted provider should replay, not the stale initial push.
+      latest = parsed;
       if ('error' in parsed) throw fragmentErrorFrom(parsed.error);
       const text = toolResultText(result);
       if (text !== undefined) texts.set(parsed.envelope, text);
