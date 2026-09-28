@@ -77,4 +77,25 @@ describe('createFragment', () => {
     await host.bridge.sendHostContextChange({ theme: 'light' });
     await vi.waitFor(() => expect(last(renders).host?.theme).toBe('light'));
   });
+
+  it('destroy() tears down the handlers and closes the connection; a second destroy() is a no-op', async () => {
+    const { host, renders, fragment } = await setup();
+    await host.bridge.sendToolResult({ content: [], structuredContent: ticketEnvelope() });
+    await vi.waitFor(() => expect(last(renders).envelope).not.toBeNull());
+    // Let the SDK's initial size-changed notification (scheduled via requestAnimationFrame at
+    // connect time) settle while the transport is still open, so destroy() below doesn't race it.
+    await new Promise((r) => setTimeout(r, 20));
+    const renderCount = renders.length;
+
+    fragment.destroy();
+    expect(() => fragment.destroy()).not.toThrow();
+
+    try {
+      await host.bridge.sendToolResult({ content: [], structuredContent: ticketEnvelope('triaged') });
+    } catch {
+      // Expected once the underlying transport is closed.
+    }
+    await new Promise((r) => setTimeout(r, 20));
+    expect(renders).toHaveLength(renderCount);
+  });
 });

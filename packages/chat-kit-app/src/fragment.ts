@@ -41,6 +41,7 @@ export function createFragment<TView = unknown>(opts: FragmentOptions<TView>): F
   let status: FragmentStatus = 'idle';
   let error: FragmentError | null = null;
   let pending = false;
+  let destroyed = false;
 
   const render = (): void => opts.render({ envelope, host, status, error, act, ask, openLink });
 
@@ -99,8 +100,13 @@ export function createFragment<TView = unknown>(opts: FragmentOptions<TView>): F
       render();
     },
     destroy() {
+      if (destroyed) return;
+      destroyed = true;
       app.ontoolresult = undefined;
+      app.ontoolinput = undefined;
       app.onhostcontextchanged = undefined;
+      app.onteardown = undefined;
+      void app.close().catch(() => undefined);
     },
   };
 }
