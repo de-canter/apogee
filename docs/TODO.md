@@ -11,7 +11,6 @@ Updated 2026-09-18. Things only you can do, plus the queue.
 - [ ] **Approve the apogee-build integration demo PR** (`feature/integrations-demo`: `/demo/integrations`, `/api/webhooks/courier`, the admin assistant's integration tools). It vendors the same tarball.
 - [ ] **Run the live smoke once** — `packages/ai/scripts/smoke.ts` (needs `ANTHROPIC_API_KEY` or `ant auth login`). One Haiku `generateObject` plus one short `stream`; confirms the structured-output and caching wire shapes the tests only type-check.
 - [ ] **Decide on `@de_canter/apogee-agent-mongoose` timing** — the products need real `SessionStore`/`MessageStore` adapters before any rewrite; planned after B5.
-- [ ] **Approve de-canter/apogee PR for feature/chat-kit** (C1: chat-kit + chat-kit-app), then tag `chat-kit-v0.1.0` and `chat-kit-app-v0.1.0` and confirm the release carries both tarballs.
 
 ## Decided
 
@@ -27,7 +26,7 @@ Updated 2026-09-18. Things only you can do, plus the queue.
 5. **Track A Phase 2** kernel entity categories (Party, Place, Resource tiers, Document, Event, Activity, Commitment + Fulfillment, Transaction) and `extendEntity`; then `@de_canter/apogee-kernel-mongoose`.
 6. Workflow-engine hook: `StateMachine` accepts a kernel `LifecycleDefinition`.
 7. The reference product's clean-room rewrite plan (in its own repo), gated on 1–6.
-8. **C1** `@de_canter/apogee-chat-kit` + `-app` — PR open: de-canter/apogee#3; after merge tag `chat-kit-v0.1.0`, `chat-kit-app-v0.1.0`; the reference product's chat-native POC consumes them.
+8. **C1** `@de_canter/apogee-chat-kit` + `@de_canter/apogee-chat-kit-app` — done: apogee#3 merged, `chat-kit-v0.1.0` and `chat-kit-app-v0.1.0` released with tarballs. Plan filed under `docs/plans/completed/`. The reference product's chat-native POC consumes them next.
 
 ## Local gotchas
 
