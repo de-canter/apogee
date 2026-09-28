@@ -1,6 +1,6 @@
 {
   "name": "@de_canter/apogee-chat-kit",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "license": "Apache-2.0",
   "homepage": "https://apogee.build",
   "repository": { "type": "git", "url": "https://github.com/de-canter/apogee.git", "directory": "packages/chat-kit" },
@@ -14,7 +14,8 @@
     ".":       { "types": "./dist/index.d.ts", "import": "./dist/index.js", "require": "./dist/index.cjs" },
     "./mcp":   { "types": "./dist/mcp.d.ts",   "import": "./dist/mcp.js",   "require": "./dist/mcp.cjs" },
     "./agent": { "types": "./dist/agent.d.ts", "import": "./dist/agent.js", "require": "./dist/agent.cjs" },
-    "./http":  { "types": "./dist/http.d.ts",  "import": "./dist/http.js",  "require": "./dist/http.cjs" }
+    "./http":  { "types": "./dist/http.d.ts",  "import": "./dist/http.js",  "require": "./dist/http.cjs" },
+    "./remote": { "types": "./dist/remote.d.ts", "import": "./dist/remote.js", "require": "./dist/remote.cjs" }
   },
   "files": ["dist", "README.md"],
   "sideEffects": false,
@@ -24,6 +25,8 @@
   },
   "dependencies": {
     "@de_canter/apogee-kernel": "workspace:*",
+    "ajv": "^8.17.0",
+    "ajv-formats": "^3.0.1",
     "zod": "^4.0.0"
   },
   "peerDependencies": {

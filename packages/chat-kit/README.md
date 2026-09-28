@@ -14,7 +14,8 @@ One resource declaration becomes MCP tools with structured output and linked MCP
 | Kit | `createKit({ resources, capabilities?, ctx, principal, entitlement?, onError? })` → `call(name, args, auth)` | the one pipeline |
 | MCP | `registerKit(server, kit, { fragments })` from `./mcp` | SDK 2 `registerAppTool` with `outputSchema` + `_meta.ui`; fragments as `ui://` resources |
 | Agent | `toAgentTools(kit, { auth })` from `./agent` | `apogee-agent` tools; envelope in `data` and as an artifact typed by resource |
-| HTTP | `createHttpHandler(kit)` from `./http` | `{ status, body }`; 409/404/400/401/403/402/500 |
+| HTTP | `createHttpHandler(kit)`, `wantsWrap(headers)`, `KIT_WRAP_HEADER` from `./http` | `{ status, body, text? }`; 409/404/400/401/403/402/500; `body` is the envelope, or `{ envelope, text }` when the call sets `wrap: true` (a remote kit asks with `x-kit-wrap: 1`) |
+| Remote | `createRemoteKit({ manifest, call })`, `httpKitCall({ baseUrl, headers?, fetch?, timeoutMs? })`, `KitManifestSchema`, `jsonSchemaStandard`, `StandardJsonSchema`/`StandardResult`/`StandardIssue` from `./remote`; `manifestOf(kit)` from the root | a `Kit` whose capabilities live behind HTTP, built from a JSON Schema manifest instead of zod; the model-facing text rides in the wrapped `{ envelope, text }` body. **Node runtime only** (Ajv compiles validators with `new Function`; not Edge Runtime or Workers) |
 
 ## Guarantees
 
@@ -25,6 +26,7 @@ One resource declaration becomes MCP tools with structured output and linked MCP
 - `execute` results are checked against the declared target states and the view schema; a mismatch is `INTERNAL`, never a protocol error.
 - Definition-time validation against the kernel lifecycle: unknown states, illegal pairs, reserved or colliding names, and inputs that declare `id` all throw at startup.
 - The kit carries no model identifiers and never imports a model client.
+- A remote kit (`createRemoteKit`) advertises the same schemas and returns the same envelopes as the local kit it proxies; errors keep their code and allowed actions. Edge-side validation messages may differ (Ajv, not zod), and refinements are enforced by the API, not the edge (spec §5.4 lists the divergences).
 
 ## Example
 
@@ -52,3 +54,46 @@ const scan = defineResource<Ctx, Principal, ScanView, ScanState>({
 const kit = createKit({ resources: [scan], ctx, principal: resolveClerkPrincipal, entitlement: billingPort });
 registerKit(server, kit, { fragments: [{ uri: 'ui://product/scan-card.html', name: 'Scan card', html: scanCardHtml, prefersBorder: false }] });
 ```
+
+## Edge MCP proxies, product API rules
+
+Split the kit across two processes: the product API owns the kit (lifecycle, entitlement, storage) and answers a fragment's `tools/call`; an edge MCP server holds no domain code and just forwards. The API side serves the manifest and an HTTP handler:
+
+```ts
+// product API (Fastify)
+import { createKit, manifestOf } from '@de_canter/apogee-chat-kit';
+import { createHttpHandler, wantsWrap } from '@de_canter/apogee-chat-kit/http';
+
+const kit = createKit({ resources: [scan], ctx, principal: resolveClerkPrincipal, entitlement: billingPort });
+const handle = createHttpHandler(kit);
+
+app.get('/api/v1/kit/manifest', () => manifestOf(kit));
+app.post('/api/v1/kit/:capability', async (request, reply) => {
+  const { capability } = request.params as { capability: string };
+  const r = await handle({ capability, args: request.body, auth: request.authInfo, wrap: wantsWrap(request.headers) });
+  reply.code(r.status).send(r.body);
+});
+```
+
+A remote kit sends `x-kit-wrap: 1`, so its success bodies come back as `{ envelope, text }` and `describe()` returns the API's own text; any other client (the fragment runtime's `httpTransport`, a PWA) sends no header and keeps getting the bare envelope. A host that ignores the header still works — the remote kit falls back to `describeEnvelope`.
+
+The edge side has no zod schemas and no domain types — it fetches the manifest once and rebuilds a `Kit` that forwards every call:
+
+```ts
+// edge MCP
+import { createRemoteKit, httpKitCall, type KitManifest } from '@de_canter/apogee-chat-kit/remote';
+import { registerKit } from '@de_canter/apogee-chat-kit/mcp';
+
+const res = await fetch(`${baseUrl}/api/v1/kit/manifest`, { headers: { 'x-edge-key': secret } });
+if (!res.ok) throw new Error(`kit manifest: ${res.status}`);
+const manifest = (await res.json()) as KitManifest;   // createRemoteKit validates it (KitManifestSchema) and throws on anything else
+const remote = createRemoteKit({
+  manifest,
+  call: httpKitCall({ baseUrl: `${baseUrl}/api/v1/kit`, headers: { 'x-edge-key': secret }, timeoutMs: 30_000 }),
+});
+registerKit(server, remote, { fragments });
+```
+
+`toAgentTools` requires a local kit (it needs zod input schemas to build agent tool definitions); it throws if handed a remote kit's capabilities.
+
+The remote kit maps a non-envelope error body by status (400 `INVALID_INPUT`, 401 `UNAUTHENTICATED`, 402 `ENTITLEMENT`, 403 `FORBIDDEN`, 404 `NOT_FOUND`, else `INTERNAL`); a call past `timeoutMs` fails with `INTERNAL` `Remote kit call timed out after <n>ms`.
