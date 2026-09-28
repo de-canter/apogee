@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import type { App } from '@modelcontextprotocol/ext-apps';
-import { AnyEnvelopeSchema, describeEnvelope, type ActionDescriptor, type Envelope, type ListEnvelope } from '@de_canter/apogee-chat-kit';
+import type { App, AppEventMap } from '@modelcontextprotocol/ext-apps';
+import { AnyEnvelopeSchema, AnyListEnvelopeSchema, describeEnvelope, type ActionDescriptor, type Envelope, type ListEnvelope } from '@de_canter/apogee-chat-kit';
 import { parseToolResult, type FragmentError, type ToolResultLike } from './parse';
 
 export interface EnvelopeTransport {
@@ -45,12 +45,16 @@ export function mcpAppTransport(app: App): EnvelopeTransport {
       return parsed.envelope;
     },
     subscribe(onEnvelope, onError) {
-      app.ontoolresult = (params) => {
+      // Use the multi-listener API, not the `ontoolresult` setter: that setter is exclusive and
+      // would silently steal the "toolresult" slot from createFragment's own handler when both
+      // run against the same App (the SDK warns "ontoolresult handler replaced" when it happens).
+      const handler = (params: AppEventMap['toolresult']) => {
         const parsed = parseToolResult(params as ToolResultLike);
         if ('envelope' in parsed) onEnvelope(parsed.envelope);
         else onError(parsed.error);
       };
-      return () => { app.ontoolresult = undefined; };
+      app.addEventListener('toolresult', handler);
+      return () => { app.removeEventListener('toolresult', handler); };
     },
     async afterAct(e) {
       await app.updateModelContext({ content: [{ type: 'text', text: describeEnvelope(e) }], structuredContent: e as unknown as Record<string, unknown> }).catch(() => undefined);
@@ -77,8 +81,8 @@ export function httpTransport(call: (capability: string, args: Record<string, un
       if (asError) throw fragmentErrorFrom(toFragmentError(asError));
       const parsed = AnyEnvelopeSchema.safeParse(body);
       if (parsed.success) return parsed.data;
-      const list = (body as { items?: unknown } | null)?.items;
-      if (Array.isArray(list)) return body as ListEnvelope;
+      const parsedList = AnyListEnvelopeSchema.safeParse(body);
+      if (parsedList.success) return parsedList.data;
       throw fragmentError('INVALID_INPUT', 'Response is not an envelope');
     },
   };

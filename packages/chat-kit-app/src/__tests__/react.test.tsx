@@ -1,9 +1,18 @@
 import { act, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import type { Envelope } from '@de_canter/apogee-chat-kit';
+import { nowIso } from '@de_canter/apogee-kernel';
+import type { Envelope, ListEnvelope } from '@de_canter/apogee-chat-kit';
 import { EnvelopeProvider, httpTransport, mcpAppTransport, useAction, useEnvelope, type EnvelopeTransport } from '../react';
 import { createFragment } from '../fragment';
 import { makeHost, ticketEnvelope } from './harness';
+
+const ticketListEnvelope = (): ListEnvelope<{ title: string }> => ({
+  resource: 'ticket',
+  items: [ticketEnvelope()],
+  next_cursor: null,
+  allowed_next_actions: [],
+  at: nowIso(),
+});
 
 function TicketCard() {
   const { envelope, status, error } = useEnvelope<{ title: string }>();
@@ -47,6 +56,20 @@ describe('EnvelopeProvider', () => {
     await expect(bad.call('ticket_get', { id: 'x' })).rejects.toMatchObject({ code: 'NOT_FOUND', message: 'gone' });
     const thrown = httpTransport(() => { throw new Error('offline'); });
     await expect(thrown.call('ticket_get', { id: 'x' })).rejects.toMatchObject({ code: 'INTERNAL', message: 'offline' });
+  });
+
+  it('httpTransport resolves a valid list envelope', async () => {
+    const list = httpTransport(() => Promise.resolve(ticketListEnvelope()));
+    const result = await list.call('ticket_list', {});
+    expect('items' in result).toBe(true);
+  });
+
+  it('act rejects a list response as INVALID_INPUT, leaving the envelope unchanged', async () => {
+    const transport: EnvelopeTransport = { call: () => Promise.resolve(ticketListEnvelope()) };
+    render(<EnvelopeProvider transport={transport} initial={ticketEnvelope()}><TicketCard /></EnvelopeProvider>);
+    await act(async () => { screen.getByRole('button', { name: 'Triage' }).click(); await Promise.resolve(); });
+    expect(screen.getByText('error:INVALID_INPUT')).toBeInTheDocument();
+    expect(screen.getByRole('article')).toHaveAttribute('data-state', 'open');
   });
 
   it('the same card renders identically under the MCP transport and the HTTP transport', async () => {
