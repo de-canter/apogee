@@ -50,7 +50,9 @@ describe('createKit', () => {
   it('maps errors: NOT_FOUND, INVALID_INPUT, UNAUTHENTICATED, unknown capability', async () => {
     const { kit } = kitFor();
     await expect(kit.call('ticket_get', { id: 't3' }, auth)).rejects.toMatchObject({ code: 'NOT_FOUND' });
-    await expect(kit.call('ticket_get', { id: 7 }, auth)).rejects.toMatchObject({ code: 'INVALID_INPUT' });
+    const invalidInput = await kit.call('ticket_get', { id: 7 }, auth).catch((e: unknown) => e);
+    expect(ChatKitError.is(invalidInput) && invalidInput.code).toBe('INVALID_INPUT');
+    expect((invalidInput as ChatKitError).details).toEqual(expect.arrayContaining([expect.objectContaining({ path: ['id'] })]));
     await expect(kit.call('ticket_get', { id: 't1' }, undefined)).rejects.toMatchObject({ code: 'UNAUTHENTICATED' });
     await expect(kit.call('nope', {}, auth)).rejects.toMatchObject({ code: 'NOT_FOUND' });
   });
@@ -109,14 +111,66 @@ describe('createKit', () => {
     expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: 'ledger down' }), 'ticket_note:settle');
   });
 
-  it('an undeclared return state or an invalid view is INTERNAL', async () => {
-    const bad = { ...ticket, capabilities: () => ticket.capabilities().map((c) => c.name === 'ticket_triage' ? { ...c, run: () => { throw new ChatKitError('INTERNAL', 'ticket_triage returned undeclared state closed'); } } : c) };
-    const kit = createKit<ReturnType<typeof makeCtx>, Principal>({ resources: [bad], ctx: makeCtx(structuredClone(seed)), principal });
-    await expect(kit.call('ticket_triage', { id: 't1', assignee: 'x' }, auth)).rejects.toMatchObject({ code: 'INTERNAL', message: /undeclared state/ });
+  it('a corrupted store row fails the load-time view check', async () => {
     const rows = makeCtx(structuredClone(seed));
-    const kit2 = createKit<ReturnType<typeof makeCtx>, Principal>({ resources: [ticket], ctx: rows, principal });
+    const kit = createKit<ReturnType<typeof makeCtx>, Principal>({ resources: [ticket], ctx: rows, principal });
     rows.rows.get('t1')!.view = { title: 'Leak', assignee: null, notes: 'not-an-array' as unknown as string[] };
-    await expect(kit2.call('ticket_note', { id: 't1', text: 'x' }, auth)).rejects.toMatchObject({ code: 'INTERNAL', message: /invalid view/ });
+    await expect(kit.call('ticket_note', { id: 't1', text: 'x' }, auth)).rejects.toMatchObject({ code: 'INTERNAL', message: /invalid view/ });
+  });
+
+  it('a transition whose execute returns an undeclared state is INTERNAL', async () => {
+    const wobble = defineResource<ReturnType<typeof makeCtx>, Principal, TicketView, TicketState>({
+      name: 'wobble', lifecycle: ticketLifecycle, view: TicketView,
+      load: () => Promise.resolve({ state: 'open', view: { title: 'x', assignee: null, notes: [] } }),
+      transitions: {
+        triage: {
+          from: 'open', to: 'triaged', input: z.object({}), title: 'Triage',
+          // Declared legal (open -> triaged) but execute actually returns 'closed'.
+          execute: () => Promise.resolve({ state: 'closed', view: { title: 'x', assignee: null, notes: [] } }),
+        },
+      },
+    });
+    const kit = createKit<ReturnType<typeof makeCtx>, Principal>({ resources: [wobble], ctx: makeCtx(), principal });
+    await expect(kit.call('wobble_triage', { id: 'w1' }, auth)).rejects.toMatchObject({ code: 'INTERNAL', message: /undeclared state/ });
+  });
+
+  it('a transition whose execute returns an invalid view is INTERNAL', async () => {
+    const wobble = defineResource<ReturnType<typeof makeCtx>, Principal, TicketView, TicketState>({
+      name: 'wobble2', lifecycle: ticketLifecycle, view: TicketView,
+      load: () => Promise.resolve({ state: 'open', view: { title: 'x', assignee: null, notes: [] } }),
+      transitions: {
+        triage: {
+          from: 'open', to: 'triaged', input: z.object({}), title: 'Triage',
+          execute: () => Promise.resolve({ state: 'triaged', view: { title: 'x', assignee: null, notes: 'bad' as unknown as string[] } }),
+        },
+      },
+    });
+    const kit = createKit<ReturnType<typeof makeCtx>, Principal>({ resources: [wobble], ctx: makeCtx(), principal });
+    await expect(kit.call('wobble2_triage', { id: 'w1' }, auth)).rejects.toMatchObject({ code: 'INTERNAL', message: /invalid view/ });
+  });
+
+  it('a query whose execute returns an invalid view is INTERNAL', async () => {
+    const wobble = defineResource<ReturnType<typeof makeCtx>, Principal, TicketView, TicketState>({
+      name: 'wobble3', lifecycle: ticketLifecycle, view: TicketView,
+      load: () => Promise.resolve({ state: 'open', view: { title: 'x', assignee: null, notes: [] } }),
+      transitions: {},
+      queries: {
+        peek: {
+          input: z.object({}), title: 'Peek',
+          execute: () => Promise.resolve({ view: { title: 'x', assignee: null, notes: 'bad' as unknown as string[] } }),
+        },
+      },
+    });
+    const kit = createKit<ReturnType<typeof makeCtx>, Principal>({ resources: [wobble], ctx: makeCtx(), principal });
+    await expect(kit.call('wobble3_peek', { id: 'w1' }, auth)).rejects.toMatchObject({ code: 'INTERNAL', message: /invalid view/ });
+  });
+
+  it('a thrown ChatKitError from the principal resolver passes through unchanged', async () => {
+    const forbidden = (_auth: { token?: string | undefined } | undefined): Promise<Principal> => {
+      throw new ChatKitError('FORBIDDEN', 'Region blocked');
+    };
+    const kit = createKit<ReturnType<typeof makeCtx>, Principal>({ resources: [ticket], ctx: makeCtx(structuredClone(seed)), principal: forbidden });
+    await expect(kit.call('ticket_get', { id: 't1' }, auth)).rejects.toMatchObject({ code: 'FORBIDDEN', message: 'Region blocked' });
   });
 
   it('create and list produce envelopes; list carries the create action and a cursor', async () => {
