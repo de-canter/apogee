@@ -182,6 +182,14 @@ Lift of E21 to E25 with minimal change.
 - `VaultPort` for credentials; five auth methods.
 - Admin tools (`create`, `test`, `approve`, `pause`, `trace`, `health`) exported as a `Tool<TContext>[]` for `@de_canter/apogee-agent`.
 
+### 3.10 `@de_canter/apogee-chat-kit` — chat-native capabilities
+
+One declaration of a domain object (schema, kernel lifecycle, transitions, queries) becomes MCP tools with structured output and linked MCP Apps fragments, `apogee-agent` tools, and an HTTP handler, all returning one envelope `{ state, allowed_next_actions, ui? }` and all enforcing the same lifecycle and entitlement checks. Spec: `chat-kit.md`.
+
+### 3.11 `@de_canter/apogee-chat-kit-app` — fragment runtime
+
+The client half: a fragment runtime over the MCP Apps `App` class and a React provider/hook pair with two transports (MCP host, HTTP), so one card component renders the same envelope inside a chat host and inside a product's own app. Spec: `chat-kit.md`.
+
 ## 4. What stays behind, and why
 
 | Left in the reference product | Reason |

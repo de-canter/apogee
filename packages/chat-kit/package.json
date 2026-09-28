@@ -1,0 +1,50 @@
+{
+  "name": "@de_canter/apogee-chat-kit",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "homepage": "https://apogee.build",
+  "repository": { "type": "git", "url": "https://github.com/de-canter/apogee.git", "directory": "packages/chat-kit" },
+  "publishConfig": { "access": "public" },
+  "description": "Apogee chat kit: one resource declaration becomes MCP tools with structured output and linked fragments, agent tools, and an HTTP handler, all returning { state, allowed_next_actions, ui? }",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".":       { "types": "./dist/index.d.ts", "import": "./dist/index.js", "require": "./dist/index.cjs" },
+    "./mcp":   { "types": "./dist/mcp.d.ts",   "import": "./dist/mcp.js",   "require": "./dist/mcp.cjs" },
+    "./agent": { "types": "./dist/agent.d.ts", "import": "./dist/agent.js", "require": "./dist/agent.cjs" },
+    "./http":  { "types": "./dist/http.d.ts",  "import": "./dist/http.js",  "require": "./dist/http.cjs" }
+  },
+  "files": ["dist", "README.md"],
+  "sideEffects": false,
+  "scripts": {
+    "prepare": "tsup", "build": "tsup", "dev": "tsup --watch", "clean": "rm -rf dist",
+    "test": "vitest run", "test:watch": "vitest", "typecheck": "tsc --noEmit", "lint": "eslint src"
+  },
+  "dependencies": {
+    "@de_canter/apogee-kernel": "workspace:*",
+    "zod": "^4.0.0"
+  },
+  "peerDependencies": {
+    "@de_canter/apogee-agent": ">=0.1.0",
+    "@modelcontextprotocol/ext-apps": "^2.0.0",
+    "@modelcontextprotocol/server": "^2.1.0"
+  },
+  "peerDependenciesMeta": {
+    "@de_canter/apogee-agent": { "optional": true },
+    "@modelcontextprotocol/ext-apps": { "optional": true },
+    "@modelcontextprotocol/server": { "optional": true }
+  },
+  "devDependencies": {
+    "@de_canter/apogee-agent": "workspace:*",
+    "@modelcontextprotocol/client": "^2.1.0",
+    "@modelcontextprotocol/ext-apps": "^2.0.0",
+    "@modelcontextprotocol/server": "^2.1.0",
+    "@types/node": "^22",
+    "@vitest/coverage-v8": "^4.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.6.0",
+    "vitest": "^4.0.0"
+  }
+}
