@@ -110,7 +110,7 @@ export class ChatKitError extends Error {
 { resource: string; id: string; from: string; attempted: string; allowed: string[] }
 ```
 
-`ChatKitError.toJSON()` yields `{ error: { code, message, details?, allowed_next_actions? } }`. Every projection serializes errors through it. Unknown throws from `execute` become `INTERNAL` with the original message logged, never surfaced.
+`ChatKitError.toJSON()` yields `{ error: { code, message, details?, allowed_next_actions? } }`. Every projection serializes errors through it. `ChatKitError.is(e)` is a brand check on `Symbol.for('apogee.chat-kit.error')`, not `instanceof`, so errors are recognized across separately bundled entry points and ESM/CJS copies. Unknown throws from `execute` become `INTERNAL` with the original message logged, never surfaced.
 
 ### 4.3 Ports
 
@@ -190,7 +190,9 @@ Derivation of `allowed_next_actions` for a resource at `{ state, view }` and pri
 2. For each query `q` with `q.when?.(current) !== false`: same shape.
 3. `get` is never listed (it is implied); `create` appears only on list envelopes.
 
-Kernel consistency: `defineResource` validates at definition time that every transition's `from` and `to` are states of the lifecycle and that each `(from, to)` pair is a legal kernel transition (`lifecycle.can`). A mismatch throws `InvalidLifecycleError` at startup, not at call time.
+The same `when` and `policy` are enforced when the capability is called, not only when actions are derived (see §4.7 step 4).
+
+Kernel consistency: `defineResource` validates at definition time that every transition's `from` and `to` are states of the lifecycle and that each `(from, to)` pair is a legal kernel transition (`lifecycle.can`). An array `to` therefore requires a kernel transition for every `(from, to)` pair, not just one. A mismatch throws `InvalidLifecycleError` at startup, not at call time.
 
 ### 4.5 Standalone capabilities
 
@@ -214,7 +216,7 @@ export function createKit<TCtx, TPrincipal>(opts: {
   ctx: TCtx;
   principal: PrincipalResolver<TPrincipal>;
   entitlement?: EntitlementPort<TPrincipal>;      // default allowAll
-  onError?: (err: unknown, call: { capability: string }) => void;   // logging hook for INTERNAL
+  onError?: (err: unknown, where: string) => void;   // logging hook: every INTERNAL (thrown or kit-generated), and settle failures as '<capability>:settle'
 }): Kit;
 
 export interface Kit {
@@ -234,13 +236,18 @@ call(name, args, auth)
   3. input      = capability.input.parse(args)       → INVALID_INPUT with zod issues
   4. if resource-bound and not create/list:
        current = await load(id)                      → NOT_FOUND if null
-       if transition and current.state ∉ from        → ILLEGAL_TRANSITION { from: current.state, attempted, allowed: derive(current) }
+       if transition and (current.state ∉ from or when false)
+                                                     → ILLEGAL_TRANSITION { from: current.state, attempted, allowed: derive(current) }
+       if transition and policy false                → FORBIDDEN (allowed_next_actions: derive(current))
+       queries: when false                           → ILLEGAL_TRANSITION (same details)
   5. decision = await entitlement.assert(...)        → ENTITLEMENT on { ok: false }
   6. try result = await execute(...)                 → INTERNAL on throw (after step 7)
   7. await entitlement.settle(..., { success })      (always; failures logged)
   8. if transition and result.state ∉ to             → INTERNAL ("execute returned undeclared state")
   9. return envelope(result, derive(result), decision.view, ui)
 ```
+
+`get` runs steps 5 and 7 too: its load is guarded by `entitlement.assert` / `settle`, and `decision.view` is copied onto its envelope. `create` and `list` results must name lifecycle states (`INTERNAL` otherwise).
 
 ## 5. Projections
 
@@ -259,11 +266,11 @@ export interface FragmentDef {
 
 export function registerKit(server: McpServer, kit: Kit, opts?: {
   fragments?: FragmentDef[];
-  toolPrefix?: string;
+  auth?: (ctx: ServerContext) => AuthInfo | undefined;   // default: ctx.http?.authInfo
 }): void;
 ```
 
-Per capability: `registerAppTool(server, name, { title, description, inputSchema, outputSchema: envelopeSchema(view), _meta: ui ? { ui: { resourceUri } } : undefined }, handler)`. The handler passes `ctx.http?.authInfo` to `kit.call`. Success → `{ content: [{ type: 'text', text: describe(...) }], structuredContent: envelope }`. `ChatKitError` → `{ isError: true, content: [{ type: 'text', text: message }], structuredContent: err.toJSON() }`. Per fragment: `registerAppResource(server, name, uri, { mimeType: RESOURCE_MIME_TYPE }, cb)` where `cb` returns `contents[0]._meta.ui = { csp, permissions, domain, prefersBorder }`.
+Per capability: `registerAppTool(server, name, { title, description, inputSchema, outputSchema: envelopeSchema(view), _meta: ui ? { ui: { resourceUri } } : undefined }, handler)`. The handler passes `ctx.http?.authInfo` to `kit.call`. Success → `{ content: [{ type: 'text', text: describe(...) }], structuredContent: envelope }`. `ChatKitError` → `{ isError: true, content: [{ type: 'text', text: '<code>: <message>' }], structuredContent: err.toJSON() }`; when `allowed_next_actions` is non-empty the text ends with ` Allowed next: <capability>, <capability>` so the model sees what it may do. A host `describe` that throws after the call succeeded falls back to the default describe. Per fragment: `registerAppResource(server, name, uri, { mimeType: RESOURCE_MIME_TYPE }, cb)` where `cb` returns `contents[0]._meta.ui = { csp, permissions, domain, prefersBorder }`.
 
 The text `content` is what the model sees; `structuredContent` is UI-only under the MCP Apps spec. `describe` therefore must be sufficient for the model to continue the conversation without the fragment.
 
@@ -295,7 +302,7 @@ Framework glue is the host's: one Fastify route `POST /api/v1/kit/:capability` t
 
 ```ts
 export interface FragmentContext<TView> {
-  envelope: Envelope<TView> | null;    // null until the first tool result
+  envelope: Envelope<TView> | ListEnvelope<TView> | null;    // null until the first tool result; isListEnvelope discriminates
   host: { theme: 'light' | 'dark'; displayMode: string; platform?: string; locale?: string } | null;
   status: 'idle' | 'acting' | 'error';
   error: { code: string; message: string; allowed_next_actions?: ActionDescriptor[] } | null;
@@ -312,7 +319,7 @@ export function createFragment<TView>(opts: {
 }): { connect(): Promise<void>; destroy(): void };
 ```
 
-Behavior: constructs `new App({ name, version })`; registers `ontoolresult` (parses `structuredContent` with `envelopeSchema(unknown)`; an `isError` result sets `error`), `ontoolinput` (ignored beyond marking `status`), `onhostcontextchanged` (updates `host`, applies theme), `onteardown`; then `connect(new PostMessageTransport())`. `act` sets `status: 'acting'`, calls `app.callServerTool({ name: action.capability, arguments: { ...action.args, ...extraArgs } })`, replaces `envelope` from `structuredContent`, then `app.updateModelContext({ content: [{ type: 'text', text: <describe-equivalent from envelope> }], structuredContent: envelope })` so the model knows what the user did inside the card. Every state change calls `render`. Handlers are registered before `connect`, as the ext-apps SDK requires.
+Behavior: constructs `new App({ name, version })`; registers `ontoolresult` (parses `structuredContent` with `envelopeSchema(unknown)`; an `isError` result sets `error`), `ontoolinput` (ignored beyond marking `status`), `onhostcontextchanged` (updates `host`, applies theme), `onteardown`; then `connect(new PostMessageTransport())`. `act` sets `status: 'acting'`, calls `app.callServerTool({ name: action.capability, arguments: { ...action.args, ...extraArgs } })`, replaces `envelope` from `structuredContent`, then `app.updateModelContext({ content: [{ type: 'text', text: <the tool result's first text block, else describeEnvelope(envelope)> }], structuredContent: envelope })` so the model knows what the user did inside the card. Every state change calls `render`; a throwing `render` becomes `status: 'error'` (`INTERNAL`). Handlers are registered with `addEventListener` before `connect`, as the ext-apps SDK requires, and removed by `destroy()`; `onteardown` destroys the fragment.
 
 `applyTheme(host, map)`: `map` is `{ [productVar: string]: (host: HostStyle) => string }`; default map writes `--ck-surface`, `--ck-text`, `--ck-accent` from the host's variables and theme. Products supply their own map.
 
@@ -321,18 +328,18 @@ Behavior: constructs `new App({ name, version })`; registers `ontoolresult` (par
 ```ts
 export interface EnvelopeTransport {
   call(capability: string, args: Record<string, unknown>): Promise<Envelope | ListEnvelope>;   // rejects with { code, message, allowed_next_actions? }
-  subscribe?(onEnvelope: (e: Envelope) => void): () => void;   // pushes from the host (tool results)
-  afterAct?(e: Envelope): Promise<void>;                        // e.g. updateModelContext
+  subscribe?(onEnvelope: (e: Envelope | ListEnvelope) => void, onError: (e: FragmentError) => void): () => void;   // pushes from the host (tool results)
+  afterAct?(e: Envelope | ListEnvelope): Promise<void>;         // e.g. updateModelContext
 }
-export function mcpAppTransport(app?: App): EnvelopeTransport;   // fragments
-export function httpTransport(call: (capability: string, args: Record<string, unknown>) => Promise<Response | unknown>): EnvelopeTransport;   // PWA
+export function mcpAppTransport(app: App): EnvelopeTransport;   // fragments; build before connect(): it replays the latest tool result to each subscribe
+export function httpTransport(call: (capability: string, args: Record<string, unknown>) => Promise<unknown>): EnvelopeTransport;   // PWA; call returns the parsed body or throws
 
-export function EnvelopeProvider<TView>(props: { transport: EnvelopeTransport; initial?: Envelope<TView>; children }): JSX.Element;
-export function useEnvelope<TView>(): { envelope: Envelope<TView> | null; act; status; error };
+export function EnvelopeProvider<TView>(props: { transport: EnvelopeTransport; initial?: Envelope<TView> | ListEnvelope<TView>; children }): JSX.Element;
+export function useEnvelope<TView>(): { envelope: Envelope<TView> | ListEnvelope<TView> | null; act; status; error };
 export function useAction(action: ActionDescriptor): { run(extra?): Promise<void>; pending: boolean };
 ```
 
-A card component uses `useEnvelope` and `useAction` only. In a fragment it sits under `EnvelopeProvider` with `mcpAppTransport()`; in the PWA under `EnvelopeProvider` with `httpTransport(apiClient.callKit)`. The component is identical.
+A card component uses `useEnvelope` and `useAction` only. In a fragment it sits under `EnvelopeProvider` with `mcpAppTransport(fragment.app)`; in the PWA under `EnvelopeProvider` with `httpTransport(apiClient.callKit)`. The component is identical.
 
 ## 7. Testing
 

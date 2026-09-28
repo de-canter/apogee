@@ -18,8 +18,10 @@ One resource declaration becomes MCP tools with structured output and linked MCP
 
 ## Guarantees
 
-- A transition whose `from` does not include the current state fails before `execute` with `ILLEGAL_TRANSITION` and the actions that are allowed.
-- `entitlement.assert` runs after the lifecycle check and before `execute`; `settle` runs after, with `success`, even when `execute` throws; a throwing `settle` never fails the call.
+- A transition whose `from` does not include the current state, or whose `when` is false, fails before `execute` with `ILLEGAL_TRANSITION` and the actions that are allowed; a query whose `when` is false fails the same way. A transition the resource `policy` refuses fails with `FORBIDDEN` and the allowed actions.
+- `entitlement.assert` runs after the lifecycle check and before `execute` (for `get`, before the load); `settle` runs after, with `success`, even when `execute` throws; a throwing `settle` never fails the call.
+- `ChatKitError.is()` is a brand check, so errors are recognized across the separately bundled entry points and across ESM/CJS copies.
+- MCP error text names the allowed next capabilities (`Allowed next: …`), since `structuredContent` is UI-only for the model.
 - `execute` results are checked against the declared target states and the view schema; a mismatch is `INTERNAL`, never a protocol error.
 - Definition-time validation against the kernel lifecycle: unknown states, illegal pairs, reserved or colliding names, and inputs that declare `id` all throw at startup.
 - The kit carries no model identifiers and never imports a model client.
@@ -27,6 +29,7 @@ One resource declaration becomes MCP tools with structured output and linked MCP
 ## Example
 
 ```ts
+import { z } from 'zod';
 import { defineLifecycle } from '@de_canter/apogee-kernel';
 import { createKit, defineResource } from '@de_canter/apogee-chat-kit';
 import { registerKit } from '@de_canter/apogee-chat-kit/mcp';
