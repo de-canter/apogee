@@ -9,6 +9,7 @@ import {
   type ColumnSizingState,
 } from '@tanstack/react-table';
 import { ThemeProvider } from '../themes/ThemeProvider';
+import { CockpitEnvironmentProvider } from '../environment';
 import { CommandGrid } from './CommandGrid';
 import { CommandToolbar } from './CommandToolbar';
 import { CommandStatusBar } from './CommandStatusBar';
@@ -62,6 +63,10 @@ export interface CommandCockpitProps<T> {
   // Theme
   theme?: ThemeConfig | undefined;
   themeOverrides?: ThemeOverrides | undefined;
+  /** The cockpit's "now" (a host's business day), locale and currency; defaults: wall clock, en-US, USD. */
+  now?: Date | (() => Date) | undefined;
+  locale?: string | undefined;
+  currency?: string | undefined;
 
   // Sprint 2: Context menu
   contextMenuActions?: CommandActionItem<T>[] | undefined;
@@ -145,6 +150,9 @@ function CommandCockpitInner<T>(
     initialPersistedState,
     theme = 'light',
     themeOverrides,
+    now,
+    locale,
+    currency,
     // Sprint 2 props
     contextMenuActions,
     title,
@@ -551,6 +559,7 @@ function CommandCockpitInner<T>(
 
   return (
     <ThemeProvider theme={theme} themeOverrides={themeOverrides}>
+    <CockpitEnvironmentProvider now={now} locale={locale} currency={currency}>
       <div className="gc-cockpit" ref={cockpitContainerRef} tabIndex={0} style={{ outline: 'none' }}>
         {showToolbar && (
           <CommandToolbar
@@ -676,6 +685,7 @@ function CommandCockpitInner<T>(
           />
         )}
       </div>
+    </CockpitEnvironmentProvider>
     </ThemeProvider>
   );
 }

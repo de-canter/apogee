@@ -113,3 +113,11 @@ export { useStickyColumns } from './hooks/useStickyColumns';
 export { formatCurrency } from './utils/formatting';
 export { validateColumnDefs } from './utils/validation';
 export { formatCsv, formatJson, downloadFile } from './utils/export';
+
+export {
+  useCockpitEnvironment,
+  CockpitEnvironmentProvider,
+  type CockpitEnvironment,
+  type CockpitEnvironmentProviderProps,
+} from './environment';
+export { CountdownCell } from './components/renderers/CountdownCell';

@@ -333,7 +333,8 @@ describe('BooleanCheckCell', () => {
 describe('Registry', () => {
   it('creates registry with all built-in renderers', () => {
     const registry = createRendererRegistry();
-    expect(Object.keys(registry)).toHaveLength(13);
+    expect(Object.keys(registry)).toHaveLength(14);
+    expect(registry.countdown).toBeDefined();
     expect(registry.date).toBeDefined();
     expect(registry.text).toBeDefined();
     expect(registry.link).toBeDefined();

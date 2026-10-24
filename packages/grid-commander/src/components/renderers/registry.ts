@@ -14,6 +14,7 @@ import { StalenessCell } from './StalenessCell';
 import { BooleanCheckCell } from './BooleanCheckCell';
 import { InlineActionsCell } from './InlineActionsCell';
 import { CheckboxCell } from './CheckboxCell';
+import { CountdownCell } from './CountdownCell';
 
 export const builtInRenderers: CellRendererRegistry = {
   text: TextCell,
@@ -29,6 +30,7 @@ export const builtInRenderers: CellRendererRegistry = {
   'boolean-check': BooleanCheckCell,
   'inline-actions': InlineActionsCell,
   checkbox: CheckboxCell,
+  countdown: CountdownCell,
 };
 
 export function createRendererRegistry(

@@ -2,9 +2,11 @@ import type { CellRendererProps } from '../../types/column';
 import { daysUntil, formatDate } from '../../utils/dates';
 import { bool, num, str } from '../../utils/config';
 import { asDateInput, asRecord } from './text';
+import { useCockpitEnvironment } from '../../environment';
 
 /** A date that is a deadline: coloured by distance, with an optional countdown. Dates only; see `countdown` for published numbers. */
 export function DeadlineCell({ value, row, config }: CellRendererProps) {
+  const env = useCockpitEnvironment();
   const date = asDateInput(value);
   if (!date) return <span className="gc-cell-text">{'—'}</span>;
 
@@ -14,7 +16,7 @@ export function DeadlineCell({ value, row, config }: CellRendererProps) {
   if (doneField && asRecord(row)[doneField]) {
     return (
       <span className="gc-cell-deadline">
-        <span style={{ color: 'var(--gc-text-muted)', fontWeight: 600 }}>{formatDate(date)}</span>
+        <span style={{ color: 'var(--gc-text-muted)', fontWeight: 600 }}>{formatDate(date, { locale: env.locale })}</span>
         {showCountdown && (
           <span className="gc-cell-countdown" style={{ color: 'var(--gc-text-dim)', marginLeft: 4 }}>
             {str(config, 'doneLabel', 'done')}
@@ -24,7 +26,7 @@ export function DeadlineCell({ value, row, config }: CellRendererProps) {
     );
   }
 
-  const days = daysUntil(date, new Date());
+  const days = daysUntil(date, env.now());
   const criticalDays = num(config, 'criticalDays', 3);
   const warningDays = num(config, 'warningDays', 7);
   const color =
@@ -33,7 +35,7 @@ export function DeadlineCell({ value, row, config }: CellRendererProps) {
 
   return (
     <span className="gc-cell-deadline">
-      <span style={{ color, fontWeight: 700 }}>{formatDate(date)}</span>
+      <span style={{ color, fontWeight: 700 }}>{formatDate(date, { locale: env.locale })}</span>
       {showCountdown && (
         <span className="gc-cell-countdown" style={{ color: 'var(--gc-text-dim)', marginLeft: 4 }}>
           {label}

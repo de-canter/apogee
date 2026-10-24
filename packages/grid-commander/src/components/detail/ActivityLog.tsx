@@ -1,3 +1,4 @@
+import { useCockpitEnvironment } from '../../environment';
 import { useState, useCallback } from 'react';
 
 export type ActivityType = 'note' | 'system' | 'communication';
@@ -119,7 +120,8 @@ export function ActivityLog({
   now,
   labels: labelsProp,
 }: ActivityLogProps) {
-  const labels: ActivityLabels = { ...DEFAULT_LABELS, ...labelsProp };
+  const env = useCockpitEnvironment();
+  const labels: ActivityLabels = { ...DEFAULT_LABELS, locale: env.locale, ...labelsProp };
   const tabDefs = tabs === 'notes-comms'
     ? notesCommsTabs(entries.filter((e) => e.type === 'system').length)
     : DEFAULT_TABS;
@@ -133,7 +135,7 @@ export function ActivityLog({
   // Reverse-chronological
   const sorted = entries.filter(activeDef.matches).sort(byNewest);
   const groups = groupByDay ? groupActivityByDay(sorted, now, labels) : null;
-  const clock = now ?? new Date();
+  const clock = now ?? env.now();
 
   const renderEntry = (entry: ActivityEntry) => (
     <div key={entry.id} className={`gc-activity-entry gc-activity-entry--${entry.type}`}>

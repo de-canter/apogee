@@ -1,13 +1,15 @@
 import type { CellRendererProps } from '../../types/column';
 import { daysSince } from '../../utils/dates';
 import { num, str } from '../../utils/config';
+import { useCockpitEnvironment } from '../../environment';
 
 /**
  * "today" / "Nd ago" with warning and critical colouring. A missing value, a non-number, or a negative
  * sentinel renders as an em dash, or as `config.emptyLabel` when the gap should read as a fact.
  */
 export function StalenessCell({ value, config }: CellRendererProps) {
-  const days = toDays(value);
+  const env = useCockpitEnvironment();
+  const days = toDays(value, env.now());
   if (days === null) {
     const emptyLabel = str(config, 'emptyLabel');
     return (
@@ -22,9 +24,9 @@ export function StalenessCell({ value, config }: CellRendererProps) {
   return <span style={{ color, fontSize: 10 }}>{days === 0 ? 'today' : `${days}d ago`}</span>;
 }
 
-function toDays(value: unknown): number | null {
+function toDays(value: unknown, now: Date): number | null {
   if (value === null || value === undefined || value === '') return null;
-  const days = typeof value === 'string' || value instanceof Date ? daysSince(value, new Date()) : Number(value);
+  const days = typeof value === 'string' || value instanceof Date ? daysSince(value, now) : Number(value);
   if (!Number.isFinite(days) || days < 0) return null;
   return days;
 }
