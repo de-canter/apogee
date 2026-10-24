@@ -15,12 +15,13 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
+      # Tags are <name>-v<version>; a prerelease such as grid-commander-v0.1.0-rc.1 is allowed.
       - name: Resolve tag
         id: tag
         run: |
           TAG="${{ github.event.inputs.tag || github.ref_name }}"
-          NAME=$(printf '%s' "$TAG" | sed -E 's/^(.+)-v([0-9.]+)$/\1/')
-          VERSION=$(printf '%s' "$TAG" | sed -E 's/^(.+)-v([0-9.]+)$/\2/')
+          NAME=$(printf '%s' "$TAG" | sed -E 's/^(.+)-v([0-9A-Za-z.-]+)$/\1/')
+          VERSION=$(printf '%s' "$TAG" | sed -E 's/^(.+)-v([0-9A-Za-z.-]+)$/\2/')
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "name=$NAME" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
