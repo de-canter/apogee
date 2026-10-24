@@ -2,20 +2,20 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import type { DetailPanelPosition, DetailPanelProps } from '../types/detail-panel';
 import type { CockpitRef } from '../types/cockpit-ref';
 
-export interface CommandDetailPanelProps<T = any> {
+export interface CommandDetailPanelProps<T = unknown> {
   open: boolean;
   row: T | null;
   rowId: string | null;
-  rowIdentifier?: (row: T) => string;
+  rowIdentifier?: ((row: T) => string) | undefined;
   cockpit: CockpitRef<T>;
-  position?: DetailPanelPosition;
+  position?: DetailPanelPosition | undefined;
   width: number;
   onWidthChange: (width: number) => void;
   onClose: () => void;
   onNavigate: (direction: 'prev' | 'next') => void;
-  renderContent?: React.ComponentType<DetailPanelProps<T>>;
-  pinned?: boolean;
-  onTogglePin?: () => void;
+  renderContent?: React.ComponentType<DetailPanelProps<T>> | undefined;
+  pinned?: boolean | undefined;
+  onTogglePin?: (() => void) | undefined;
 }
 
 const MIN_WIDTH = 280;

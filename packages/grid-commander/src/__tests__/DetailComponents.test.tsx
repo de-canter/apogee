@@ -19,7 +19,7 @@ describe('CollapsibleSection', () => {
 
   it('collapses on click', () => {
     const onToggle = vi.fn();
-    const { container } = render(
+    render(
       <CollapsibleSection title="Details" onToggle={onToggle}>
         <p>Content here</p>
       </CollapsibleSection>

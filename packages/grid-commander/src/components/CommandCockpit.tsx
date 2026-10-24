@@ -40,84 +40,84 @@ export interface CommandCockpitProps<T> {
   getRowId: (row: T) => string;
 
   // Behavior
-  defaultSort?: SortingState;
-  defaultFilters?: ColumnFiltersState;
-  enableGrouping?: boolean;
-  enableVirtualization?: boolean;
-  rowDensity?: 'compact' | 'comfortable' | 'expanded';
+  defaultSort?: SortingState | undefined;
+  defaultFilters?: ColumnFiltersState | undefined;
+  enableGrouping?: boolean | undefined;
+  enableVirtualization?: boolean | undefined;
+  rowDensity?: 'compact' | 'comfortable' | 'expanded' | undefined;
 
   // Events
-  onRowSelect?: (row: T) => void;
-  onRowDoubleClick?: (row: T) => void;
-  selectedRowId?: string | null;
+  onRowSelect?: ((row: T) => void) | undefined;
+  onRowDoubleClick?: ((row: T) => void) | undefined;
+  selectedRowId?: string | null | undefined;
 
   // Custom renderers
-  customRenderers?: CellRendererRegistry;
+  customRenderers?: CellRendererRegistry | undefined;
 
   // Persistence
-  persistenceKey?: string;
-  onPersistState?: (state: PersistedGridState) => void;
-  initialPersistedState?: Partial<PersistedGridState>;
+  persistenceKey?: string | undefined;
+  onPersistState?: ((state: PersistedGridState) => void) | undefined;
+  initialPersistedState?: Partial<PersistedGridState> | undefined;
 
   // Theme
-  theme?: ThemeConfig;
-  themeOverrides?: ThemeOverrides;
+  theme?: ThemeConfig | undefined;
+  themeOverrides?: ThemeOverrides | undefined;
 
   // Sprint 2: Context menu
-  contextMenuActions?: CommandActionItem<T>[];
+  contextMenuActions?: CommandActionItem<T>[] | undefined;
 
   // Sprint 2: Toolbar
-  title?: string;
-  presets?: FilterPreset[];
+  title?: string | undefined;
+  presets?: FilterPreset[] | undefined;
   /** Preset active on first render (its filters/sorting seed the grid; a persisted sort wins over its sort). */
-  initialPresetId?: string;
+  initialPresetId?: string | undefined;
   /**
    * Fires when the active preset changes — the id of the preset just applied,
    * or null when the active pill was toggled off. Lets a host keep sibling
    * render modes (a timeline, a kanban) on the same preset as the grid.
    */
-  onPresetChange?: (presetId: string | null) => void;
-  actionButtons?: ToolbarActionButton[];
-  primaryAction?: PrimaryAction;
-  enableGlobalFilter?: boolean;
+  onPresetChange?: ((presetId: string | null) => void) | undefined;
+  actionButtons?: ToolbarActionButton[] | undefined;
+  primaryAction?: PrimaryAction | undefined;
+  enableGlobalFilter?: boolean | undefined;
   /** Show the row count beside the title (default true). */
-  showRowCount?: boolean;
+  showRowCount?: boolean | undefined;
 
   // Sprint 2: Detail panel
-  detailPanel?: React.ComponentType<DetailPanelProps<T>>;
-  detailPanelPosition?: DetailPanelPosition;
-  rowIdentifier?: (row: T) => string;
+  detailPanel?: React.ComponentType<DetailPanelProps<T>> | undefined;
+  detailPanelPosition?: DetailPanelPosition | undefined;
+  rowIdentifier?: ((row: T) => string) | undefined;
 
   // Sprint 2: Status bar
-  statusItems?: CommandStatusItem<T>[];
+  statusItems?: CommandStatusItem<T>[] | undefined;
 
   // Sprint 2: Keyboard shortcuts
-  keyboardShortcuts?: CommandShortcut<T>[];
+  keyboardShortcuts?: CommandShortcut<T>[] | undefined;
 
   // Sprint 3: Row styling + loading
-  rowClassName?: string | ((row: T) => string);
-  rowColorRules?: RowColorRule<T>[];
-  loading?: boolean;
-  emptyState?: React.ReactNode;
+  rowClassName?: string | ((row: T) => string) | undefined;
+  rowColorRules?: RowColorRule<T>[] | undefined;
+  loading?: boolean | undefined;
+  emptyState?: React.ReactNode | undefined;
 
   // Sprint 3: Sticky columns
-  pinnedColumns?: StickyColumnConfig;
+  pinnedColumns?: StickyColumnConfig | undefined;
 
   // Sprint 3: Selection + batch actions
-  selectionMode?: SelectionMode;
-  batchActions?: BatchAction<T>[];
+  selectionMode?: SelectionMode | undefined;
+  batchActions?: BatchAction<T>[] | undefined;
 
   // Sprint 3: Export
-  enableExport?: boolean;
-  exportColumns?: ExportColumn[];
+  enableExport?: boolean | undefined;
+  exportColumns?: ExportColumn[] | undefined;
 
   // Sprint 4: Inline editing
-  onCellEdit?: OnCellEdit<T>;
-  customEditors?: CellEditorRegistry;
+  onCellEdit?: OnCellEdit<T> | undefined;
+  customEditors?: CellEditorRegistry | undefined;
 
   // Expandable sub-rows — render custom content below a row when expanded
-  renderSubComponent?: (row: T) => React.ReactNode | null;
-  getRowCanExpand?: (row: T) => boolean;
+  renderSubComponent?: ((row: T) => React.ReactNode | null) | undefined;
+  getRowCanExpand?: ((row: T) => boolean) | undefined;
 }
 
 const DENSITY_CYCLE: ('compact' | 'comfortable' | 'expanded')[] = [
@@ -343,7 +343,7 @@ function CommandCockpitInner<T>(
   const cycleDensity = useCallback(() => {
     setRowDensity((prev) => {
       const idx = DENSITY_CYCLE.indexOf(prev);
-      return DENSITY_CYCLE[(idx + 1) % DENSITY_CYCLE.length];
+      return DENSITY_CYCLE[(idx + 1) % DENSITY_CYCLE.length] ?? 'compact';
     });
   }, []);
 
@@ -501,7 +501,8 @@ function CommandCockpitInner<T>(
         // Prefer the previously selected row (survives workspace transition via parent state)
         const targetId = controlledSelectedRowId
           || internalSelectedRowId
-          || getRowId(data[0]);
+          || (data[0] !== undefined ? getRowId(data[0]) : null);
+        if (!targetId) return;
         setDetailPanelRowId(targetId);
         setDetailPanelOpen(true);
         setInternalSelectedRowId(targetId);

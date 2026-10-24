@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { CommandContextMenu } from '../components/CommandContextMenu';
 import type { CockpitRef } from '../types/cockpit-ref';
 
-const mockCockpit: CockpitRef = {
+const mockCockpit = {
   selectedRow: null,
   selectedRowId: null,
   selectRow: vi.fn(),
@@ -23,7 +23,7 @@ const mockCockpit: CockpitRef = {
   selectAll: vi.fn(),
   startEditing: vi.fn(),
   stopEditing: vi.fn(),
-};
+} as unknown as CockpitRef<unknown>;
 
 const testRow = { id: '1', name: 'Test Order' };
 const containerRef = { current: document.createElement('div') };

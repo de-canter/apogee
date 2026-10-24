@@ -1,27 +1,20 @@
 import { useRef, useEffect } from 'react';
 import type { CellRendererProps } from '../../types/column';
+import { bool, fn } from '../../utils/config';
 
 /**
- * CheckboxCell renderer for row selection.
- *
- * Config props:
- * - isSelected: boolean — whether this row is selected
- * - isAllSelected: boolean — header: all rows selected
- * - isPartiallySelected: boolean — header: some rows selected
- * - onToggle: () => void — toggle this row
- * - onToggleAll: () => void — toggle all rows (header only)
- * - isHeader: boolean — whether this is the header checkbox
+ * Row-selection checkbox. Config: isSelected, isAllSelected, isPartiallySelected, onToggle, onToggleAll, isHeader.
  */
 export function CheckboxCell({ config }: CellRendererProps) {
   const checkboxRef = useRef<HTMLInputElement>(null);
-  const isHeader = config.isHeader ?? false;
-  const checked = isHeader ? config.isAllSelected : config.isSelected;
-  const indeterminate = isHeader && config.isPartiallySelected;
+  const isHeader = bool(config, 'isHeader');
+  const checked = isHeader ? bool(config, 'isAllSelected') : bool(config, 'isSelected');
+  const indeterminate = isHeader && bool(config, 'isPartiallySelected');
+  const onToggle = fn<() => void>(config, 'onToggle');
+  const onToggleAll = fn<() => void>(config, 'onToggleAll');
 
   useEffect(() => {
-    if (checkboxRef.current) {
-      checkboxRef.current.indeterminate = !!indeterminate;
-    }
+    if (checkboxRef.current) checkboxRef.current.indeterminate = indeterminate;
   }, [indeterminate]);
 
   return (
@@ -29,14 +22,8 @@ export function CheckboxCell({ config }: CellRendererProps) {
       <input
         ref={checkboxRef}
         type="checkbox"
-        checked={!!checked}
-        onChange={() => {
-          if (isHeader) {
-            config.onToggleAll?.();
-          } else {
-            config.onToggle?.();
-          }
-        }}
+        checked={checked}
+        onChange={() => (isHeader ? onToggleAll?.() : onToggle?.())}
         className="gc-checkbox-input"
       />
     </span>

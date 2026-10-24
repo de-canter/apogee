@@ -14,6 +14,8 @@ import {
   type ColumnOrderState,
   type ColumnSizingState,
   type ColumnDef,
+  type OnChangeFn,
+  type Row,
 } from '@tanstack/react-table';
 import type { CommandColumnDef } from '../types/column';
 
@@ -44,9 +46,9 @@ export interface UseGridTableOptions<T> {
     updater: ColumnSizingState | ((prev: ColumnSizingState) => ColumnSizingState)
   ) => void;
   enableGrouping: boolean;
-  globalFilter?: string;
-  onGlobalFilterChange?: (value: string) => void;
-  getRowCanExpand?: (row: T) => boolean;
+  globalFilter?: string | undefined;
+  onGlobalFilterChange?: ((value: string) => void) | undefined;
+  getRowCanExpand?: ((row: T) => boolean) | undefined;
 }
 
 export function useGridTable<T>(options: UseGridTableOptions<T>) {
@@ -81,7 +83,7 @@ export function useGridTable<T>(options: UseGridTableOptions<T>) {
         enableColumnFilter: col.filterType != null,
         enableSorting: col.enableSorting ?? true,
         enableGrouping: enableGrouping,
-      })) as ColumnDef<T, any>[],
+      })) as ColumnDef<T, unknown>[],
     [columns, enableGrouping]
   );
 
@@ -99,20 +101,20 @@ export function useGridTable<T>(options: UseGridTableOptions<T>) {
       columnSizing,
       ...(globalFilter !== undefined ? { globalFilter } : {}),
     },
-    onSortingChange: onSortingChange as any,
-    onColumnFiltersChange: onColumnFiltersChange as any,
-    onGroupingChange: onGroupingChange as any,
-    onExpandedChange: onExpandedChange as any,
-    onColumnVisibilityChange: onColumnVisibilityChange as any,
-    onColumnOrderChange: onColumnOrderChange as any,
-    onColumnSizingChange: onColumnSizingChange as any,
-    onGlobalFilterChange: onGlobalFilterChange as any,
+    onSortingChange: onSortingChange,
+    onColumnFiltersChange: onColumnFiltersChange,
+    onGroupingChange: onGroupingChange,
+    onExpandedChange: onExpandedChange,
+    onColumnVisibilityChange: onColumnVisibilityChange,
+    onColumnOrderChange: onColumnOrderChange,
+    onColumnSizingChange: onColumnSizingChange,
+    onGlobalFilterChange: onGlobalFilterChange as OnChangeFn<string>,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getGroupedRowModel: enableGrouping ? getGroupedRowModel() : undefined,
-    getExpandedRowModel: (enableGrouping || getRowCanExpandProp) ? getExpandedRowModel() : undefined,
-    ...(getRowCanExpandProp ? { getRowCanExpand: (row: any) => getRowCanExpandProp(row.original) } : {}),
+    ...(enableGrouping ? { getGroupedRowModel: getGroupedRowModel() } : {}),
+    ...(enableGrouping || getRowCanExpandProp ? { getExpandedRowModel: getExpandedRowModel() } : {}),
+    ...(getRowCanExpandProp ? { getRowCanExpand: (row: Row<T>) => getRowCanExpandProp(row.original) } : {}),
     enableColumnResizing: true,
     columnResizeMode: 'onChange',
     enableGlobalFilter: globalFilter !== undefined,

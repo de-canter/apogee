@@ -4,7 +4,7 @@
 
 import type { CockpitRef } from './cockpit-ref';
 
-export interface CommandShortcut<T = any> {
+export interface CommandShortcut<T = unknown> {
   key: string;
   description: string;
   scope: 'grid' | 'global';

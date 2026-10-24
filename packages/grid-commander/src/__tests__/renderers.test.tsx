@@ -70,7 +70,7 @@ describe('TwoLineCell', () => {
         value="123 Main St"
         row={{ city: 'Dallas', county: 'Collin' }}
         config={{
-          secondaryField: (row: any) => `${row.city}, ${row.county}`,
+          secondaryField: (row: unknown) => { const r = row as { city: string; county: string }; return `${r.city}, ${r.county}`; },
         }}
         columnId="test"
       />
@@ -83,7 +83,7 @@ describe('TwoLineCell', () => {
       <TwoLineCell
         value="John Smith"
         row={{ buyerName: 'John Smith', sellerName: 'Jane Doe' }}
-        config={{ secondaryAccessor: (row: any) => row.sellerName }}
+        config={{ secondaryAccessor: (row: unknown) => (row as { sellerName: string }).sellerName }}
         columnId="buyerName"
       />
     );
@@ -237,7 +237,8 @@ describe('PriorityIconCell', () => {
     const { container } = render(
       <PriorityIconCell value="urgent" config={{}} row={{}} columnId="test" />
     );
-    expect(container.textContent).toBe('\uD83D\uDD34');
+    expect(container.textContent).toBe('\u25CF');
+    expect((container.firstChild as HTMLElement).style.color).toBe('var(--gc-red)');
   });
 });
 

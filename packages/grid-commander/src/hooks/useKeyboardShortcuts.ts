@@ -44,19 +44,19 @@ export interface ShortcutEntry {
   description: string;
 }
 
-export interface UseKeyboardShortcutsOptions<T = any> {
+export interface UseKeyboardShortcutsOptions<T = unknown> {
   containerRef: React.RefObject<HTMLElement | null>;
   gridRef: React.RefObject<HTMLElement | null>;
   cockpitRef: React.RefObject<CockpitRef<T>>;
-  shortcuts?: CommandShortcut<T>[];
-  enabled?: boolean;
+  shortcuts?: CommandShortcut<T>[] | undefined;
+  enabled?: boolean | undefined;
 }
 
 export interface UseKeyboardShortcutsReturn {
   shortcutList: ShortcutEntry[];
 }
 
-export function useKeyboardShortcuts<T = any>({
+export function useKeyboardShortcuts<T = unknown>({
   containerRef,
   gridRef,
   cockpitRef,

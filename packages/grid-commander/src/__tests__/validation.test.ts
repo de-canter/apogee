@@ -10,7 +10,7 @@ describe('validateColumnDefs', () => {
   });
 
   it('warns when column has no id', () => {
-    validateColumnDefs([{ id: '', header: 'Test' } as CommandColumnDef<any>]);
+    validateColumnDefs([{ id: '', header: 'Test' }]);
     expect(warnSpy).toHaveBeenCalledWith(
       expect.stringContaining('missing required "id"'),
       expect.anything()
@@ -18,7 +18,7 @@ describe('validateColumnDefs', () => {
   });
 
   it('warns when column has no accessorKey or accessorFn', () => {
-    validateColumnDefs([{ id: 'test', header: 'Test' } as CommandColumnDef<any>]);
+    validateColumnDefs([{ id: 'test', header: 'Test' }]);
     expect(warnSpy).toHaveBeenCalledWith(
       expect.stringContaining('no accessorKey or accessorFn')
     );
@@ -31,7 +31,7 @@ describe('validateColumnDefs', () => {
         accessorKey: 'test',
         header: 'Test',
         filterType: 'select',
-      } as CommandColumnDef<any>,
+      } as unknown as CommandColumnDef<unknown>,
     ]);
     expect(warnSpy).toHaveBeenCalledWith(
       expect.stringContaining('filterType "select" but no filterOptions')
@@ -45,7 +45,7 @@ describe('validateColumnDefs', () => {
         accessorKey: 'test',
         header: 'Test',
         filterType: 'text',
-      } as CommandColumnDef<any>,
+      } as unknown as CommandColumnDef<unknown>,
     ]);
     expect(warnSpy).not.toHaveBeenCalled();
   });

@@ -1,7 +1,7 @@
 export interface StatusBadgeProps {
   text: string | number;
-  color?: string;
-  backgroundColor?: string;
+  color?: string | undefined;
+  backgroundColor?: string | undefined;
 }
 
 export function StatusBadge({ text, color, backgroundColor }: StatusBadgeProps) {

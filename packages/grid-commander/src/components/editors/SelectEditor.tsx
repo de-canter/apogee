@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { CellEditorProps } from '../../types/editing';
+import { arr } from '../../utils/config';
 
 const SELECT_STYLE: React.CSSProperties = {
   width: '100%',
@@ -22,7 +23,7 @@ export interface SelectOption {
 
 export function SelectEditor({ value, config, onCommit, onCancel }: CellEditorProps) {
   const selectRef = useRef<HTMLSelectElement>(null);
-  const options: SelectOption[] = config.options || [];
+  const options = arr<SelectOption>(config, 'options') ?? [];
 
   useEffect(() => {
     selectRef.current?.focus();
@@ -40,7 +41,7 @@ export function SelectEditor({ value, config, onCommit, onCancel }: CellEditorPr
     <select
       ref={selectRef}
       style={SELECT_STYLE}
-      value={value ?? ''}
+      value={typeof value === 'string' || typeof value === 'number' ? value : ''}
       onChange={(e) => onCommit(e.target.value)}
       onKeyDown={handleKeyDown}
       onBlur={() => onCancel()}

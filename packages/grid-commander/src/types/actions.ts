@@ -4,31 +4,38 @@
 
 import type { CockpitRef } from './cockpit-ref';
 
-export interface CommandAction<T = any> {
+/** What an action guard may inspect besides its row. */
+export interface ActionContext<T = unknown> {
+  selectedIds: string[];
+  selectedRows: T[];
+  filteredRows: T[];
+}
+
+export interface CommandAction<T = unknown> {
   id: string;
   label: string;
-  icon?: string;
-  shortcut?: string;
-  handler?: (row: T, cockpit: CockpitRef<T>) => void;
-  visible?: (row: T, context: any) => boolean;
-  disabled?: (row: T, context: any) => boolean;
-  children?: CommandAction<T>[];
-  type?: never;
+  icon?: string | undefined;
+  shortcut?: string | undefined;
+  handler?: ((row: T, cockpit: CockpitRef<T>) => void) | undefined;
+  visible?: ((row: T, context: ActionContext<T>) => boolean) | undefined;
+  disabled?: ((row: T, context: ActionContext<T>) => boolean) | undefined;
+  children?: CommandAction<T>[] | undefined;
+  type?: undefined;
 }
 
 export interface ActionDivider {
   type: 'divider';
 }
 
-export type CommandActionItem<T = any> = CommandAction<T> | ActionDivider;
+export type CommandActionItem<T = unknown> = CommandAction<T> | ActionDivider;
 
-export interface CommandInlineAction<T = any> {
+export interface CommandInlineAction<T = unknown> {
   id: string;
   label: string;
-  icon?: string;
-  hideLabel?: boolean;
-  variant?: 'default' | 'success' | 'warning' | 'danger' | 'ghost';
+  icon?: string | undefined;
+  hideLabel?: boolean | undefined;
+  variant?: 'default' | 'success' | 'warning' | 'danger' | 'ghost' | undefined;
   handler: (row: T) => void;
-  visible?: (row: T) => boolean;
-  disabled?: (row: T) => boolean;
+  visible?: ((row: T) => boolean) | undefined;
+  disabled?: ((row: T) => boolean) | undefined;
 }

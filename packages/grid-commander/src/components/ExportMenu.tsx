@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { formatCsv, formatJson, downloadFile, type ExportColumn } from '../utils/export';
 
-interface ExportMenuProps<T = any> {
+interface ExportMenuProps<T = unknown> {
   /** All filtered rows */
   filteredRows: T[];
   /** Selected rows (for export-selected) */
@@ -9,7 +9,7 @@ interface ExportMenuProps<T = any> {
   /** Column definitions for export */
   columns: ExportColumn[];
   /** Grid title for filename */
-  title?: string;
+  title?: string | undefined;
 }
 
 function getTimestamp(): string {

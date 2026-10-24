@@ -149,9 +149,9 @@ describe('CommandGrid — Row Styling', () => {
       />
     );
     const rows = container.querySelectorAll('.gc-row');
-    expect(rows[0].classList.contains('priority-1')).toBe(true);
-    expect(rows[1].classList.contains('priority-2')).toBe(true);
-    expect(rows[2].classList.contains('priority-3')).toBe(true);
+    expect(rows[0]!.classList.contains('priority-1')).toBe(true);
+    expect(rows[1]!.classList.contains('priority-2')).toBe(true);
+    expect(rows[2]!.classList.contains('priority-3')).toBe(true);
   });
 
   it('applies first matching rowColorRule', () => {
@@ -178,11 +178,11 @@ describe('CommandGrid — Row Styling', () => {
 
     const rows = container.querySelectorAll('.gc-row');
     // Alpha: active, matches first rule
-    expect(rows[0].classList.contains('rule-active')).toBe(true);
+    expect(rows[0]!.classList.contains('rule-active')).toBe(true);
     // Beta: inactive + priority 2, matches second rule only
-    expect(rows[1].classList.contains('rule-high')).toBe(true);
-    expect(rows[1].classList.contains('rule-active')).toBe(false);
+    expect(rows[1]!.classList.contains('rule-high')).toBe(true);
+    expect(rows[1]!.classList.contains('rule-active')).toBe(false);
     // Gamma: active + priority 3, matches first rule (first match wins)
-    expect(rows[2].classList.contains('rule-active')).toBe(true);
+    expect(rows[2]!.classList.contains('rule-active')).toBe(true);
   });
 });

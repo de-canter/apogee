@@ -15,11 +15,21 @@ const DATE_STYLE: React.CSSProperties = {
   boxSizing: 'border-box' as const,
 };
 
-function toDateValue(val: any): string {
-  if (!val) return '';
-  const d = new Date(val);
-  if (isNaN(d.getTime())) return '';
-  return d.toISOString().split('T')[0];
+/** The input's YYYY-MM-DD, taken as a local date: no UTC conversion that could shift the day. */
+function toDateValue(val: unknown): string {
+  if (typeof val === 'string') {
+    const m = /^(\d{4}-\d{2}-\d{2})/.exec(val);
+    if (m) return m[1]!;
+    const d = new Date(val);
+    return isNaN(d.getTime()) ? '' : localIso(d);
+  }
+  if (val instanceof Date) return isNaN(val.getTime()) ? '' : localIso(val);
+  if (typeof val === 'number') return localIso(new Date(val));
+  return '';
+}
+function localIso(d: Date): string {
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 }
 
 export function DateEditor({ value, onCommit, onCancel }: CellEditorProps) {

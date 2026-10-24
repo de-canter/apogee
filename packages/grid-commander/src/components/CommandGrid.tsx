@@ -214,56 +214,64 @@ export interface CommandGridProps<T> {
   data: T[];
   columns: CommandColumnDef<T>[];
   getRowId: (row: T) => string;
-  defaultSort?: SortingState;
-  defaultFilters?: ColumnFiltersState;
-  enableGrouping?: boolean;
-  enableVirtualization?: boolean;
-  rowDensity?: 'compact' | 'comfortable' | 'expanded';
-  onRowSelect?: (row: T) => void;
-  onRowDoubleClick?: (row: T) => void;
-  onRowContextMenu?: (e: React.MouseEvent, row: T) => void;
-  selectedRowId?: string | null;
-  customRenderers?: CellRendererRegistry;
-  onColumnStateChange?: (state: ColumnStateChange) => void;
+  defaultSort?: SortingState | undefined;
+  defaultFilters?: ColumnFiltersState | undefined;
+  enableGrouping?: boolean | undefined;
+  enableVirtualization?: boolean | undefined;
+  rowDensity?: 'compact' | 'comfortable' | 'expanded' | undefined;
+  onRowSelect?: ((row: T) => void) | undefined;
+  onRowDoubleClick?: ((row: T) => void) | undefined;
+  onRowContextMenu?: ((e: React.MouseEvent, row: T) => void) | undefined;
+  selectedRowId?: string | null | undefined;
+  customRenderers?: CellRendererRegistry | undefined;
+  onColumnStateChange?: ((state: ColumnStateChange) => void) | undefined;
   // Controlled state from CommandCockpit
-  sorting?: SortingState;
-  onSortingChange?: (sorting: SortingState) => void;
-  columnFilters?: ColumnFiltersState;
-  onColumnFiltersChange?: (filters: ColumnFiltersState) => void;
-  grouping?: GroupingState;
-  onGroupingChange?: (grouping: GroupingState) => void;
-  expanded?: ExpandedState;
-  onExpandedChange?: (expanded: ExpandedState) => void;
-  columnVisibility?: VisibilityState;
-  onColumnVisibilityChange?: (visibility: VisibilityState) => void;
-  columnOrder?: ColumnOrderState;
-  onColumnOrderChange?: (order: ColumnOrderState) => void;
-  columnSizing?: ColumnSizingState;
-  onColumnSizingChange?: (sizing: ColumnSizingState) => void;
+  sorting?: SortingState | undefined;
+  onSortingChange?: ((sorting: SortingState) => void) | undefined;
+  columnFilters?: ColumnFiltersState | undefined;
+  onColumnFiltersChange?: ((filters: ColumnFiltersState) => void) | undefined;
+  grouping?: GroupingState | undefined;
+  onGroupingChange?: ((grouping: GroupingState) => void) | undefined;
+  expanded?: ExpandedState | undefined;
+  onExpandedChange?: ((expanded: ExpandedState) => void) | undefined;
+  columnVisibility?: VisibilityState | undefined;
+  onColumnVisibilityChange?: ((visibility: VisibilityState) => void) | undefined;
+  columnOrder?: ColumnOrderState | undefined;
+  onColumnOrderChange?: ((order: ColumnOrderState) => void) | undefined;
+  columnSizing?: ColumnSizingState | undefined;
+  onColumnSizingChange?: ((sizing: ColumnSizingState) => void) | undefined;
   // Global filter (controlled)
-  globalFilter?: string;
-  onGlobalFilterChange?: (value: string) => void;
+  globalFilter?: string | undefined;
+  onGlobalFilterChange?: ((value: string) => void) | undefined;
   // Sprint 3: Row styling + loading
-  rowClassName?: string | ((row: T) => string);
-  rowColorRules?: RowColorRule<T>[];
-  loading?: boolean;
-  emptyState?: React.ReactNode;
+  rowClassName?: string | ((row: T) => string) | undefined;
+  rowColorRules?: RowColorRule<T>[] | undefined;
+  loading?: boolean | undefined;
+  emptyState?: React.ReactNode | undefined;
   // Sprint 3: Sticky columns
-  pinnedColumns?: StickyColumnConfig;
+  pinnedColumns?: StickyColumnConfig | undefined;
   // Sprint 3: Selection
-  selectionMode?: SelectionMode;
-  selectionState?: RowSelectionState;
+  selectionMode?: SelectionMode | undefined;
+  selectionState?: RowSelectionState | undefined;
   // Row model callback — reports visual row IDs after sort/filter
-  onVisibleRowIdsChange?: (ids: string[]) => void;
+  onVisibleRowIdsChange?: ((ids: string[]) => void) | undefined;
   // Sprint 4: Inline editing
-  editingCell?: EditingCell | null;
-  onStartEditing?: (rowId: string, columnId: string) => void;
-  onCellEdit?: OnCellEdit<T>;
-  onStopEditing?: () => void;
-  customEditors?: CellEditorRegistry;
+  editingCell?: EditingCell | null | undefined;
+  onStartEditing?: ((rowId: string, columnId: string) => void) | undefined;
+  onCellEdit?: OnCellEdit<T> | undefined;
+  onStopEditing?: (() => void) | undefined;
+  customEditors?: CellEditorRegistry | undefined;
   // Expandable sub-rows — render custom content below a row when expanded
-  renderSubComponent?: (row: T) => React.ReactNode | null;
-  getRowCanExpand?: (row: T) => boolean;
+  renderSubComponent?: ((row: T) => React.ReactNode | null) | undefined;
+  getRowCanExpand?: ((row: T) => boolean) | undefined;
+}
+
+/** A filter value as a short tooltip string; objects (ranges) become JSON. */
+function describeFilter(v: unknown): string {
+  if (v === null || v === undefined) return '';
+  if (typeof v === 'string') return v;
+  if (typeof v === 'number' || typeof v === 'boolean') return String(v);
+  return JSON.stringify(v);
 }
 
 export function CommandGrid<T>({
@@ -474,7 +482,7 @@ export function CommandGrid<T>({
     scrollTargetRef.current = selectedRowId;
     // Defer to allow the DOM to update with the new gc-row--selected class
     requestAnimationFrame(() => {
-      const container = (parentRef?.current ?? document.querySelector('.gc-grid')) as HTMLElement | null;
+      const container = (parentRef?.current ?? document.querySelector('.gc-grid'));
       if (!container) return;
       const rowEl = container.querySelector<HTMLElement>('tr.gc-row--selected');
       if (rowEl) {
@@ -579,34 +587,10 @@ export function CommandGrid<T>({
     return map;
   }, [columns]);
 
-  // Check if any column has a filter
-  const hasFilters = columns.some((c) => c.filterType);
-
-  // Find next editable column for Tab navigation
-  const findNextEditableCell = useCallback(
-    (currentRowId: string, currentColumnId: string): { rowId: string; columnId: string } | null => {
-      const editableColumns = columns.filter((c) => c.editable);
-      if (editableColumns.length === 0) return null;
-
-      const currentColIdx = editableColumns.findIndex((c) => c.id === currentColumnId);
-      // Next editable column in same row
-      if (currentColIdx < editableColumns.length - 1) {
-        return { rowId: currentRowId, columnId: editableColumns[currentColIdx + 1].id };
-      }
-      // Wrap to first editable column of next row
-      const rowIds = rows.map((r) => r.id);
-      const rowIdx = rowIds.indexOf(currentRowId);
-      if (rowIdx < rowIds.length - 1) {
-        return { rowId: rowIds[rowIdx + 1], columnId: editableColumns[0].id };
-      }
-      return null;
-    },
-    [columns, rows]
-  );
 
   // Render cell via registry
   const renderCell = useCallback(
-    (row: Row<T>, columnId: string, value: any) => {
+    (row: Row<T>, columnId: string, value: unknown) => {
       const colDef = columnDefMap.get(columnId);
       const rendererName = colDef?.cellRenderer;
       const renderer = getRenderer(rendererRegistry, rendererName);
@@ -622,7 +606,7 @@ export function CommandGrid<T>({
 
   // Render editor for a cell
   const renderEditor = useCallback(
-    (row: Row<T>, columnId: string, value: any) => {
+    (row: Row<T>, columnId: string, value: unknown) => {
       const colDef = columnDefMap.get(columnId);
       const editorName = colDef?.cellEditor;
       const editor = getEditor(editorRegistry, editorName);
@@ -636,7 +620,7 @@ export function CommandGrid<T>({
         row: row.original,
         config: { ...colDef?.cellConfig, ...colDef?.cellEditorConfig },
         columnId,
-        onCommit: (newValue: any) => {
+        onCommit: (newValue: unknown) => {
           onCellEdit?.(row.id, columnId, newValue, row.original);
           onStopEditing?.();
         },
@@ -646,77 +630,6 @@ export function CommandGrid<T>({
       });
     },
     [columnDefMap, editorRegistry, renderCell, onCellEdit, onStopEditing]
-  );
-
-  // Render filter input for a column
-  const renderFilterInput = useCallback(
-    (header: Header<T, unknown>) => {
-      const colDef = columnDefMap.get(header.column.id);
-      if (!colDef?.filterType) return null;
-
-      const filterValue = header.column.getFilterValue();
-
-      switch (colDef.filterType) {
-        case 'text':
-          return (
-            <input
-              className="gc-filter-input"
-              type="text"
-              value={(filterValue as string) ?? ''}
-              onChange={(e) => header.column.setFilterValue(e.target.value || undefined)}
-              placeholder="Filter..."
-              aria-label={`Filter ${String(colDef?.header || '')} column`}
-            />
-          );
-        case 'select':
-          return (
-            <select
-              className="gc-filter-select"
-              value={(filterValue as string) ?? ''}
-              onChange={(e) => header.column.setFilterValue(e.target.value || undefined)}
-              aria-label={`Filter ${String(colDef?.header || '')} column`}
-            >
-              <option value="">All</option>
-              {colDef.filterOptions?.map((opt) => (
-                <option key={opt} value={opt}>
-                  {colDef.filterOptionLabels?.[opt] ?? opt}
-                </option>
-              ))}
-            </select>
-          );
-        case 'boolean':
-          return (
-            <select
-              className="gc-filter-select"
-              value={filterValue != null ? String(filterValue) : ''}
-              onChange={(e) => {
-                const v = e.target.value;
-                header.column.setFilterValue(v === '' ? undefined : v === 'true');
-              }}
-              aria-label={`Filter ${String(colDef?.header || '')} column`}
-            >
-              <option value="">All</option>
-              <option value="true">Yes</option>
-              <option value="false">No</option>
-            </select>
-          );
-        case 'date-range':
-        case 'number-range':
-          return (
-            <input
-              className="gc-filter-input"
-              type="text"
-              value={(filterValue as string) ?? ''}
-              onChange={(e) => header.column.setFilterValue(e.target.value || undefined)}
-              placeholder="Filter..."
-              aria-label={`Filter ${String(colDef?.header || '')} column`}
-            />
-          );
-        default:
-          return null;
-      }
-    },
-    [columnDefMap]
   );
 
   const densityClass = `gc-density-${rowDensity}`;
@@ -1014,7 +927,7 @@ export function CommandGrid<T>({
                           setActiveFilterColumn(isFilterOpen ? null : header.column.id);
                         }}
                         aria-label={`Filter ${String(colDef?.header || '')} column`}
-                        title={isFilterActive ? `Filtered: ${String(filterValue)}` : 'Filter'}
+                        title={isFilterActive ? `Filtered: ${describeFilter(filterValue)}` : 'Filter'}
                       >
                         <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
                           <path d="M0 1h10L6.5 5.5V9L3.5 10V5.5L0 1z" />
@@ -1025,7 +938,7 @@ export function CommandGrid<T>({
                     {hasFilter && isFilterOpen && (
                       <HeaderFilterPopover
                         header={header}
-                        colDef={colDef!}
+                        colDef={colDef}
                         filterValue={filterValue}
                         onClose={() => setActiveFilterColumn(null)}
                         filterDebounceRef={filterDebounceRef}
@@ -1054,9 +967,9 @@ export function CommandGrid<T>({
           {enableVirtualization ? (
             <>
               {/* Spacer for virtual scroll */}
-              {virtualItems.length > 0 && virtualItems[0].start > 0 && (
+              {virtualItems.length > 0 && virtualItems[0]!.start > 0 && (
                 <tr>
-                  <td style={{ height: virtualItems[0].start, padding: 0 }} />
+                  <td style={{ height: virtualItems[0]!.start, padding: 0 }} />
                 </tr>
               )}
               {virtualItems.map((virtualItem) => {

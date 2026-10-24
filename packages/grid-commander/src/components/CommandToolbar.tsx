@@ -5,23 +5,23 @@ import type { CommandColumnDef } from '../types/column';
 import type { ExportColumn } from '../utils/export';
 import { ExportMenu } from './ExportMenu';
 
-export interface CommandToolbarProps<T = any> {
-  title?: string;
+export interface CommandToolbarProps<T = unknown> {
+  title?: string | undefined;
   rowCount: number;
   filteredRowCount: number;
   /** Hide the row count next to the title (a grid whose rows are not the thing being counted). */
-  showRowCount?: boolean;
+  showRowCount?: boolean | undefined;
 
   // Global filter
-  enableGlobalFilter?: boolean;
+  enableGlobalFilter?: boolean | undefined;
   globalFilter: string;
   onGlobalFilterChange: (value: string) => void;
-  globalFilterRef?: React.RefObject<HTMLInputElement | null>;
+  globalFilterRef?: React.RefObject<HTMLInputElement | null> | undefined;
 
   // Presets
-  presets?: FilterPreset[];
-  activePresetId?: string | null;
-  onPresetChange?: (preset: FilterPreset) => void;
+  presets?: FilterPreset[] | undefined;
+  activePresetId?: string | null | undefined;
+  onPresetChange?: ((preset: FilterPreset) => void) | undefined;
 
   // Density
   rowDensity: 'compact' | 'comfortable' | 'expanded';
@@ -33,16 +33,16 @@ export interface CommandToolbarProps<T = any> {
   onColumnVisibilityChange: (vis: VisibilityState) => void;
 
   // Action buttons (between presets and search)
-  actionButtons?: ToolbarActionButton[];
+  actionButtons?: ToolbarActionButton[] | undefined;
 
   // Primary action
-  primaryAction?: PrimaryAction;
+  primaryAction?: PrimaryAction | undefined;
 
   // Sprint 3: Export
-  enableExport?: boolean;
-  exportColumns?: ExportColumn[];
-  filteredRows?: any[];
-  selectedRows?: any[];
+  enableExport?: boolean | undefined;
+  exportColumns?: ExportColumn[] | undefined;
+  filteredRows?: T[] | undefined;
+  selectedRows?: T[] | undefined;
 }
 
 const DENSITY_ICONS: Record<string, string> = {
@@ -78,7 +78,7 @@ export function CommandToolbar<T>({
   const [columnConfigOpen, setColumnConfigOpen] = useState(false);
   const columnConfigRef = useRef<HTMLDivElement>(null);
   const [filterInput, setFilterInput] = useState(globalFilter);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   // Sync external changes
   useEffect(() => {
@@ -177,7 +177,7 @@ export function CommandToolbar<T>({
               onClick={btn.onClick}
               disabled={btn.disabled}
               title={btn.title ?? (btn.shortcut ? `${btn.label} (${btn.shortcut})` : btn.label)}
-              style={btn.accentColor ? { borderLeftColor: btn.accentColor } as React.CSSProperties : undefined}
+              style={btn.accentColor ? { borderLeftColor: btn.accentColor } : undefined}
             >
               {btn.icon && <span className="gc-toolbar-action-icon" style={btn.accentColor ? { color: btn.accentColor } : undefined}>{btn.icon}</span>}
               <span className="gc-toolbar-action-label">{btn.label}</span>
@@ -195,7 +195,7 @@ export function CommandToolbar<T>({
         <div className="gc-toolbar-search">
           <span className="gc-toolbar-search-icon">{'\u2315'}</span>
           <input
-            ref={globalFilterRef as React.Ref<HTMLInputElement>}
+            ref={globalFilterRef}
             className="gc-toolbar-search-input"
             type="text"
             value={filterInput}

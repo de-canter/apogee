@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { CellEditorProps } from '../../types/editing';
+import { textOf } from '../renderers/text';
 
 const INPUT_STYLE: React.CSSProperties = {
   width: '100%',
@@ -16,7 +17,7 @@ const INPUT_STYLE: React.CSSProperties = {
 };
 
 export function TextInputEditor({ value, onCommit, onCancel }: CellEditorProps) {
-  const [text, setText] = useState(value != null ? String(value) : '');
+  const [text, setText] = useState(textOf(value));
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {

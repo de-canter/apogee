@@ -4,9 +4,9 @@ import type { CommandColumnDef } from '../types/column';
 
 export interface StickyColumnConfig {
   /** Column IDs to pin to the left */
-  pinnedLeft?: string[];
+  pinnedLeft?: string[] | undefined;
   /** Column IDs to pin to the right */
-  pinnedRight?: string[];
+  pinnedRight?: string[] | undefined;
 }
 
 export interface StickyColumnResult {
@@ -20,7 +20,7 @@ export interface StickyColumnResult {
 
 const DEFAULT_COLUMN_WIDTH = 150;
 
-export function useStickyColumns<T = any>(
+export function useStickyColumns<T = unknown>(
   config: StickyColumnConfig | undefined,
   columns: CommandColumnDef<T>[],
   columnSizing: ColumnSizingState
@@ -38,7 +38,7 @@ export function useStickyColumns<T = any>(
     const getWidth = (colId: string): number => {
       if (columnSizing[colId]) return columnSizing[colId];
       const col = columns.find((c) => c.id === colId);
-      if (col?.size) return col.size as number;
+      if (col?.size) return col.size;
       return DEFAULT_COLUMN_WIDTH;
     };
 

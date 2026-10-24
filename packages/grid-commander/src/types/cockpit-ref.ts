@@ -1,7 +1,7 @@
 /**
  * Stable imperative API exposed to action/shortcut handlers.
  */
-export interface CockpitRef<T = any> {
+export interface CockpitRef<T> {
   selectedRow: T | null;
   selectedRowId: string | null;
   selectRow: (id: string | null) => void;

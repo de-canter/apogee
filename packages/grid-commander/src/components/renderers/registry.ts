@@ -1,3 +1,4 @@
+import { isDev } from '../../utils/env';
 import type { CellRendererFn, CellRendererRegistry } from '../../types/column';
 
 import { TextCell } from './TextCell';
@@ -40,13 +41,14 @@ export function getRenderer(
   registry: CellRendererRegistry,
   name: string | undefined
 ): CellRendererFn {
-  if (!name) return registry.text;
+  const text = registry.text ?? builtInRenderers.text!;
+  if (!name) return text;
   const renderer = registry[name];
   if (!renderer) {
-    if (process.env.NODE_ENV !== 'production') {
+    if (isDev()) {
       console.warn(`[GridCommander] Unknown cell renderer "${name}", falling back to "text".`);
     }
-    return registry.text;
+    return text;
   }
   return renderer;
 }

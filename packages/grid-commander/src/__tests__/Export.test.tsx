@@ -1,4 +1,4 @@
-import { describe, it, test, expect, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { formatCsv, formatJson, downloadFile, type ExportColumn } from '../utils/export';
 import { ExportMenu } from '../components/ExportMenu';
@@ -37,14 +37,14 @@ describe('formatCsv', () => {
 
   it('handles null/undefined', () => {
     const data = [{ name: null, email: undefined, age: 0 }];
-    const csv = formatCsv(data as any, columns);
+    const csv = formatCsv(data as unknown[], columns);
     const lines = csv.split('\n');
     expect(lines[1]).toBe(',,0');
   });
 
   it('uses custom accessor', () => {
     const cols: ExportColumn[] = [
-      { id: 'name', header: 'Full Name', accessor: (r) => r.name.toUpperCase() },
+      { id: 'name', header: 'Full Name', accessor: (r) => (r as { name: string }).name.toUpperCase() },
     ];
     const csv = formatCsv(rows, cols);
     expect(csv).toContain('ALICE');
@@ -54,15 +54,15 @@ describe('formatCsv', () => {
 describe('formatJson', () => {
   it('outputs pretty JSON array', () => {
     const json = formatJson(rows, columns);
-    const parsed = JSON.parse(json);
+    const parsed = JSON.parse(json) as Record<string, unknown>[];
     expect(parsed).toHaveLength(2);
     expect(parsed[0]).toEqual({ Name: 'Alice', Email: 'alice@example.com', Age: 30 });
   });
 
   it('uses column headers as keys', () => {
     const json = formatJson(rows, columns);
-    const parsed = JSON.parse(json);
-    expect(Object.keys(parsed[0])).toEqual(['Name', 'Email', 'Age']);
+    const parsed = JSON.parse(json) as Record<string, unknown>[];
+    expect(Object.keys(parsed[0]!)).toEqual(['Name', 'Email', 'Age']);
   });
 });
 
@@ -82,7 +82,7 @@ describe('downloadFile', () => {
       set download(v: string) { /* noop */ },
       style: {},
       click: clickFn,
-    } as any);
+    } as unknown as HTMLAnchorElement);
 
     downloadFile('test content', 'test.csv', 'text/csv');
 

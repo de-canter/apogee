@@ -4,7 +4,7 @@ import { CommandDetailPanel } from '../components/CommandDetailPanel';
 import type { CockpitRef } from '../types/cockpit-ref';
 import type { DetailPanelProps } from '../types/detail-panel';
 
-const mockCockpit: CockpitRef = {
+const mockCockpit = {
   selectedRow: null,
   selectedRowId: null,
   selectRow: vi.fn(),
@@ -24,12 +24,12 @@ const mockCockpit: CockpitRef = {
   selectAll: vi.fn(),
   startEditing: vi.fn(),
   stopEditing: vi.fn(),
-};
+} as unknown as CockpitRef<unknown>;
 
 function TestContent({ row, onClose }: DetailPanelProps) {
   return (
     <div>
-      <span>Detail: {(row as any).name}</span>
+      <span>Detail: {(row as { name: string }).name}</span>
       <button onClick={onClose}>Close from content</button>
     </div>
   );
@@ -60,7 +60,7 @@ describe('CommandDetailPanel', () => {
         open={true}
         row={{ id: '1', name: 'Order A' }}
         rowId="1"
-        rowIdentifier={(row: any) => `#${row.id} — ${row.name}`}
+        rowIdentifier={(row) => `#${(row as { id: string; name: string }).id} — ${(row as { id: string; name: string }).name}`}
         cockpit={mockCockpit}
         width={400}
         onWidthChange={vi.fn()}

@@ -1,18 +1,18 @@
 export type SelectionMode = 'none' | 'single' | 'multi';
 
-export interface BatchAction<T = any> {
+export interface BatchAction<T = unknown> {
   id: string;
   label: string;
-  icon?: string;
-  variant?: 'default' | 'success' | 'warning' | 'danger';
+  icon?: string | undefined;
+  variant?: 'default' | 'success' | 'warning' | 'danger' | undefined;
   /** Called with array of selected row IDs */
   handler: (selectedIds: string[], rows: T[]) => void;
   /** Minimum selected rows to enable (default 1) */
-  minSelection?: number;
+  minSelection?: number | undefined;
   /** Maximum selected rows to enable (default Infinity) */
-  maxSelection?: number;
+  maxSelection?: number | undefined;
   /** Dynamic disabled check */
-  disabled?: (selectedIds: string[], rows: T[]) => boolean;
+  disabled?: ((selectedIds: string[], rows: T[]) => boolean) | undefined;
 }
 
 export interface RowSelectionState {

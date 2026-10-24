@@ -1,18 +1,18 @@
 export interface Contact {
   id: string;
   name: string;
-  role?: string;
-  phone?: string;
-  email?: string;
+  role?: string | undefined;
+  phone?: string | undefined;
+  email?: string | undefined;
 }
 
 export interface ContactGridProps {
   contacts: Contact[];
-  onCall?: (contact: Contact) => void;
-  onEmail?: (contact: Contact) => void;
-  onMessage?: (contact: Contact) => void;
-  onEdit?: (contact: Contact) => void;
-  onDelete?: (contact: Contact) => void;
+  onCall?: ((contact: Contact) => void) | undefined;
+  onEmail?: ((contact: Contact) => void) | undefined;
+  onMessage?: ((contact: Contact) => void) | undefined;
+  onEdit?: ((contact: Contact) => void) | undefined;
+  onDelete?: ((contact: Contact) => void) | undefined;
 }
 
 export function ContactGrid({

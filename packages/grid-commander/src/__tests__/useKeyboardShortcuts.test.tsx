@@ -3,8 +3,8 @@ import { describe, it, expect, vi } from 'vitest';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import type { CockpitRef } from '../types/cockpit-ref';
 
-function createMockCockpit(): CockpitRef {
-  return {
+function createMockCockpit(): CockpitRef<unknown> {
+  return ({
     selectedRow: null,
     selectedRowId: '1',
     selectRow: vi.fn(),
@@ -24,7 +24,7 @@ function createMockCockpit(): CockpitRef {
     selectAll: vi.fn(),
     startEditing: vi.fn(),
     stopEditing: vi.fn(),
-  };
+  }) as unknown as CockpitRef<unknown>;
 }
 
 describe('useKeyboardShortcuts', () => {

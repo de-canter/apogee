@@ -226,7 +226,7 @@ describe('CommandGrid', () => {
     expect(screen.queryByText('Beta Order')).not.toBeInTheDocument();
   });
 
-  it('filters rows on text input with debounce', async () => {
+  it('filters rows on text input with debounce', () => {
     vi.useFakeTimers();
     render(
       <CommandGrid
@@ -306,7 +306,7 @@ describe('CommandGrid', () => {
         columns={customColumns}
         getRowId={(row) => row.id}
         customRenderers={{
-          'custom-bold': ({ value }) => <strong data-testid="bold-cell">{value}</strong>,
+          'custom-bold': ({ value }) => <strong data-testid="bold-cell">{String(value)}</strong>,
         }}
       />
     );
@@ -357,15 +357,15 @@ describe('CommandGrid', () => {
     );
     expect(onColumnStateChange).toHaveBeenCalledWith(
       expect.objectContaining({
-        columnOrder: expect.any(Array),
-        columnWidths: expect.any(Object),
-        columnVisibility: expect.any(Object),
+        columnOrder: expect.any(Array) as unknown,
+        columnWidths: expect.any(Object) as unknown,
+        columnVisibility: expect.any(Object) as unknown,
       })
     );
   });
 
   it('sets aria-sort on sorted columns', () => {
-    const { container } = render(
+    render(
       <CommandGrid
         data={testData}
         columns={testColumns}

@@ -1,28 +1,36 @@
+import type { ReactNode } from 'react';
 import type { CellRendererProps } from '../../types/column';
+import { asRecord, asText } from './text';
 
-type LineSource<T> = string | ((row: T) => React.ReactNode) | undefined;
+type LineSource = string | ((row: unknown) => ReactNode) | undefined;
 
-function resolveLine<T>(source: LineSource<T>, row: T, fallback: React.ReactNode): React.ReactNode {
+/** Both spellings accept either a field name or an accessor; consumers have used both. */
+function lineSource(config: Record<string, unknown>, accessorKey: string, fieldKey: string): LineSource {
+  for (const v of [config[accessorKey], config[fieldKey]]) {
+    if (typeof v === 'function') return v as (row: unknown) => ReactNode;
+    if (typeof v === 'string') return v;
+  }
+  return undefined;
+}
+
+function resolveLine(source: LineSource, row: unknown, fallback: ReactNode): ReactNode {
   if (typeof source === 'function') return source(row);
-  if (source) return (row as Record<string, unknown>)[source] as React.ReactNode;
+  if (source) return asText(asRecord(row)[source]);
   return fallback;
 }
 
 /**
- * Two-line cell: primary value on top, muted secondary line below.
- *
- * Each line can come from a field name or an accessor function. Both
- * `secondaryField` and `secondaryAccessor` (likewise `primaryField` /
- * `primaryAccessor`) are accepted; consumers have used both spellings.
+ * Two-line cell: primary value on top, muted secondary line below. Each line comes from a field name
+ * (`primaryField` / `secondaryField`) or an accessor (`primaryAccessor` / `secondaryAccessor`).
  */
 export function TwoLineCell({ value, row, config }: CellRendererProps) {
-  const primary = resolveLine(config.primaryAccessor ?? config.primaryField, row, value);
-  const secondary = resolveLine(config.secondaryAccessor ?? config.secondaryField, row, '');
-
+  const primary = resolveLine(lineSource(config, 'primaryAccessor', 'primaryField'), row, asText(value));
+  const secondary = resolveLine(lineSource(config, 'secondaryAccessor', 'secondaryField'), row, '');
+  const secondaryStyle = config.secondaryStyle as React.CSSProperties | undefined;
   return (
     <div className="gc-cell-two-line">
       <div className="gc-cell-primary">{primary}</div>
-      <div className="gc-cell-secondary" style={config.secondaryStyle}>
+      <div className="gc-cell-secondary" style={secondaryStyle}>
         {secondary}
       </div>
     </div>

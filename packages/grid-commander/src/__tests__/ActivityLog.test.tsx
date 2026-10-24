@@ -114,8 +114,8 @@ describe('groupActivityByDay', () => {
 
   it('orders entries newest first within a day', () => {
     const groups = groupActivityByDay(dayEntries, NOW);
-    expect(groups[0].entries.map((e) => e.id)).toEqual(['b', 'a']);
-    expect(groups[2].entries.map((e) => e.id)).toEqual(['d', 'e']);
+    expect(groups[0]!.entries.map((e) => e.id)).toEqual(['b', 'a']);
+    expect(groups[2]!.entries.map((e) => e.id)).toEqual(['d', 'e']);
   });
 
   it('splits entries that straddle midnight into separate days', () => {
@@ -126,7 +126,7 @@ describe('groupActivityByDay', () => {
       ],
       NOW,
     );
-    expect(groups.map((g) => [g.label, g.entries[0].id])).toEqual([
+    expect(groups.map((g) => [g.label, g.entries[0]!.id])).toEqual([
       ['Today', 'early'],
       ['Yesterday', 'late'],
     ]);
@@ -144,7 +144,7 @@ describe('groupActivityByDay', () => {
     ];
     const groups = groupActivityByDay(input, NOW);
     expect(groups).toHaveLength(1);
-    expect(groups[0].entries.map((e) => e.id)).toEqual(['2', '1']);
+    expect(groups[0]!.entries.map((e) => e.id)).toEqual(['2', '1']);
     expect(input.map((e) => e.id)).toEqual(['1', '2']);
   });
 });

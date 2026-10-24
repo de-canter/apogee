@@ -2,15 +2,15 @@ import { useCallback, useEffect, useRef } from 'react';
 import type { PersistedGridState } from '../types/persistence';
 
 export interface UsePersistedStateOptions {
-  persistenceKey?: string;
-  onPersistState?: (state: PersistedGridState) => void;
-  initialPersistedState?: Partial<PersistedGridState>;
-  debounceMs?: number;
+  persistenceKey?: string | undefined;
+  onPersistState?: ((state: PersistedGridState) => void) | undefined;
+  initialPersistedState?: Partial<PersistedGridState> | undefined;
+  debounceMs?: number | undefined;
 }
 
 export function usePersistedState(options: UsePersistedStateOptions) {
   const { onPersistState, debounceMs = 500 } = options;
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const latestStateRef = useRef<PersistedGridState | null>(null);
 
   const persist = useCallback(

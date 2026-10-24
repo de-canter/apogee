@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { InlineActionsCell } from '../components/renderers/InlineActionsCell';
 
@@ -40,6 +40,7 @@ describe('InlineActionsCell', () => {
     const btn = screen.getByText('View');
     const clickEvent = new MouseEvent('click', { bubbles: true });
     const stopProp = vi.spyOn(clickEvent, 'stopPropagation');
+    void stopProp;
     btn.dispatchEvent(clickEvent);
 
     expect(handler).toHaveBeenCalledWith(testRow);

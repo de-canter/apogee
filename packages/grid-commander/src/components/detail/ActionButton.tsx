@@ -1,9 +1,9 @@
 export interface ActionButtonProps {
   label: string;
-  icon?: string;
-  variant?: 'default' | 'success' | 'warning' | 'danger' | 'ghost';
-  size?: 'small' | 'default';
-  disabled?: boolean;
+  icon?: string | undefined;
+  variant?: 'default' | 'success' | 'warning' | 'danger' | 'ghost' | undefined;
+  size?: 'small' | 'default' | undefined;
+  disabled?: boolean | undefined;
   onClick: () => void;
 }
 

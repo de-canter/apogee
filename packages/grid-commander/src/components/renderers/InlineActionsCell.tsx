@@ -1,28 +1,17 @@
 import type { CellRendererProps } from '../../types/column';
 import type { CommandInlineAction } from '../../types/actions';
+import { arr } from '../../utils/config';
 
-/**
- * Renders small action buttons inline within a row cell.
- * Actions are passed via cellConfig.actions: CommandInlineAction[].
- */
-export function InlineActionsCell<T = any>({
-  row,
-  config,
-}: CellRendererProps<T>) {
-  const actions: CommandInlineAction<T>[] = config.actions ?? [];
-
+/** Small action buttons inside a cell; `cellConfig.actions: CommandInlineAction[]`. */
+export function InlineActionsCell<T = unknown>({ row, config }: CellRendererProps<T>) {
+  const actions = arr<CommandInlineAction<T>>(config, 'actions') ?? [];
   const visibleActions = actions.filter((a) => !a.visible || a.visible(row));
-
   if (visibleActions.length === 0) return null;
-
   return (
     <span className="gc-inline-actions">
       {visibleActions.map((action) => {
-        const isDisabled = action.disabled?.(row);
-        const variantClass = action.variant
-          ? `gc-inline-action--${action.variant}`
-          : '';
-
+        const isDisabled = action.disabled?.(row) ?? false;
+        const variantClass = action.variant ? `gc-inline-action--${action.variant}` : '';
         return (
           <button
             key={action.id}

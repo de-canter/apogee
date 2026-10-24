@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { CommandStatusBar } from '../components/CommandStatusBar';
 import type { CockpitRef } from '../types/cockpit-ref';
 
-const mockCockpit: CockpitRef = {
+const mockCockpit = {
   selectedRow: null,
   selectedRowId: null,
   selectRow: vi.fn(),
@@ -23,7 +23,7 @@ const mockCockpit: CockpitRef = {
   selectAll: vi.fn(),
   startEditing: vi.fn(),
   stopEditing: vi.fn(),
-};
+} as unknown as CockpitRef<unknown>;
 
 const testData = [
   { id: '1', status: 'Open' },
@@ -37,12 +37,12 @@ describe('CommandStatusBar', () => {
       {
         id: 'total',
         label: 'Total',
-        compute: (data: any[]) => data.length,
+        compute: (data: unknown[]) => data.length,
       },
       {
         id: 'open',
         label: 'Open',
-        compute: (data: any[]) => data.filter((d) => d.status === 'Open').length,
+        compute: (data: unknown[]) => data.filter((d) => (d as { status: string }).status === 'Open').length,
       },
     ];
 
@@ -61,7 +61,7 @@ describe('CommandStatusBar', () => {
       {
         id: 'total',
         label: 'Total',
-        compute: (data: any[]) => data.length,
+        compute: (data: unknown[]) => data.length,
         color: () => '#ff0000',
       },
     ];
@@ -80,7 +80,7 @@ describe('CommandStatusBar', () => {
       {
         id: 'total',
         label: 'Total',
-        compute: (data: any[]) => data.length,
+        compute: (data: unknown[]) => data.length,
         onClick,
       },
     ];

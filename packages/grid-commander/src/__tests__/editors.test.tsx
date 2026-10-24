@@ -18,7 +18,7 @@ describe('TextInputEditor', () => {
     const onCommit = vi.fn();
     const onCancel = vi.fn();
     render(<TextInputEditor {...baseProps} onCommit={onCommit} onCancel={onCancel} />);
-    const input = screen.getByTestId('gc-editor-text-input') as HTMLInputElement;
+    const input = screen.getByTestId<HTMLInputElement>('gc-editor-text-input');
     expect(input.value).toBe('test');
   });
 

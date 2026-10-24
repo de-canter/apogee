@@ -11,6 +11,7 @@ export type {
 
 export type {
   CommandAction,
+  ActionContext,
   CommandInlineAction,
   ActionDivider,
   CommandActionItem,

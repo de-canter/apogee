@@ -1,6 +1,6 @@
 import type { BatchAction } from '../types/selection';
 
-interface BatchActionBarProps<T = any> {
+interface BatchActionBarProps<T = unknown> {
   selectedCount: number;
   selectedIds: string[];
   selectedRows: T[];

@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import { daysUntil, daysSince, isToday, formatDate, setGridClock, gridNow } from '../utils/dates';
 
 describe('daysUntil', () => {
@@ -56,19 +56,18 @@ describe('formatDate', () => {
 
 describe('date-only strings (F783)', () => {
   const zones = ['America/Chicago', 'UTC', 'Pacific/Honolulu', 'Asia/Tokyo'];
-  const original = process.env.TZ;
   afterEach(() => {
-    process.env.TZ = original;
+    vi.unstubAllEnvs();
   });
 
   it.each(zones)('formatDate keeps YYYY-MM-DD on its day in %s', (zone) => {
-    process.env.TZ = zone;
+    vi.stubEnv('TZ', zone);
     expect(formatDate('2026-09-29')).toBe('09/29/26');
     expect(formatDate('2026-01-01')).toBe('01/01/26');
   });
 
   it.each(zones)('daysUntil counts a YYYY-MM-DD string from local today in %s', (zone) => {
-    process.env.TZ = zone;
+    vi.stubEnv('TZ', zone);
     const now = new Date();
     const pad = (n: number) => String(n).padStart(2, '0');
     const today = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;

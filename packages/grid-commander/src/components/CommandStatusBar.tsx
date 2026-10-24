@@ -3,14 +3,14 @@ import type { CommandStatusItem } from '../types/status-bar';
 import type { CockpitRef } from '../types/cockpit-ref';
 import type { ShortcutEntry } from '../hooks/useKeyboardShortcuts';
 
-export interface CommandStatusBarProps<T = any> {
-  items?: CommandStatusItem<T>[];
+export interface CommandStatusBarProps<T = unknown> {
+  items?: CommandStatusItem<T>[] | undefined;
   /** Filtered/visible rows (used by compute). */
   data: T[];
   /** Full unfiltered dataset (passed as second arg to compute). */
-  allData?: T[];
+  allData?: T[] | undefined;
   cockpit: CockpitRef<T>;
-  shortcutHints?: ShortcutEntry[];
+  shortcutHints?: ShortcutEntry[] | undefined;
 }
 
 export function CommandStatusBar<T>({

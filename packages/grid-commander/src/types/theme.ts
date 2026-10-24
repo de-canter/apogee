@@ -3,7 +3,7 @@ export type ThemeConfig = 'light' | 'dark';
 export type ThemeOverrides = Record<string, string>;
 
 export interface ThemeProviderProps {
-  theme?: ThemeConfig;
-  themeOverrides?: ThemeOverrides;
+  theme?: ThemeConfig | undefined;
+  themeOverrides?: ThemeOverrides | undefined;
   children: React.ReactNode;
 }

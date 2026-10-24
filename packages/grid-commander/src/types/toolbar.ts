@@ -6,10 +6,10 @@ import type { SortingState, ColumnFiltersState } from '@tanstack/react-table';
 export interface FilterPreset {
   id: string;
   label: string;
-  icon?: string;
-  filters?: ColumnFiltersState;
-  sorting?: SortingState;
-  globalFilter?: string;
+  icon?: string | undefined;
+  filters?: ColumnFiltersState | undefined;
+  sorting?: SortingState | undefined;
+  globalFilter?: string | undefined;
 }
 
 /**
@@ -17,11 +17,11 @@ export interface FilterPreset {
  */
 export interface PrimaryAction {
   label: string;
-  icon?: string;
+  icon?: string | undefined;
   onClick: () => void;
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /** Attached to the rendered <button> so popovers can anchor to it. */
-  buttonRef?: React.Ref<HTMLButtonElement>;
+  buttonRef?: React.Ref<HTMLButtonElement> | undefined;
 }
 
 /**
@@ -31,15 +31,15 @@ export interface PrimaryAction {
 export interface ToolbarActionButton {
   id: string;
   label: string;
-  icon?: string;
-  shortcut?: string;
-  accentColor?: string;
+  icon?: string | undefined;
+  shortcut?: string | undefined;
+  accentColor?: string | undefined;
   onClick: () => void;
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /** Attached to the rendered <button> so popovers can anchor to it. */
-  buttonRef?: React.Ref<HTMLButtonElement>;
+  buttonRef?: React.Ref<HTMLButtonElement> | undefined;
   /** `data-testid` on the rendered <button>. */
-  testId?: string;
+  testId?: string | undefined;
   /** Tooltip; defaults to the label (with the shortcut, when there is one). */
-  title?: string;
+  title?: string | undefined;
 }

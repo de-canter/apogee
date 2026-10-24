@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { CommandAction, CommandActionItem } from '../types/actions';
+import type { CommandAction, CommandActionItem, ActionContext } from '../types/actions';
 import type { CockpitRef } from '../types/cockpit-ref';
 
 export interface ContextMenuState {
@@ -8,7 +8,7 @@ export interface ContextMenuState {
   rowId: string;
 }
 
-export interface CommandContextMenuProps<T = any> {
+export interface CommandContextMenuProps<T = unknown> {
   items: CommandActionItem<T>[];
   row: T;
   position: { x: number; y: number };
@@ -34,12 +34,19 @@ export function CommandContextMenu<T>({
   const menuRef = useRef<HTMLDivElement>(null);
   const [focusIndex, setFocusIndex] = useState(-1);
   const [submenu, setSubmenu] = useState<SubmenuState | null>(null);
-  const hoverTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  // What guards may inspect besides the row.
+  const actionContext: ActionContext<T> = {
+    selectedIds: cockpit.getSelectedIds(),
+    selectedRows: cockpit.getSelectedRows(),
+    filteredRows: cockpit.getFilteredRows(),
+  };
 
   // Filter visible items
   const visibleItems = items.filter((item) => {
     if (item.type === 'divider') return true;
-    return !item.visible || item.visible(row, {});
+    return !item.visible || item.visible(row, actionContext);
   });
 
   // Clamp position to viewport
@@ -98,7 +105,7 @@ export function CommandContextMenu<T>({
         e.preventDefault();
         const item = actionItems[focusIndex];
         if (item && !item.children?.length) {
-          const isDisabled = item.disabled?.(row, {});
+          const isDisabled = item.disabled?.(row, actionContext);
           if (!isDisabled) {
             item.handler?.(row, cockpit);
             onClose();
@@ -149,7 +156,7 @@ export function CommandContextMenu<T>({
   const handleItemClick = useCallback(
     (item: CommandAction<T>) => {
       if (item.children?.length) return;
-      const isDisabled = item.disabled?.(row, {});
+      const isDisabled = item.disabled?.(row, actionContext);
       if (isDisabled) return;
       item.handler?.(row, cockpit);
       onClose();
@@ -180,7 +187,7 @@ export function CommandContextMenu<T>({
 
         actionIndex++;
         const currentActionIndex = actionIndex;
-        const isDisabled = item.disabled?.(row, {});
+        const isDisabled = item.disabled?.(row, actionContext);
         const isFocused = currentActionIndex === focusIndex;
         const hasSubmenu = !!(item.children?.length);
 

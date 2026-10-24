@@ -1,5 +1,6 @@
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
+import type { CockpitRef } from '../types/cockpit-ref';
 import { CommandCockpit } from '../components/CommandCockpit';
 import type { CommandColumnDef } from '../types/column';
 
@@ -89,12 +90,12 @@ describe('CommandCockpit', () => {
     fireEvent.keyDown(focused, { key: 'w' });
 
     expect(handler).toHaveBeenCalledTimes(1);
-    const cockpit = handler.mock.calls[0][0];
+    const cockpit = handler.mock.calls[0]![0] as CockpitRef<TestRow>;
     expect(cockpit.selectedRowId).toBe('2');
     expect(cockpit.selectedRow).toEqual(testData[1]);
   });
 
-  it('calls onPersistState with debounce', async () => {
+  it('calls onPersistState with debounce', () => {
     vi.useFakeTimers();
     const onPersistState = vi.fn();
     render(

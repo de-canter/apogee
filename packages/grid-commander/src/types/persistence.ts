@@ -7,8 +7,8 @@ export interface PersistedGridState {
   sorting: SortingState;
   grouping: string[];
   rowDensity: 'compact' | 'comfortable' | 'expanded';
-  globalFilter?: string;
-  detailPanelWidth?: number;
+  globalFilter?: string | undefined;
+  detailPanelWidth?: number | undefined;
 }
 
 export interface ColumnStateChange {

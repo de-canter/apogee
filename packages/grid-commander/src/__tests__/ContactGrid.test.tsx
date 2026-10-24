@@ -32,7 +32,7 @@ describe('ContactGrid', () => {
     const onCall = vi.fn();
     render(<ContactGrid contacts={contacts} onCall={onCall} />);
     const callBtns = screen.getAllByTitle('Call');
-    fireEvent.click(callBtns[0]);
+    fireEvent.click(callBtns[0]!);
     expect(onCall).toHaveBeenCalledWith(contacts[0]);
   });
 
@@ -40,7 +40,7 @@ describe('ContactGrid', () => {
     const onEmail = vi.fn();
     render(<ContactGrid contacts={contacts} onEmail={onEmail} />);
     const emailBtns = screen.getAllByTitle('Email');
-    fireEvent.click(emailBtns[0]);
+    fireEvent.click(emailBtns[0]!);
     expect(onEmail).toHaveBeenCalledWith(contacts[0]);
   });
 

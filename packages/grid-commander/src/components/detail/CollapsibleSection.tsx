@@ -2,11 +2,11 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 
 export interface CollapsibleSectionProps {
   title: string;
-  badge?: React.ReactNode;
-  actions?: React.ReactNode;
-  summaryContent?: React.ReactNode;
-  defaultOpen?: boolean;
-  onToggle?: (open: boolean) => void;
+  badge?: React.ReactNode | undefined;
+  actions?: React.ReactNode | undefined;
+  summaryContent?: React.ReactNode | undefined;
+  defaultOpen?: boolean | undefined;
+  onToggle?: ((open: boolean) => void) | undefined;
   children: React.ReactNode;
 }
 

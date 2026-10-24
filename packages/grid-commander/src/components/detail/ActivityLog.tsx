@@ -6,7 +6,7 @@ export interface ActivityEntry {
   id: string;
   type: ActivityType;
   message: string;
-  user?: string;
+  user?: string | undefined;
   timestamp: string | Date;
 }
 
@@ -14,15 +14,15 @@ export type ActivityTabsMode = 'default' | 'notes-comms';
 
 export interface ActivityLogProps {
   entries: ActivityEntry[];
-  onAddNote?: (text: string) => void;
+  onAddNote?: ((text: string) => void) | undefined;
   /** 'default' = All / Notes / System / Comms; 'notes-comms' = "Notes + Comms" and "System (n)". */
-  tabs?: ActivityTabsMode;
+  tabs?: ActivityTabsMode | undefined;
   /** Tab id selected on first render. Default tabs: all | note | system | communication. Notes-comms tabs: notes-comms | system. */
-  defaultTab?: string;
+  defaultTab?: string | undefined;
   /** Group entries under a divider per calendar day and show time of day on each row. */
-  groupByDay?: boolean;
+  groupByDay?: boolean | undefined;
   /** Reference time for Today / Yesterday and relative times. Defaults to the current time. */
-  now?: Date;
+  now?: Date | undefined;
 }
 
 export interface ActivityDayGroup {
@@ -112,7 +112,7 @@ export function ActivityLog({
   const [noteText, setNoteText] = useState('');
 
   // Unknown or unset ids fall back to the first tab (All, or Notes + Comms).
-  const activeDef = tabDefs.find((t) => t.id === selectedTab) ?? tabDefs[0];
+  const activeDef = tabDefs.find((t) => t.id === selectedTab) ?? tabDefs[0]!;
   const activeTab = activeDef.id;
 
   // Reverse-chronological

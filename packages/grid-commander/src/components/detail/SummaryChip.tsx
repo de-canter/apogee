@@ -1,7 +1,7 @@
 export interface SummaryChipProps {
   label: string;
   value: string | number;
-  color?: string;
+  color?: string | undefined;
 }
 
 export function SummaryChip({ label, value, color }: SummaryChipProps) {

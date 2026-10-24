@@ -3,19 +3,21 @@ import type { ReactNode } from 'react';
 /**
  * Props passed to a cell editor component.
  */
-export interface CellEditorProps<T = any> {
-  value: any;
-  row: T;
-  config: Record<string, any>;
+export interface CellEditorProps<TRow = unknown, TValue = unknown> {
+  value: TValue;
+  row: TRow;
+  config: Record<string, unknown>;
   columnId: string;
-  onCommit: (newValue: any) => void;
+  onCommit: (newValue: TValue) => void;
   onCancel: () => void;
 }
 
 /**
  * A cell editor function — returns a ReactNode for inline editing.
  */
-export type CellEditorFn<T = any> = (props: CellEditorProps<T>) => ReactNode;
+export type CellEditorFn<TRow = unknown> = {
+  bivarianceHack(props: CellEditorProps<TRow>): ReactNode;
+}['bivarianceHack'];
 
 /**
  * Registry mapping editor names to editor functions.
@@ -33,9 +35,9 @@ export interface EditingCell {
 /**
  * Callback when a cell edit is committed.
  */
-export type OnCellEdit<T = any> = (
+export type OnCellEdit<T = unknown> = (
   rowId: string,
   columnId: string,
-  value: any,
+  value: unknown,
   row: T
 ) => void;

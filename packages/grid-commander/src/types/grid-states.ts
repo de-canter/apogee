@@ -1,23 +1,23 @@
 import type React from 'react';
 
-export interface RowColorRule<T = any> {
+export interface RowColorRule<T = unknown> {
   /** Predicate — receives the row data */
   match: (row: T) => boolean;
   /** CSS class name to apply to the row <tr>/<div> */
-  className?: string;
+  className?: string | undefined;
   /** Inline style overrides */
-  style?: React.CSSProperties;
+  style?: React.CSSProperties | undefined;
 }
 
 export interface GridSkeletonProps {
-  rows?: number;
-  columns?: number;
-  density?: 'compact' | 'comfortable' | 'expanded';
+  rows?: number | undefined;
+  columns?: number | undefined;
+  density?: 'compact' | 'comfortable' | 'expanded' | undefined;
 }
 
 export interface GridEmptyStateProps {
-  icon?: React.ReactNode;
-  title?: string;
-  description?: string;
-  action?: React.ReactNode;
+  icon?: React.ReactNode | undefined;
+  title?: string | undefined;
+  description?: string | undefined;
+  action?: React.ReactNode | undefined;
 }

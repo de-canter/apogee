@@ -3,7 +3,7 @@ import type { CockpitRef } from './cockpit-ref';
 /**
  * Props received by consumer-provided detail panel content component.
  */
-export interface DetailPanelProps<T = any> {
+export interface DetailPanelProps<T = unknown> {
   row: T;
   rowId: string;
   cockpit: CockpitRef<T>;

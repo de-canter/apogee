@@ -2,21 +2,22 @@ export interface ExportColumn {
   id: string;
   header: string;
   /** Custom value accessor — defaults to row[id] */
-  accessor?: (row: any) => string | number | boolean | null;
+  accessor?: ((row: unknown) => string | number | boolean | null) | undefined;
 }
 
 function escapeCSVValue(value: unknown): string {
   if (value == null) return '';
-  const str = typeof value === 'object' ? JSON.stringify(value) : String(value);
+  const str =
+    typeof value === 'object' ? JSON.stringify(value) : typeof value === 'string' ? value : String(value);
   if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
     return `"${str.replace(/"/g, '""')}"`;
   }
   return str;
 }
 
-function getValue(row: any, column: ExportColumn): unknown {
+function getValue(row: unknown, column: ExportColumn): unknown {
   if (column.accessor) return column.accessor(row);
-  return row[column.id];
+  return (row as Record<string, unknown> | null | undefined)?.[column.id];
 }
 
 /** Format rows as CSV string (handles quoting, escaping, nested objects) */
