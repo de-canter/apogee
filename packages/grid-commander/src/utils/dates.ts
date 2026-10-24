@@ -16,6 +16,12 @@ function toDate(value: string | Date | number): Date {
   return new Date(value);
 }
 
+/** The local calendar day as YYYY-MM-DD: what a date input yields and what the cells display. */
+export function localDayKey(date: Date): string {
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${p(date.getMonth() + 1)}-${p(date.getDate())}`;
+}
+
 function startOfDay(date: Date): Date {
   const d = new Date(date);
   d.setHours(0, 0, 0, 0);

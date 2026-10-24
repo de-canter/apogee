@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { localDayKey } from '../../utils/dates';
 import type { CellEditorProps } from '../../types/editing';
 
 const DATE_STYLE: React.CSSProperties = {
@@ -21,15 +22,11 @@ function toDateValue(val: unknown): string {
     const m = /^(\d{4}-\d{2}-\d{2})/.exec(val);
     if (m) return m[1]!;
     const d = new Date(val);
-    return isNaN(d.getTime()) ? '' : localIso(d);
+    return isNaN(d.getTime()) ? '' : localDayKey(d);
   }
-  if (val instanceof Date) return isNaN(val.getTime()) ? '' : localIso(val);
-  if (typeof val === 'number') return localIso(new Date(val));
+  if (val instanceof Date) return isNaN(val.getTime()) ? '' : localDayKey(val);
+  if (typeof val === 'number') return localDayKey(new Date(val));
   return '';
-}
-function localIso(d: Date): string {
-  const p = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 }
 
 export function DateEditor({ value, onCommit, onCancel }: CellEditorProps) {

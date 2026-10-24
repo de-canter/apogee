@@ -1935,3 +1935,15 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Countdown renderer: colour by the variant the host publishes (or the day thresholds). */
+.gc-countdown {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.gc-countdown--critical { color: var(--gc-red); }
+.gc-countdown--warning { color: var(--gc-orange); }
+.gc-countdown--ok { color: var(--gc-green); }
+.gc-countdown--done { color: var(--gc-text-muted); font-weight: 400; }
+.gc-countdown--none { color: var(--gc-text-dim); font-weight: 400; }

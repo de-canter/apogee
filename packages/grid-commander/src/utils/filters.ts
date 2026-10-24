@@ -1,14 +1,22 @@
 import type { FilterFn } from '@tanstack/react-table';
 import type { FilterType } from '../types/column';
+import { localDayKey } from './dates';
 
 export interface DateRangeValue { from?: string | undefined; to?: string | undefined }
 export interface NumberRangeValue { min?: number | undefined; max?: number | undefined }
 
 const textOf = (v: unknown): string => (v === null || v === undefined ? '' : typeof v === 'string' ? v : typeof v === 'number' || typeof v === 'boolean' ? String(v) : '');
+const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
+/** A plain YYYY-MM-DD is already a day; an instant (ISO string, Date, epoch) is read in the local zone, like the cells. */
 const dayOf = (v: unknown): string | null => {
-  if (typeof v === 'string') return v.slice(0, 10);
-  if (v instanceof Date) return v.toISOString().slice(0, 10);
-  if (typeof v === 'number') return new Date(v).toISOString().slice(0, 10);
+  if (typeof v === 'string') {
+    const t = v.trim();
+    if (DATE_ONLY.test(t)) return t;
+    const d = new Date(t);
+    return isNaN(d.getTime()) ? null : localDayKey(d);
+  }
+  if (v instanceof Date) return isNaN(v.getTime()) ? null : localDayKey(v);
+  if (typeof v === 'number') return localDayKey(new Date(v));
   return null;
 };
 

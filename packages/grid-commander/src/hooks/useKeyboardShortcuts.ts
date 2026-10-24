@@ -106,7 +106,8 @@ export function useKeyboardShortcuts<T = unknown>({
       // Always allow Escape, even in input
       if (e.key === 'Escape') {
         if (inInput) {
-          (activeEl as HTMLElement)?.blur();
+          // An inline editor handles its own Escape (cancel); blurring it here would commit the edit.
+          if (!(activeEl as Element).closest('.gc-cell--editing')) (activeEl as HTMLElement).blur();
           return;
         }
         cockpitRef.current?.closeDetailPanel();

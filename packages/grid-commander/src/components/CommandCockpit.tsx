@@ -501,11 +501,8 @@ function CommandCockpitInner<T>(
     stopEditing: (save = true) => {
       if (!editingCell) return;
       if (!save) {
-        editCancelledRef.current = true;
+        editCancelledRef.current = true; // cleared by the next startEditing
         setEditingCell(null);
-        queueMicrotask(() => {
-          editCancelledRef.current = false;
-        });
         return;
       }
       // Editors commit on blur; blurring the active editor commits the typed value before we close.

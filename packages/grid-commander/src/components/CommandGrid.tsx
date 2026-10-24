@@ -643,6 +643,10 @@ export function CommandGrid<T>({
   );
 
   // Render editor for a cell
+  // The source-of-truth guard: a commit from an editor that is no longer the editing cell (cancelled,
+  // or unmounting after a cancel) is dropped here, whatever the browser's blur timing.
+  const editingCellRef = useRef(editingCell);
+  editingCellRef.current = editingCell;
   const renderEditor = useCallback(
     (row: Row<T>, columnId: string, value: unknown) => {
       const colDef = columnDefMap.get(columnId);
@@ -659,6 +663,8 @@ export function CommandGrid<T>({
         config: { ...colDef?.cellConfig, ...colDef?.cellEditorConfig },
         columnId,
         onCommit: (newValue: unknown) => {
+          const current = editingCellRef.current;
+          if (!current || current.rowId !== row.id || current.columnId !== columnId) return;
           onCellEdit?.(row.id, columnId, newValue, row.original);
           onStopEditing?.();
         },

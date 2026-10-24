@@ -1,4 +1,5 @@
 import { useCockpitEnvironment } from '../../environment';
+import { localDayKey } from '../../utils/dates';
 import { useState, useCallback } from 'react';
 
 export type ActivityType = 'note' | 'system' | 'communication';
@@ -67,11 +68,6 @@ function notesCommsTabs(systemCount: number): TabDef[] {
 const byNewest = (a: ActivityEntry, b: ActivityEntry) =>
   new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
 
-function dayKey(date: Date): string {
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${date.getFullYear()}-${m}-${d}`;
-}
 
 /**
  * Group entries by local calendar day, newest day first and newest entry first
@@ -82,15 +78,15 @@ export function groupActivityByDay(
   now: Date = new Date(),
   labels: ActivityLabels = DEFAULT_LABELS
 ): ActivityDayGroup[] {
-  const todayKey = dayKey(now);
+  const todayKey = localDayKey(now);
   const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
-  const yesterdayKey = dayKey(yesterday);
+  const yesterdayKey = localDayKey(yesterday);
 
   const groups: ActivityDayGroup[] = [];
   const byKey = new Map<string, ActivityDayGroup>();
   for (const entry of [...entries].sort(byNewest)) {
     const date = new Date(entry.timestamp);
-    const key = dayKey(date);
+    const key = localDayKey(date);
     let group = byKey.get(key);
     if (!group) {
       const label = key === todayKey

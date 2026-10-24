@@ -91,7 +91,7 @@ export type { ActionButtonProps } from './components/detail/ActionButton';
 export { ContactGrid } from './components/detail/ContactGrid';
 export type { ContactGridProps, Contact } from './components/detail/ContactGrid';
 export { ActivityLog, groupActivityByDay } from './components/detail/ActivityLog';
-export type { ActivityLogProps, ActivityEntry, ActivityType, ActivityTabsMode, ActivityDayGroup } from './components/detail/ActivityLog';
+export type { ActivityLogProps, ActivityEntry, ActivityType, ActivityTabsMode, ActivityDayGroup, ActivityLabels } from './components/detail/ActivityLog';
 
 // === Renderers ===
 export { createRendererRegistry, builtInRenderers } from './components/renderers/registry';
@@ -121,3 +121,6 @@ export {
   type CockpitEnvironmentProviderProps,
 } from './environment';
 export { CountdownCell } from './components/renderers/CountdownCell';
+
+export { filterFns, filterFnFor, type DateRangeValue, type NumberRangeValue } from './utils/filters';
+export { localDayKey } from './utils/dates';
