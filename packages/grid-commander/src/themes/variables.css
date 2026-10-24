@@ -1,0 +1,19 @@
+/*
+ * Apogee Grid Commander — CSS Custom Property Definitions
+ * All styling uses --gc-* tokens. No Tailwind in this package.
+ */
+
+.gc-theme-light,
+.gc-theme-dark {
+  /* Base reset for the grid container */
+  box-sizing: border-box;
+  font-family: var(--gc-font-body);
+  font-size: 12px;
+  color: var(--gc-text);
+  line-height: 1.4;
+}
+
+.gc-theme-light *,
+.gc-theme-dark * {
+  box-sizing: border-box;
+}

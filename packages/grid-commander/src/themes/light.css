@@ -1,0 +1,67 @@
+/* Apogee Grid Commander — Light Theme */
+
+.gc-theme-light {
+  /* Backgrounds */
+  --gc-bg: #ffffff;
+  --gc-bg-panel: #f8f9fa;
+  --gc-bg-row: #ffffff;
+  --gc-bg-row-alt: #f8f9fb;
+  --gc-bg-row-hover: #eef2f7;
+  --gc-bg-row-selected: #e3f0fd;
+  --gc-bg-section: #f8f9fa;
+  --gc-bg-section-header: #eef0f3;
+  --gc-bg-input: #ffffff;
+  --gc-bg-header: #f0f2f5;
+  --gc-bg-toolbar: #f5f6f8;
+  --gc-bg-status-bar: #f0f2f5;
+
+  /* Borders */
+  --gc-border: #d0d5dd;
+  --gc-border-light: #e4e7ec;
+  --gc-border-focus: #4a90d9;
+
+  /* Text */
+  --gc-text: #1a1d23;
+  --gc-text-secondary: #475467;
+  --gc-text-muted: #667085;
+  --gc-text-dim: #6b7280;
+
+  /* Accent */
+  --gc-accent: #2563eb;
+  --gc-accent-hover: #1d4ed8;
+
+  /* Status Colors */
+  --gc-green: #16a34a;
+  --gc-green-bg: #dcfce7;
+  --gc-yellow: #ca8a04;
+  --gc-yellow-bg: #fef9c3;
+  --gc-orange: #ea580c;
+  --gc-orange-bg: #ffedd5;
+  --gc-red: #dc2626;
+  --gc-red-bg: #fee2e2;
+
+  /* Typography */
+  --gc-font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', 'SF Mono', monospace;
+  --gc-font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* Spacing */
+  --gc-row-height-compact: 28px;
+  --gc-row-height-comfortable: 36px;
+  --gc-row-height-expanded: 48px;
+  --gc-header-height: 32px;
+  --gc-toolbar-height: 40px;
+  --gc-status-bar-height: 24px;
+
+  /* Shadows */
+  --gc-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --gc-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --gc-shadow-context: 0 4px 16px rgba(0, 0, 0, 0.12);
+
+  /* Radius */
+  --gc-radius-sm: 3px;
+  --gc-radius-md: 4px;
+
+  /* Transitions */
+  --gc-transition-fast: 100ms ease;
+  --gc-transition-normal: 150ms ease;
+}

@@ -7,3 +7,5 @@ coverage/
 .claude/WATCHDOG_TIMEOUT
 .claude/settings.local.json
 BLOCKED.md
+.superpowers/
+release/
