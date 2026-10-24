@@ -29,6 +29,7 @@ export type {
   ThemeConfig,
   ThemeOverrides,
   ThemeProviderProps,
+  ThemeMode,
 } from './types/theme';
 
 export type { CockpitRef } from './types/cockpit-ref';
@@ -57,7 +58,7 @@ export type {
 } from './types/editing';
 
 // === Components ===
-export { ThemeProvider } from './themes/ThemeProvider';
+export { ThemeProvider, useThemeDepth } from './themes/ThemeProvider';
 export { CommandGrid } from './components/CommandGrid';
 export type { CommandGridProps } from './components/CommandGrid';
 export { CommandCockpit } from './components/CommandCockpit';
