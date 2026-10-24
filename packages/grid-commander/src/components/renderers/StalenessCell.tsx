@@ -24,7 +24,7 @@ export function StalenessCell({ value, config }: CellRendererProps) {
 
 function toDays(value: unknown): number | null {
   if (value === null || value === undefined || value === '') return null;
-  const days = typeof value === 'string' || value instanceof Date ? daysSince(value) : Number(value);
+  const days = typeof value === 'string' || value instanceof Date ? daysSince(value, new Date()) : Number(value);
   if (!Number.isFinite(days) || days < 0) return null;
   return days;
 }

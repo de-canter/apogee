@@ -40,15 +40,6 @@
   --gc-red: #dc2626;
   --gc-red-bg: #fee2e2;
 
-  /* Stage Colors */
-  --gc-stage-new: #3b82f6;
-  --gc-stage-pre-exam: #6366f1;
-  --gc-stage-in-exam: #8b5cf6;
-  --gc-stage-curative: #ea580c;
-  --gc-stage-pre-close: #0d9488;
-  --gc-stage-closing: #16a34a;
-  --gc-stage-post-close: #6b7280;
-
   /* Typography */
   --gc-font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', 'SF Mono', monospace;
   --gc-font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;

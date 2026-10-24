@@ -1128,7 +1128,7 @@
 }
 
 .gc-pinned-chip-remove:hover {
-  color: var(--gc-text-primary);
+  color: var(--gc-text);
   background: var(--gc-bg-row-hover);
 }
 

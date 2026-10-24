@@ -69,7 +69,7 @@ describe('CommandCockpit', () => {
     expect(screen.getByText('Order B')).toBeInTheDocument();
   });
 
-  it('runs a grid-scoped consumer shortcut after a row is selected by click (#862)', () => {
+  it('runs a grid-scoped consumer shortcut after a row is selected by click', () => {
     const handler = vi.fn();
     render(
       <CommandCockpit
@@ -142,13 +142,13 @@ describe('CommandCockpit', () => {
     expect(screen.getByText('Status')).toBeInTheDocument();
   });
 
-  it('shows "N of M" in the toolbar once a preset narrows the rows (#909)', async () => {
+  it('shows "N of M" in the toolbar once a preset narrows the rows', async () => {
     render(
       <CommandCockpit
         data={testData}
         columns={testColumns}
         getRowId={(r) => r.id}
-        title="Closing Pipeline"
+        title="Work Queue"
         presets={[{ id: 'open', label: 'Open', filters: [{ id: 'status', value: 'Open' }] }]}
         initialPresetId="open"
       />
@@ -162,7 +162,7 @@ describe('CommandCockpit', () => {
         data={testData}
         columns={testColumns}
         getRowId={(r) => r.id}
-        title="Closing Pipeline"
+        title="Work Queue"
       />
     );
     expect(await screen.findByText('3')).toBeInTheDocument();

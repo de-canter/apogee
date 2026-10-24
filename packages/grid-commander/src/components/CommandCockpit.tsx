@@ -234,7 +234,7 @@ function CommandCockpitInner<T>(
   const gridRef = useRef<HTMLDivElement>(null);
   const globalFilterRef = useRef<HTMLInputElement>(null);
   const visibleRowIdsRef = useRef<string[]>([]);
-  // null until the grid has reported its first row model (#909): an empty
+  // null until the grid has reported its first row model : an empty
   // array after that is a real "nothing matches", not "not yet measured".
   const [filteredRowIds, setFilteredRowIds] = useState<string[] | null>(null);
 
@@ -541,7 +541,7 @@ function CommandCockpitInner<T>(
   const detailRow = detailPanelRowId ? (rowMap.get(detailPanelRowId) ?? null) : null;
 
   // Rows in front of the user after presets, column filters and the global
-  // filter — the grid reports its row model up (#909). The toolbar shows
+  // filter — the grid reports its row model up . The toolbar shows
   // "24 of 30" whenever that is fewer than the board holds.
   const filteredRowCount = filteredRows.length;
 

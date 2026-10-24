@@ -23,7 +23,16 @@ export interface ActivityLogProps {
   groupByDay?: boolean | undefined;
   /** Reference time for Today / Yesterday and relative times. Defaults to the current time. */
   now?: Date | undefined;
+  /** Day-group words and the locale for dates and times. Defaults to en-US. */
+  labels?: Partial<ActivityLabels> | undefined;
 }
+
+export interface ActivityLabels {
+  today: string;
+  yesterday: string;
+  locale: string;
+}
+const DEFAULT_LABELS: ActivityLabels = { today: 'Today', yesterday: 'Yesterday', locale: 'en-US' };
 
 export interface ActivityDayGroup {
   /** Local calendar day, YYYY-MM-DD. */
@@ -67,7 +76,11 @@ function dayKey(date: Date): string {
  * Group entries by local calendar day, newest day first and newest entry first
  * within a day. "Today" and "Yesterday" are measured against `now`.
  */
-export function groupActivityByDay(entries: ActivityEntry[], now: Date = new Date()): ActivityDayGroup[] {
+export function groupActivityByDay(
+  entries: ActivityEntry[],
+  now: Date = new Date(),
+  labels: ActivityLabels = DEFAULT_LABELS
+): ActivityDayGroup[] {
   const todayKey = dayKey(now);
   const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
   const yesterdayKey = dayKey(yesterday);
@@ -80,10 +93,10 @@ export function groupActivityByDay(entries: ActivityEntry[], now: Date = new Dat
     let group = byKey.get(key);
     if (!group) {
       const label = key === todayKey
-        ? 'Today'
+        ? labels.today
         : key === yesterdayKey
-          ? 'Yesterday'
-          : date.toLocaleDateString('en-US', {
+          ? labels.yesterday
+          : date.toLocaleDateString(labels.locale, {
               month: 'short',
               day: 'numeric',
               ...(date.getFullYear() !== now.getFullYear() ? { year: 'numeric' } : {}),
@@ -104,7 +117,9 @@ export function ActivityLog({
   defaultTab,
   groupByDay = false,
   now,
+  labels: labelsProp,
 }: ActivityLogProps) {
+  const labels: ActivityLabels = { ...DEFAULT_LABELS, ...labelsProp };
   const tabDefs = tabs === 'notes-comms'
     ? notesCommsTabs(entries.filter((e) => e.type === 'system').length)
     : DEFAULT_TABS;
@@ -117,7 +132,7 @@ export function ActivityLog({
 
   // Reverse-chronological
   const sorted = entries.filter(activeDef.matches).sort(byNewest);
-  const groups = groupByDay ? groupActivityByDay(sorted, now) : null;
+  const groups = groupByDay ? groupActivityByDay(sorted, now, labels) : null;
   const clock = now ?? new Date();
 
   const renderEntry = (entry: ActivityEntry) => (
@@ -137,7 +152,7 @@ export function ActivityLog({
           <span className="gc-activity-entry-message" style={{ margin: 0, flex: 1 }}>{entry.message}</span>
         )}
         <span className="gc-activity-entry-time">
-          {groupByDay ? formatTimeOfDay(entry.timestamp) : formatActivityTime(entry.timestamp, clock)}
+          {groupByDay ? formatTimeOfDay(entry.timestamp, labels.locale) : formatActivityTime(entry.timestamp, clock, labels)}
         </span>
       </div>
       {(entry.type !== 'system' || entry.user) && (
@@ -213,11 +228,11 @@ export function ActivityLog({
   );
 }
 
-function formatTimeOfDay(timestamp: string | Date): string {
-  return new Date(timestamp).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+function formatTimeOfDay(timestamp: string | Date, locale: string): string {
+  return new Date(timestamp).toLocaleTimeString(locale, { hour: 'numeric', minute: '2-digit' });
 }
 
-function formatActivityTime(timestamp: string | Date, now: Date): string {
+function formatActivityTime(timestamp: string | Date, now: Date, labels: ActivityLabels): string {
   const date = new Date(timestamp);
   const diffMs = now.getTime() - date.getTime();
   const diffMins = Math.floor(diffMs / 60000);
@@ -228,5 +243,5 @@ function formatActivityTime(timestamp: string | Date, now: Date): string {
   if (diffHours < 24) return `${diffHours}h ago`;
   const diffDays = Math.floor(diffHours / 24);
   if (diffDays < 7) return `${diffDays}d ago`;
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  return date.toLocaleDateString(labels.locale, { month: 'short', day: 'numeric' });
 }

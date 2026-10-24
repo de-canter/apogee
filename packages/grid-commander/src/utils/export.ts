@@ -5,10 +5,18 @@ export interface ExportColumn {
   accessor?: ((row: unknown) => string | number | boolean | null) | undefined;
 }
 
+/** Text for a CSV cell: objects as JSON, primitives as themselves, functions and symbols as ''. */
+function scalarText(value: unknown): string {
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') return value.toString();
+  if (typeof value === 'object') return JSON.stringify(value);
+  return '';
+}
+
 function escapeCSVValue(value: unknown): string {
   if (value == null) return '';
-  const str =
-    typeof value === 'object' ? JSON.stringify(value) : typeof value === 'string' ? value : String(value);
+  const str = scalarText(value);
   if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
     return `"${str.replace(/"/g, '""')}"`;
   }

@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { vi, describe, it, expect } from 'vitest';
 import { TextCell } from '../components/renderers/TextCell';
 import { LinkCell } from '../components/renderers/LinkCell';
 import { TwoLineCell } from '../components/renderers/TwoLineCell';
@@ -12,7 +12,6 @@ import { StalenessCell } from '../components/renderers/StalenessCell';
 import { DateCell } from '../components/renderers/DateCell';
 import { BooleanCheckCell } from '../components/renderers/BooleanCheckCell';
 import { createRendererRegistry, getRenderer } from '../components/renderers/registry';
-import { setGridClock } from '../utils/dates';
 
 const baseProps = { row: {}, config: {}, columnId: 'test' };
 
@@ -146,10 +145,11 @@ describe('DeadlineCell', () => {
     expect(screen.getByText('5d late')).toBeInTheDocument();
   });
 
-  it('counts from the registered grid clock, not the browser clock', () => {
+  it('counts from the current date', () => {
     // Business today is Tue Oct 6 while the wall clock reads Fri Oct 9: a file
     // closing on the 6th is TODAY, not "3d late"
-    setGridClock(() => new Date(2026, 9, 6, 10, 0));
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 9, 6, 10, 0));
     try {
       const { rerender } = render(
         <DeadlineCell value="2026-10-06" config={{ showCountdown: true }} row={{}} columnId="test" />
@@ -160,7 +160,7 @@ describe('DeadlineCell', () => {
       rerender(<DeadlineCell value="2026-10-05" config={{ showCountdown: true }} row={{}} columnId="test" />);
       expect(screen.getByText('1d late')).toBeInTheDocument();
     } finally {
-      setGridClock(null);
+      vi.useRealTimers();
     }
   });
 
@@ -256,17 +256,17 @@ describe('CurrencyCell', () => {
   });
 
   it('lets config.formatValue replace the figure with a word, and falls through on undefined (#911)', () => {
-    const formatValue = (v: number, row: { lenderName?: string }) => (!row.lenderName && !v ? 'Cash' : undefined);
+    const formatValue = (v: number, row: { vendorName?: string }) => (!row.vendorName && !v ? 'Cash' : undefined);
     const { container, rerender } = render(
-      <CurrencyCell value={0} config={{ formatValue }} row={{ lenderName: '' }} columnId="test" />
+      <CurrencyCell value={0} config={{ formatValue }} row={{ vendorName: '' }} columnId="test" />
     );
     expect(container.textContent).toBe('Cash');
-    rerender(<CurrencyCell value={388000} config={{ formatValue }} row={{ lenderName: 'Frontier' }} columnId="test" />);
+    rerender(<CurrencyCell value={388000} config={{ formatValue }} row={{ vendorName: 'Frontier' }} columnId="test" />);
     expect(container.textContent).toBe('$388,000.00');
   });
 });
 
-describe('DateCell (#920)', () => {
+describe('DateCell', () => {
   it('renders a plain date with no colour and an em dash when empty', () => {
     const { container, rerender } = render(<DateCell value="2026-09-30T12:00:00Z" config={{}} row={{}} columnId="test" />);
     const span = container.querySelector('span') as HTMLSpanElement;

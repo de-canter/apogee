@@ -24,7 +24,7 @@ export function DeadlineCell({ value, row, config }: CellRendererProps) {
     );
   }
 
-  const days = daysUntil(date);
+  const days = daysUntil(date, new Date());
   const criticalDays = num(config, 'criticalDays', 3);
   const warningDays = num(config, 'warningDays', 7);
   const color =

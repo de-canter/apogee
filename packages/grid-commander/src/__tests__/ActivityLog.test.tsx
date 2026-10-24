@@ -20,7 +20,7 @@ const entries = [
   {
     id: '3',
     type: 'communication' as const,
-    message: 'Email sent to lender',
+    message: 'Email sent to vendor',
     user: 'Bob',
     timestamp: new Date(Date.now() - 86400000).toISOString(), // 1d ago
   },
@@ -31,7 +31,7 @@ describe('ActivityLog', () => {
     render(<ActivityLog entries={entries} />);
     expect(screen.getByText('Called the buyer')).toBeInTheDocument();
     expect(screen.getByText('Status changed to In Exam')).toBeInTheDocument();
-    expect(screen.getByText('Email sent to lender')).toBeInTheDocument();
+    expect(screen.getByText('Email sent to vendor')).toBeInTheDocument();
   });
 
   it('renders filter tabs', () => {
@@ -202,7 +202,7 @@ describe('ActivityLog defaultTab (default tabs)', () => {
   it('falls back to All for an unknown tab id', () => {
     render(<ActivityLog entries={entries} defaultTab="nope" />);
     expect(screen.getByText('Called the buyer')).toBeInTheDocument();
-    expect(screen.getByText('Email sent to lender')).toBeInTheDocument();
+    expect(screen.getByText('Email sent to vendor')).toBeInTheDocument();
   });
 });
 
