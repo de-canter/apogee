@@ -12,6 +12,8 @@ Updated 2026-09-18. Things only you can do, plus the queue.
 - [ ] **Run the live smoke once** — `packages/ai/scripts/smoke.ts` (needs `ANTHROPIC_API_KEY` or `ant auth login`). One Haiku `generateObject` plus one short `stream`; confirms the structured-output and caching wire shapes the tests only type-check.
 - [ ] **Decide on `@de_canter/apogee-agent-mongoose` timing** — the products need real `SessionStore`/`MessageStore` adapters before any rewrite; planned after B5.
 
+- [ ] **Approve de-canter/apogee PR `feature/grid-commander`** (`@de_canter/apogee-grid-commander` 0.1.0, the extraction of TitlePrompt's Grid Commander; plan `docs/plans/2026-10-24-grid-commander.md`), then tag `grid-commander-v0.1.0`. Covena pins `0.1.0-rc.1` (published from the branch) until then.
+
 ## Decided
 
 - apogee repo goes **public** under Apache-2.0 once `docs/open-source.md` is closed out; until the packages are on npm, consumers vendor the release tarballs (`vendor/*.tgz` + `pnpm.overrides`, see `docs/consuming.md`).
