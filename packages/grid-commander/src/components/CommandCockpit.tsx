@@ -34,6 +34,15 @@ import type { ExportColumn } from '../utils/export';
 import { useRowSelection } from '../hooks/useRowSelection';
 import { BatchActionBar } from './BatchActionBar';
 
+/** The browser's storage, or nothing: Node exposes a `localStorage` global that is not usable outside a browser. */
+function storage(): Storage | undefined {
+  try {
+    return typeof window !== 'undefined' ? window.localStorage : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export interface CommandCockpitProps<T> {
   // Data
   data: T[];
@@ -222,7 +231,7 @@ function CommandCockpitInner<T>(
   const panelPinKey = persistenceKey ? `${persistenceKey}:detailPanelPinned` : null;
   const [detailPanelPinned, setDetailPanelPinned] = useState(() => {
     if (panelPinKey) {
-      try { return localStorage.getItem(panelPinKey) === 'true'; } catch { return false; }
+      try { return storage()?.getItem(panelPinKey) === 'true'; } catch { return false; }
     }
     return false;
   });
@@ -372,8 +381,8 @@ function CommandCockpitInner<T>(
     setDetailPanelPinned(next);
     if (panelPinKey) {
       try {
-        if (next) localStorage.setItem(panelPinKey, 'true');
-        else localStorage.removeItem(panelPinKey);
+        if (next) storage()?.setItem(panelPinKey, 'true');
+        else storage()?.removeItem(panelPinKey);
       } catch { /* ignore */ }
     }
   }, [detailPanelPinned, panelPinKey]);
@@ -407,12 +416,22 @@ function CommandCockpitInner<T>(
 
   // Sprint 4: Editing handlers
   const handleStartEditing = useCallback((rowId: string, columnId: string) => {
+    editCancelledRef.current = false;
     setEditingCell({ rowId, columnId });
   }, []);
 
+  // A cancelled edit must not commit when the editor unmounts and blurs.
+  const editCancelledRef = useRef(false);
   const handleStopEditing = useCallback(() => {
     setEditingCell(null);
   }, []);
+  const handleCellEditGuarded = useCallback<NonNullable<typeof onCellEdit>>(
+    (rowId, columnId, value, row) => {
+      if (editCancelledRef.current) return;
+      onCellEdit?.(rowId, columnId, value, row);
+    },
+    [onCellEdit]
+  );
 
   // Preset handling
   const handlePresetChange = useCallback(
@@ -479,12 +498,20 @@ function CommandCockpitInner<T>(
     selectAll: () => selectionState.toggleAll(),
     // Sprint 4: Inline editing
     startEditing: handleStartEditing,
-    stopEditing: (save?: boolean) => {
-      if (!save && editingCell) {
+    stopEditing: (save = true) => {
+      if (!editingCell) return;
+      if (!save) {
+        editCancelledRef.current = true;
         setEditingCell(null);
-      } else {
-        handleStopEditing();
+        queueMicrotask(() => {
+          editCancelledRef.current = false;
+        });
+        return;
       }
+      // Editors commit on blur; blurring the active editor commits the typed value before we close.
+      const active = typeof document !== 'undefined' ? (document.activeElement as HTMLElement | null) : null;
+      if (active && cockpitContainerRef.current?.contains(active)) active.blur();
+      handleStopEditing();
     },
     // Expandable sub-rows
     toggleRowExpanded: (rowId: string) => {
@@ -583,7 +610,7 @@ function CommandCockpitInner<T>(
             primaryAction={primaryAction}
             enableExport={enableExport}
             exportColumns={exportColumns}
-            filteredRows={data}
+            filteredRows={filteredRows}
             selectedRows={selectedRows}
           />
         )}
@@ -637,7 +664,7 @@ function CommandCockpitInner<T>(
             onVisibleRowIdsChange={handleVisibleRowIdsChange}
             editingCell={editingCell}
             onStartEditing={handleStartEditing}
-            onCellEdit={onCellEdit}
+            onCellEdit={handleCellEditGuarded}
             onStopEditing={handleStopEditing}
             customEditors={customEditors}
             renderSubComponent={renderSubComponent}

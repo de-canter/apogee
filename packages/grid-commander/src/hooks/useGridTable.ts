@@ -18,6 +18,7 @@ import {
   type Row,
 } from '@tanstack/react-table';
 import type { CommandColumnDef } from '../types/column';
+import { filterFnFor } from '../utils/filters';
 
 export interface UseGridTableOptions<T> {
   data: T[];
@@ -81,6 +82,7 @@ export function useGridTable<T>(options: UseGridTableOptions<T>) {
       columns.map((col) => ({
         ...col,
         enableColumnFilter: col.filterType != null,
+        ...(col.filterFn === undefined && filterFnFor(col.filterType) ? { filterFn: filterFnFor(col.filterType) } : {}),
         enableSorting: col.enableSorting ?? true,
         enableGrouping: enableGrouping,
       })) as ColumnDef<T, unknown>[],

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { CellEditorProps } from '../../types/editing';
 
 const DATE_STYLE: React.CSSProperties = {
@@ -34,6 +34,7 @@ function localIso(d: Date): string {
 
 export function DateEditor({ value, onCommit, onCancel }: CellEditorProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [text, setText] = useState(() => toDateValue(value));
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -43,7 +44,7 @@ export function DateEditor({ value, onCommit, onCancel }: CellEditorProps) {
     if (e.key === 'Enter') {
       e.preventDefault();
       e.stopPropagation();
-      onCommit(inputRef.current?.value || '');
+      onCommit(text);
     } else if (e.key === 'Escape') {
       e.preventDefault();
       e.stopPropagation();
@@ -56,10 +57,10 @@ export function DateEditor({ value, onCommit, onCancel }: CellEditorProps) {
       ref={inputRef}
       type="date"
       style={DATE_STYLE}
-      defaultValue={toDateValue(value)}
-      onChange={(e) => onCommit(e.target.value)}
+      value={text}
+      onChange={(e) => setText(e.target.value)}
       onKeyDown={handleKeyDown}
-      onBlur={() => onCancel()}
+      onBlur={() => onCommit(text)}
       data-testid="gc-editor-date"
     />
   );

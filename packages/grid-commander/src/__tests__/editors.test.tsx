@@ -53,28 +53,17 @@ describe('TextInputEditor', () => {
 });
 
 describe('SelectEditor', () => {
-  it('commits on change', () => {
+  it('commits on Enter and on blur, not on every change', () => {
     const onCommit = vi.fn();
-    const onCancel = vi.fn();
-    const config = {
-      options: [
-        { value: 'a', label: 'Option A' },
-        { value: 'b', label: 'Option B' },
-      ],
-    };
-    render(
-      <SelectEditor
-        {...baseProps}
-        value="a"
-        config={config}
-        onCommit={onCommit}
-        onCancel={onCancel}
-      />
-    );
-    const select = screen.getByTestId('gc-editor-select');
-    fireEvent.change(select, { target: { value: 'b' } });
-    expect(onCommit).toHaveBeenCalledWith('b');
-  });
+    render(<DateEditor {...baseProps} value="2030-02-01" onCommit={onCommit} onCancel={vi.fn()} />);
+    const input = screen.getByTestId<HTMLInputElement>('gc-editor-date');
+    fireEvent.change(input, { target: { value: '2030-03-01' } });
+    expect(onCommit).not.toHaveBeenCalled();
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(onCommit).toHaveBeenCalledWith('2030-03-01');
+    fireEvent.blur(input);
+    expect(onCommit).toHaveBeenCalledTimes(2);
+  });;
 
   it('cancels on Escape', () => {
     const onCommit = vi.fn();
@@ -92,21 +81,19 @@ describe('SelectEditor', () => {
 });
 
 describe('DateEditor', () => {
-  it('commits on change', () => {
+  it('commits on Enter and on blur, not on every change', () => {
     const onCommit = vi.fn();
     const onCancel = vi.fn();
-    render(
-      <DateEditor
-        {...baseProps}
-        value="2024-06-15"
-        onCommit={onCommit}
-        onCancel={onCancel}
-      />
-    );
-    const input = screen.getByTestId('gc-editor-date');
+    render(<DateEditor {...baseProps} value="2024-06-15" onCommit={onCommit} onCancel={onCancel} />);
+    const input = screen.getByTestId<HTMLInputElement>('gc-editor-date');
+    expect(input.value).toBe('2024-06-15');
     fireEvent.change(input, { target: { value: '2024-07-01' } });
+    expect(onCommit).not.toHaveBeenCalled();
+    fireEvent.keyDown(input, { key: 'Enter' });
     expect(onCommit).toHaveBeenCalledWith('2024-07-01');
-  });
+    fireEvent.blur(input);
+    expect(onCommit).toHaveBeenCalledTimes(2);
+  });;
 });
 
 describe('Editor Registry', () => {

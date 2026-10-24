@@ -48,12 +48,22 @@ function HeaderFilterPopover<T>({
   const inputRef = useRef<HTMLInputElement>(null);
   const [localText, setLocalText] = useState<string>((filterValue as string) ?? '');
 
-  // Auto-focus text input on open
+  // Auto-focus the first input on open
   useEffect(() => {
     if (colDef.filterType === 'text' || colDef.filterType === 'date-range' || colDef.filterType === 'number-range') {
       inputRef.current?.focus();
     }
   }, [colDef.filterType]);
+
+  // Range filters hold { min, max } or { from, to }; a bound left empty is open.
+  const range = (filterValue !== null && typeof filterValue === 'object' ? filterValue : {}) as Record<string, unknown>;
+  const setRange = (key: string, raw: string, numeric: boolean) => {
+    const next: Record<string, unknown> = { ...range };
+    if (raw === '') delete next[key];
+    else next[key] = numeric ? Number(raw) : raw;
+    header.column.setFilterValue(Object.keys(next).length ? next : undefined);
+  };
+  const headerText = String(colDef.header || '');
 
   // Close on click outside
   useEffect(() => {
@@ -138,7 +148,7 @@ function HeaderFilterPopover<T>({
       {isSortable && <div className="gc-header-filter-divider" />}
 
       {/* Text filter */}
-      {(colDef.filterType === 'text' || colDef.filterType === 'date-range' || colDef.filterType === 'number-range') && (
+      {colDef.filterType === 'text' && (
         <div className="gc-header-filter-input-wrap">
           <input
             ref={inputRef}
@@ -147,8 +157,30 @@ function HeaderFilterPopover<T>({
             value={localText}
             onChange={(e) => handleTextChange(e.target.value)}
             placeholder="Filter..."
-            aria-label={`Filter ${String(colDef.header || '')} column`}
+            aria-label={`Filter ${headerText} column`}
           />
+        </div>
+      )}
+
+      {/* Number range */}
+      {colDef.filterType === 'number-range' && (
+        <div className="gc-header-filter-input-wrap gc-header-filter-range">
+          <input ref={inputRef} className="gc-header-filter-input" type="number" placeholder="Min" aria-label={`Minimum ${headerText}`}
+            value={typeof range.min === 'number' ? range.min : ''} onChange={(e) => setRange('min', e.target.value, true)} />
+          <span className="gc-header-filter-range-sep">–</span>
+          <input className="gc-header-filter-input" type="number" placeholder="Max" aria-label={`Maximum ${headerText}`}
+            value={typeof range.max === 'number' ? range.max : ''} onChange={(e) => setRange('max', e.target.value, true)} />
+        </div>
+      )}
+
+      {/* Date range */}
+      {colDef.filterType === 'date-range' && (
+        <div className="gc-header-filter-input-wrap gc-header-filter-range">
+          <input ref={inputRef} className="gc-header-filter-input" type="date" aria-label={`${headerText} from`}
+            value={typeof range.from === 'string' ? range.from : ''} onChange={(e) => setRange('from', e.target.value, false)} />
+          <span className="gc-header-filter-range-sep">–</span>
+          <input className="gc-header-filter-input" type="date" aria-label={`${headerText} to`}
+            value={typeof range.to === 'string' ? range.to : ''} onChange={(e) => setRange('to', e.target.value, false)} />
         </div>
       )}
 
@@ -469,7 +501,7 @@ export function CommandGrid<T>({
   }, [rows, onVisibleRowIdsChange]);
 
   // Virtual scrolling
-  const { parentRef, virtualItems, totalSize } = useVirtualRows({
+  const { parentRef, virtualItems, totalSize, scrollToIndex } = useVirtualRows({
     rowCount: rows.length,
     rowDensity,
     enabled: enableVirtualization,
@@ -480,6 +512,12 @@ export function CommandGrid<T>({
   useEffect(() => {
     if (!selectedRowId || selectedRowId === scrollTargetRef.current) return;
     scrollTargetRef.current = selectedRowId;
+    if (enableVirtualization) {
+      // An off-screen row has no DOM node yet; ask the virtualizer by index.
+      const index = rows.findIndex((r) => r.id === selectedRowId);
+      if (index >= 0) scrollToIndex(index);
+      return;
+    }
     // Defer to allow the DOM to update with the new gc-row--selected class
     requestAnimationFrame(() => {
       const container = (parentRef?.current ?? document.querySelector('.gc-grid'));
@@ -489,7 +527,7 @@ export function CommandGrid<T>({
         rowEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
       }
     });
-  }, [selectedRowId, parentRef]);
+  }, [selectedRowId, parentRef, enableVirtualization, rows, scrollToIndex]);
 
   // Column DnD state
   const [dragColumnId, setDragColumnId] = useState<string | null>(null);
