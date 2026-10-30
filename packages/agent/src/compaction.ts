@@ -52,23 +52,39 @@ function renderForSummary(m: AgentMessage): string {
 
 export interface CompactionResult { history: AgentMessage[]; compacted: boolean; summary?: AgentMessage }
 
+/** A turn starts at what the person said (or a summary); hidden tool-use and tool-result messages belong to the turn before them. */
+const isTurnStart = (m: AgentMessage): boolean => m.role === 'summary' || (m.role === 'user' && m.hidden !== true);
+
+/** The index where the last `turns` turns begin, or -1 when the history holds no more than that. */
+function recentTurnsStart(history: readonly AgentMessage[], turns: number): number {
+  let seen = 0;
+  for (let i = history.length - 1; i >= 0; i--) {
+    if (!isTurnStart(history[i]!)) continue;
+    seen++;
+    if (seen === turns) return i;
+  }
+  return -1;
+}
+
 /**
  * When history exceeds the threshold, summarize everything but the most recent
  * pairs into one `summary` message. Prior summaries feed into the new one, so
- * summaries compound instead of accumulating.
+ * summaries compound instead of accumulating. A pair is a turn: the cut lands
+ * where the person spoke, so a tool round is never split from its tool use.
  */
 export async function compactHistory(history: readonly AgentMessage[], opts: CompactionOptions): Promise<CompactionResult> {
   const budget = opts.budgetTokens ?? DEFAULT_BUDGET_TOKENS;
   const threshold = Math.floor(budget * (opts.thresholdRatio ?? DEFAULT_THRESHOLD_RATIO));
-  const keepCount = (opts.keepRecentPairs ?? DEFAULT_KEEP_RECENT_PAIRS) * 2;
+  const keepTurns = opts.keepRecentPairs ?? DEFAULT_KEEP_RECENT_PAIRS;
   const estimate = opts.estimateTokens ?? estimateTokensByChars;
   const unchanged: CompactionResult = { history: [...history], compacted: false };
 
   if (estimateHistoryTokens(history, estimate) <= threshold) return unchanged;
-  if (history.length <= keepCount) return unchanged;
+  const cut = recentTurnsStart(history, keepTurns);
+  if (cut <= 0) return unchanged;
 
-  const older = history.slice(0, history.length - keepCount);
-  const recent = history.slice(history.length - keepCount);
+  const older = history.slice(0, cut);
+  const recent = history.slice(cut);
   const conversation = older.map(renderForSummary).join('\n\n');
   const composed = await composePrompt(COMPACTION_PROMPT, {});
   const r = await opts.client.generate(
@@ -85,12 +101,12 @@ export async function compactHistory(history: readonly AgentMessage[], opts: Com
   return { history: [summary, ...recent], compacted: true, summary };
 }
 
-/** Secondary guard: drop oldest message pairs until under the hard budget. */
+/** Secondary guard: drop the oldest turns (a message pair with its tool rounds) until under the hard budget. */
 export function pruneToBudget(history: readonly AgentMessage[], budgetTokens: number, estimate = estimateTokensByChars): AgentMessage[] {
   const out = [...history];
   while (out.length > 0 && estimateHistoryTokens(out, estimate) > budgetTokens) {
-    const first = out.shift();
-    if (first && out.length > 0 && out[0]!.role !== first.role) out.shift();
+    out.shift();
+    while (out.length > 0 && !isTurnStart(out[0]!)) out.shift();
   }
   return out;
 }
