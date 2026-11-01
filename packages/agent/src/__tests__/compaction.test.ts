@@ -7,6 +7,15 @@ import type { AgentMessage } from '../messages';
 const at = isoDate('2026-01-01');
 const msg = (i: number, size = 4000): AgentMessage => ({ id: String(i), role: i % 2 === 0 ? 'user' : 'assistant', content: `m${i} ` + 'x'.repeat(size), at });
 const history = Array.from({ length: 20 }, (_, i) => msg(i));
+const big = 'x'.repeat(4000);
+const round = (n: number): AgentMessage[] => [
+  { id: `u${n}`, role: 'user', content: `u${n} ${big}`, at },
+  { id: `tu${n}`, role: 'assistant', content: '', blocks: [{ type: 'tool_use', id: `t${n}`, name: 'n', input: {} }], hidden: true, at },
+  { id: `tr${n}`, role: 'user', content: '', blocks: [{ type: 'tool_result', toolUseId: `t${n}`, content: big }], hidden: true, at },
+  { id: `a${n}`, role: 'assistant', content: `a${n} ${big}`, at },
+];
+/** Three turns; the first two carry a tool round between the person's message and the answer. */
+const withRounds: AgentMessage[] = [...round(0), ...round(1), { id: 'u2', role: 'user', content: `u2 ${big}`, at }, { id: 'a2', role: 'assistant', content: `a2 ${big}`, at }];
 
 describe('compactHistory', () => {
   it('summarizes older messages into one summary and keeps recent pairs', async () => {
@@ -26,6 +35,20 @@ describe('compactHistory', () => {
     expect(system).toHaveLength(1);
     expect(system[0]?.text).toContain('Summarize this conversation history');
     expect(system[0]?.cache).toBe(true);
+  });
+  it('cuts at the start of a turn, never inside a tool round', async () => {
+    const client = createFakeModelClient([{ text: 'SUMMARY' }]);
+    // Two pairs by message count would start the kept window at a tool result whose tool use was summarised away.
+    const r = await compactHistory(withRounds, { client, budgetTokens: 10_000, keepRecentPairs: 2, now: () => at });
+    expect(r.compacted).toBe(true);
+    expect(r.history.slice(1).map((m) => m.id)).toEqual(['u1', 'tu1', 'tr1', 'a1', 'u2', 'a2']);
+    expect(client.calls[0]!.messages[0]!.content).toContain('User: u0');
+  });
+  it('leaves a history with no earlier turn to summarise alone', async () => {
+    const client = createFakeModelClient([{ text: 'SUMMARY' }]);
+    const r = await compactHistory(withRounds.slice(4), { client, budgetTokens: 10, keepRecentPairs: 2 });
+    expect(r.compacted).toBe(false);
+    expect(client.calls).toHaveLength(0);
   });
   it('compounds a prior summary into the next one', async () => {
     const client = createFakeModelClient([{ text: 'S2' }]);
@@ -50,5 +73,7 @@ describe('compactHistory', () => {
     expect(pruned.length).toBeLessThan(20);
     expect(pruned.length % 2).toBe(0);
     expect(pruned[0]?.role).toBe('user');
+    const turns = pruneToBudget(withRounds, 5000);
+    expect(turns.map((m) => m.id)).toEqual(['u2', 'a2']);
   });
 });
