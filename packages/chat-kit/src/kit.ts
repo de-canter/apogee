@@ -20,7 +20,7 @@ export interface Kit {
 }
 
 const info = (c: CapabilityInfo): CapabilityInfo =>
-  ({ name: c.name, title: c.title, description: c.description, resource: c.resource, input: c.input, output: c.output, ui: c.ui });
+  ({ name: c.name, title: c.title, description: c.description, resource: c.resource, input: c.input, output: c.output, ui: c.ui, kind: c.kind, annotations: c.annotations });
 
 /** Spec §4.7: the one pipeline every projection goes through. */
 export function createKit<TCtx, TPrincipal>(opts: KitOptions<TCtx, TPrincipal>): Kit {
