@@ -35,6 +35,17 @@ describe('registerKit', () => {
     expect(close._meta?.ui).toBeUndefined();
   });
 
+  it('advertises MCP tool annotations derived from kind and intent', async () => {
+    const { client } = await harness('ann');
+    const { tools } = await client.listTools();
+    const by = (n: string) => tools.find((t) => t.name === n)!.annotations;
+    expect(by('ticket_get')).toMatchObject({ readOnlyHint: true, destructiveHint: false });
+    expect(by('ticket_list')).toMatchObject({ readOnlyHint: true, destructiveHint: false });
+    expect(by('ticket_triage')).toMatchObject({ readOnlyHint: false, destructiveHint: false });
+    expect(by('ticket_close')).toMatchObject({ readOnlyHint: false, destructiveHint: true });
+    expect(tools.every((t) => typeof t.title === 'string' && t.title.length > 0)).toBe(true);
+  });
+
   it('returns the envelope as structuredContent and a compact text for the model', async () => {
     const { client } = await harness('ann');
     // listTools first so the client caches outputSchema and validates structuredContent against it.

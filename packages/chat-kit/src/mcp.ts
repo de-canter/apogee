@@ -64,6 +64,7 @@ export function registerKit(server: McpServer, kit: Kit, opts: RegisterKitOption
         description: cap.description,
         inputSchema: cap.input,
         outputSchema: cap.output,
+        annotations: { title: cap.title, readOnlyHint: cap.annotations.readOnlyHint, destructiveHint: cap.annotations.destructiveHint },
         _meta: cap.ui !== undefined ? { ui: { resourceUri: cap.ui } } : {},
       },
       async (args: unknown, ctx: ServerContext) => {

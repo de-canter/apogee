@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { nowIso } from '@de_canter/apogee-kernel';
-import { guarded, type CapabilitySpec } from './capability';
+import { annotationsFor, guarded, type CapabilitySpec } from './capability';
 import { ActionDescriptorSchema, describeEnvelope, envelopeSchema, isListEnvelope, STATELESS, type ActionDescriptor, type Envelope } from './contract';
 import { ChatKitError } from './errors';
 import { assertSnakeCase, type CallContext, type InputSchema } from './resource';
@@ -12,6 +12,10 @@ export interface CapabilityDef<TCtx, TPrincipal, TView> {
   input: InputSchema;
   view: z.ZodType<TView>;
   ui?: string | undefined;
+  /** A capability that only reads (an aggregate like a home screen). Drives `readOnlyHint`. */
+  readOnly?: boolean | undefined;
+  /** A capability that deletes or irreversibly changes data. Drives `destructiveHint`. */
+  destructive?: boolean | undefined;
   describe?: ((view: TView) => string) | undefined;
   execute(input: Record<string, unknown>, c: CallContext<TCtx, TPrincipal>): Promise<{ data: TView; allowed_next_actions?: ActionDescriptor[] | undefined; id?: string | undefined }>;
 }
@@ -28,6 +32,8 @@ export function defineCapability<TCtx, TPrincipal, TView>(def: CapabilityDef<TCt
     input: def.input,
     output,
     ui: def.ui,
+    kind: 'capability',
+    annotations: annotationsFor('capability', undefined, def.readOnly ?? false, def.destructive ?? false),
     describe: (e) => (def.describe && !isListEnvelope(e) ? def.describe((e as Envelope<TView>).data) : describeEnvelope(e)),
     async run(input, c) {
       const call = { principal: c.principal, capability: def.name, resource: def.name, input };

@@ -1,5 +1,5 @@
 import type { z } from 'zod';
-import type { Envelope, ListEnvelope } from './contract';
+import type { ActionIntent, Envelope, ListEnvelope } from './contract';
 import { ChatKitError } from './errors';
 import type { EntitlementCall, EntitlementPort } from './ports';
 
@@ -11,6 +11,26 @@ export interface RunContext<TCtx, TPrincipal> {
   onError: (err: unknown, where: string) => void;
 }
 
+/** How a capability was declared; drives the MCP tool annotations. */
+export type CapabilityKind = 'load' | 'list' | 'create' | 'transition' | 'query' | 'capability';
+
+/** MCP tool annotations (readOnlyHint / destructiveHint) — what a host uses for auto-permissions. */
+export interface ToolAnnotations {
+  readOnlyHint: boolean;
+  destructiveHint: boolean;
+}
+
+/**
+ * The one rule: loads and lists are read-only, as is a standalone capability
+ * that declares `readOnly`; every other capability writes, and a write whose
+ * intent is `destructive` (close, dismiss), or a standalone capability that
+ * declares `destructive` (remove), is flagged destructive.
+ */
+export function annotationsFor(kind: CapabilityKind, intent: ActionIntent | undefined, readOnly = false, destructive = false): ToolAnnotations {
+  const readOnlyHint = kind === 'load' || kind === 'list' || (kind === 'capability' && readOnly);
+  return { readOnlyHint, destructiveHint: !readOnlyHint && (intent === 'destructive' || destructive) };
+}
+
 export interface CapabilityInfo {
   name: string;
   title: string;
@@ -19,6 +39,8 @@ export interface CapabilityInfo {
   input: z.ZodType;
   output: z.ZodType;
   ui?: string | undefined;
+  kind: CapabilityKind;
+  annotations: ToolAnnotations;
 }
 
 /** @internal */

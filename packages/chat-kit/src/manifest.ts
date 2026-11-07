@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { StandardJsonSchema } from './json-schema';
 import type { Kit } from './kit';
+import type { CapabilityKind, ToolAnnotations } from './capability';
 
 export interface CapabilityManifestEntry {
   name: string;
@@ -10,6 +11,9 @@ export interface CapabilityManifestEntry {
   input_schema: Record<string, unknown>;
   output_schema: Record<string, unknown>;
   ui?: string | undefined;
+  /** Optional for manifests written before 0.3.0; a remote kit defaults them. */
+  kind?: CapabilityKind | undefined;
+  annotations?: ToolAnnotations | undefined;
 }
 
 export interface KitManifest { version: 1; capabilities: CapabilityManifestEntry[] }
@@ -25,6 +29,8 @@ export const KitManifestSchema = z.object({
     input_schema: z.record(z.string(), z.unknown()),
     output_schema: z.record(z.string(), z.unknown()),
     ui: z.string().optional(),
+    kind: z.enum(['load', 'list', 'create', 'transition', 'query', 'capability']).optional(),
+    annotations: z.object({ readOnlyHint: z.boolean(), destructiveHint: z.boolean() }).optional(),
   })),
 }) satisfies z.ZodType<KitManifest>;
 
@@ -51,6 +57,8 @@ export function manifestOf(kit: Kit): KitManifest {
         resource: c.resource,
         input_schema: toJsonSchema(c.input, 'input'),
         output_schema: toJsonSchema(c.output, 'output'),
+        kind: c.kind,
+        annotations: c.annotations,
       };
       if (c.ui !== undefined) entry.ui = c.ui;
       return entry;
