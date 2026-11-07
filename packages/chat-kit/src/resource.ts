@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { InvalidLifecycleError, nowIso, type Lifecycle } from '@de_canter/apogee-kernel';
 import { action, deriveActions, type ActionSource, type Current, type TransitionRule, type ActionRule } from './actions';
-import { guarded, type CapabilitySpec, type RunContext } from './capability';
+import { annotationsFor, guarded, type CapabilityKind, type CapabilitySpec, type RunContext } from './capability';
 import { describeEnvelope, envelopeSchema, isListEnvelope, listEnvelopeSchema, type ActionIntent, type Envelope, type ListEnvelope } from './contract';
 import { ChatKitError, type IllegalTransitionDetails } from './errors';
 import type { EntitlementCall } from './ports';
@@ -156,9 +156,9 @@ export function defineResource<TCtx, TPrincipal, TView, S extends string>(
     },
     capabilities() {
       const caps: CapabilitySpec<TCtx, TPrincipal>[] = [];
-      const cap = (name: string, title: string, description: string | undefined, input: z.ZodType, out: z.ZodType, ui: string | undefined,
+      const cap = (name: string, kind: CapabilityKind, intent: ActionIntent | undefined, title: string, description: string | undefined, input: z.ZodType, out: z.ZodType, ui: string | undefined,
         run: CapabilitySpec<TCtx, TPrincipal>['run']): void => {
-        caps.push({ name: `${def.name}_${name}`, title, description: description ?? title, resource: def.name, input, output: out, ui, describe: describeAny, run });
+        caps.push({ name: `${def.name}_${name}`, title, description: description ?? title, resource: def.name, input, output: out, ui, kind, annotations: annotationsFor(kind, intent), describe: describeAny, run });
       };
 
       const checkState = (state: string, where: string): void => {
@@ -183,7 +183,7 @@ export function defineResource<TCtx, TPrincipal, TView, S extends string>(
         return new ChatKitError('ILLEGAL_TRANSITION', `${def.name} ${id} is ${current.state}; ${def.name}_${local} is not allowed`, { details, allowed_next_actions: allowed });
       };
 
-      cap('get', `Get ${def.name}`, undefined, z.object({ id: IdSchema }), output, uiFor('get'), async (input, c) => {
+      cap('get', 'load', undefined, `Get ${def.name}`, undefined, z.object({ id: IdSchema }), output, uiFor('get'), async (input, c) => {
         const { id } = input as { id: string };
         // Steps 5 and 7 run for get too: the load is the "execute", so a metered read is charged.
         const { result: current, entitlementView } = await guarded(c.entitlement, callFor('get', c.principal, input), () => loadOr404(id, c), c.onError);
@@ -192,7 +192,7 @@ export function defineResource<TCtx, TPrincipal, TView, S extends string>(
 
       if (def.list) {
         const l = def.list;
-        cap('list', l.title, l.description, l.input, listOutput, uiFor('list'), async (input, c) => {
+        cap('list', 'list', undefined, l.title, l.description, l.input, listOutput, uiFor('list'), async (input, c) => {
           const { result } = await guarded(c.entitlement, callFor('list', c.principal, input), () => l.execute(input as Record<string, unknown>, { ctx: c.ctx, principal: c.principal }), c.onError);
           for (const i of result.items) { checkState(i.state, `${def.name}_list`); checkView(i.view, `${def.name}_list`); }
           const e: ListEnvelope<TView> = {
@@ -210,7 +210,7 @@ export function defineResource<TCtx, TPrincipal, TView, S extends string>(
 
       if (def.create) {
         const cr = def.create;
-        cap('create', cr.title, cr.description, cr.input, output, uiFor('create'), async (input, c) => {
+        cap('create', 'create', undefined, cr.title, cr.description, cr.input, output, uiFor('create'), async (input, c) => {
           const { result, entitlementView } = await guarded(c.entitlement, callFor('create', c.principal, input), () => cr.execute(input as Record<string, unknown>, { ctx: c.ctx, principal: c.principal }), c.onError);
           checkState(result.state, `${def.name}_create`);
           checkView(result.view, `${def.name}_create`);
@@ -220,7 +220,7 @@ export function defineResource<TCtx, TPrincipal, TView, S extends string>(
 
       for (const [name, t] of Object.entries(def.transitions)) {
         const rule = transitionRules[name]!;
-        cap(name, t.title, t.description, t.input.extend({ id: IdSchema }), output, uiFor(name), async (input, c) => {
+        cap(name, 'transition', t.intent, t.title, t.description, t.input.extend({ id: IdSchema }), output, uiFor(name), async (input, c) => {
           const { id, ...rest } = input as { id: string } & Record<string, unknown>;
           const current = await loadOr404(id, c);
           if (!rule.from.includes(current.state) || (rule.when && !rule.when(current))) throw illegal(id, name, current, c.principal);
@@ -235,7 +235,7 @@ export function defineResource<TCtx, TPrincipal, TView, S extends string>(
       }
 
       for (const [name, q] of Object.entries(queries)) {
-        cap(name, q.title, q.description, q.input.extend({ id: IdSchema }), output, uiFor(name), async (input, c) => {
+        cap(name, 'query', q.intent, q.title, q.description, q.input.extend({ id: IdSchema }), output, uiFor(name), async (input, c) => {
           const { id, ...rest } = input as { id: string } & Record<string, unknown>;
           const current = await loadOr404(id, c);
           if (q.when && !q.when(current)) throw illegal(id, name, current, c.principal);

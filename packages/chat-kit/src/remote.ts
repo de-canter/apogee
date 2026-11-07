@@ -75,6 +75,8 @@ export function createRemoteKit(opts: RemoteKitOptions): Kit {
       input: jsonSchemaStandard(c.input_schema, { ajv }) as unknown as z.ZodType,
       output: jsonSchemaStandard(c.output_schema, { ajv }) as unknown as z.ZodType,
       ui: c.ui,
+      kind: c.kind ?? 'capability',
+      annotations: c.annotations ?? { readOnlyHint: false, destructiveHint: false },
     };
     infos.set(c.name, info);
   }
