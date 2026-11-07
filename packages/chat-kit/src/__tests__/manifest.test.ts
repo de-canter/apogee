@@ -1,5 +1,7 @@
+import { z } from 'zod';
 import { describe, expect, it } from 'vitest';
 import { createKit } from '../kit';
+import { defineCapability } from '../standalone';
 import { manifestOf } from '../manifest';
 import { createRemoteKit } from '../remote';
 import { makeCtx, seed, ticket, type Principal } from './fixtures/ticket';
@@ -28,6 +30,19 @@ describe('manifestOf', () => {
     const get = m.capabilities.find((c) => c.name === 'ticket_get')!;
     expect(get.kind).toBe('load');
     expect(get.annotations).toEqual({ readOnlyHint: true, destructiveHint: false });
+  });
+  it('a standalone capability can declare itself destructive', () => {
+    const remove = defineCapability<unknown, unknown, { removed: boolean }>({
+      name: 'thing_remove', title: 'Remove', input: z.object({ id: z.string() }), view: z.object({ removed: z.boolean() }),
+      destructive: true,
+      execute: () => Promise.resolve({ data: { removed: true } }),
+    });
+    expect(remove.annotations).toEqual({ readOnlyHint: false, destructiveHint: true });
+    const read = defineCapability<unknown, unknown, { n: number }>({
+      name: 'thing_home', title: 'Home', input: z.object({}), view: z.object({ n: z.number() }), readOnly: true,
+      execute: () => Promise.resolve({ data: { n: 1 } }),
+    });
+    expect(read.annotations).toEqual({ readOnlyHint: true, destructiveHint: false });
   });
   it('a manifest without annotations (older server) still parses and defaults them to false/false', () => {
     const m = manifestOf(kit);

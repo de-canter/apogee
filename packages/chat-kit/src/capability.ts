@@ -23,11 +23,12 @@ export interface ToolAnnotations {
 /**
  * The one rule: loads and lists are read-only, as is a standalone capability
  * that declares `readOnly`; every other capability writes, and a write whose
- * intent is `destructive` (close, dismiss, remove) is flagged destructive.
+ * intent is `destructive` (close, dismiss), or a standalone capability that
+ * declares `destructive` (remove), is flagged destructive.
  */
-export function annotationsFor(kind: CapabilityKind, intent: ActionIntent | undefined, readOnly = false): ToolAnnotations {
+export function annotationsFor(kind: CapabilityKind, intent: ActionIntent | undefined, readOnly = false, destructive = false): ToolAnnotations {
   const readOnlyHint = kind === 'load' || kind === 'list' || (kind === 'capability' && readOnly);
-  return { readOnlyHint, destructiveHint: !readOnlyHint && intent === 'destructive' };
+  return { readOnlyHint, destructiveHint: !readOnlyHint && (intent === 'destructive' || destructive) };
 }
 
 export interface CapabilityInfo {
