@@ -16,7 +16,7 @@ Updated 2026-09-18. Things only you can do, plus the queue.
 
 ## Decided
 
-- apogee repo goes **public** under Apache-2.0 once `docs/open-source.md` is closed out; until the packages are on npm, consumers vendor the release tarballs (`vendor/*.tgz` + `pnpm.overrides`, see `docs/consuming.md`).
+- apogee repo is **public** under Apache-2.0 (since 2026-09-20); consumers install from npm (`@de_canter/apogee-<name>`, see `docs/consuming.md`). Tag pushes publish via `release.yml`.
 - The reference product adopts by **clean-room rewrite**, not migration, once Track A and Track B are tagged.
 
 ## Queue (Claude runs these)
