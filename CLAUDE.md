@@ -3,8 +3,8 @@
 @.claude-shared/CLAUDE.md
 
 Apogee is de|canter's TypeScript framework for production AI applications,
-used by Verve Technologies products (The Somm, NailNotes, MacMethod). Licensed Apache-2.0; the repo goes public once
-`docs/open-source.md` is closed out. Nothing product-specific belongs here.
+used by Verve Technologies products (The Somm, NailNotes, MacMethod). Licensed Apache-2.0; public on GitHub since 2026-09-20, packages on npm
+under the `@de_canter` org. Nothing product-specific belongs here.
 
 ## Orientation (read in this order at session start)
 
@@ -12,13 +12,13 @@ used by Verve Technologies products (The Somm, NailNotes, MacMethod). Licensed A
 2. `docs/design/kernel-ontology.md` — Track A spec (domain vocabulary).
 3. `docs/design/ai-abstractions.md` — Track B spec (AI packages) and the apogee.build showcase.
 4. `docs/plans/` — open plans and kickoff notes; `docs/plans/completed/` — what shipped, with outcome notes.
-5. `docs/consuming.md` — how other repos install the packages (tarballs + overrides; repo is private).
+5. `docs/consuming.md` — how other repos install the packages (`pnpm add @de_canter/apogee-<name>` from npm) and how releases publish.
 
 ## Workspace
 
 pnpm 9.15.9 + Turborepo. Packages under `packages/*`, each: tsup dual build, Vitest, strict TS, ESLint flat config at the root. Root scripts: `pnpm typecheck && pnpm lint && pnpm build && pnpm test`. Run them unfiltered before every commit; turbo output hides errors when piped through grep.
 
-Releases: bump `version` in the package, tag `<name>-v<version>`, push the tag; `release.yml` attaches the tarball to a GitHub Release. Consumers vendor the tarball.
+Releases: bump `version` in the package, tag `<name>-v<version>`, push the tag; `release.yml` publishes to npm (provenance, `NPM_TOKEN` secret) and attaches the tarball to a GitHub Release. Consumers install from npm. Tag in dependency order when several packages change.
 
 ## Working pattern that held
 
