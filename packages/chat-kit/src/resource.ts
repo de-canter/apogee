@@ -57,6 +57,8 @@ export interface ResourceDef<TCtx, TPrincipal, TView, S extends string> {
   lifecycle: Lifecycle<S>;
   view: z.ZodType<TView>;
   load(id: string, c: CallContext<TCtx, TPrincipal>): Promise<Current<TView, S> | null>;
+  /** Title and description of the `<name>_get` capability. Default: "Get <name>" for both. */
+  get?: { title?: string | undefined; description?: string | undefined } | undefined;
   create?: CreateDef<TCtx, TPrincipal, TView, S> | undefined;
   list?: ListDef<TCtx, TPrincipal, TView, S> | undefined;
   transitions: Record<string, TransitionDef<TCtx, TPrincipal, TView, S>>;
@@ -183,7 +185,7 @@ export function defineResource<TCtx, TPrincipal, TView, S extends string>(
         return new ChatKitError('ILLEGAL_TRANSITION', `${def.name} ${id} is ${current.state}; ${def.name}_${local} is not allowed`, { details, allowed_next_actions: allowed });
       };
 
-      cap('get', 'load', undefined, `Get ${def.name}`, undefined, z.object({ id: IdSchema }), output, uiFor('get'), async (input, c) => {
+      cap('get', 'load', undefined, def.get?.title ?? `Get ${def.name}`, def.get?.description, z.object({ id: IdSchema }), output, uiFor('get'), async (input, c) => {
         const { id } = input as { id: string };
         // Steps 5 and 7 run for get too: the load is the "execute", so a metered read is charged.
         const { result: current, entitlementView } = await guarded(c.entitlement, callFor('get', c.principal, input), () => loadOr404(id, c), c.onError);
