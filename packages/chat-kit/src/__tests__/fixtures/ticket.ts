@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { defineLifecycle } from '@de_canter/apogee-kernel';
-import { defineResource } from '../../resource';
+import { defineResource, type ResourceDef } from '../../resource';
 
 export const TicketView = z.object({ title: z.string(), assignee: z.string().nullable(), notes: z.array(z.string()) });
 export type TicketView = z.infer<typeof TicketView>;
@@ -38,7 +38,7 @@ export const seed: TicketRow[] = [
 
 let nextId = 100;
 
-export const ticket = defineResource<Ctx, Principal, TicketView, TicketState>({
+export const ticketDef: ResourceDef<Ctx, Principal, TicketView, TicketState> = {
   name: 'ticket',
   lifecycle: ticketLifecycle,
   view: TicketView,
@@ -110,4 +110,6 @@ export const ticket = defineResource<Ctx, Principal, TicketView, TicketState>({
   },
   policy: (t, _current, principal) => (t.name === 'reopen' ? principal.admin : true),
   ui: { get: 'ui://test/ticket.html', triage: 'ui://test/ticket.html' },
-});
+};
+
+export const ticket = defineResource<Ctx, Principal, TicketView, TicketState>(ticketDef);

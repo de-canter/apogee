@@ -43,6 +43,7 @@ const scan = defineResource<Ctx, Principal, ScanView, ScanState>({
       { name: 'fail', from: 'processing', to: 'failed' }, { name: 'review', from: ['ready', 'reviewed'], to: 'reviewed' }] }),
   view: ScanView,
   load: (id, { ctx, principal }) => ctx.scans.load(principal.householdId, id),
+  get: { title: 'Open a wine list', description: 'One saved wine list by id, with its picks.' },  // optional; default "Get <name>"
   transitions: {
     review: { from: ['ready', 'reviewed'], to: 'reviewed', input: z.object({ note: z.string() }), title: 'Get the picks',
       execute: async (input: { note: string }, { ctx, id, current }) => ctx.scans.review(id, input.note, current) },
