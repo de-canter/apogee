@@ -19,7 +19,8 @@ export interface EntitlementCall<TPrincipal> {
 }
 
 export type EntitlementDecision =
-  | { ok: true; view?: unknown }
+  /** `view` rides on the envelope as `entitlement`; it must be an object. `null` or absent leaves it off. */
+  | { ok: true; view?: Record<string, unknown> | null | undefined }
   | { ok: false; reason: string; details?: unknown; allowed_next_actions?: ActionDescriptor[] | undefined };
 
 export interface EntitlementPort<TPrincipal> {

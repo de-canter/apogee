@@ -20,6 +20,8 @@ One resource declaration becomes MCP tools with structured output and linked MCP
 ## Guarantees
 
 - A transition whose `from` does not include the current state, or whose `when` is false, fails before `execute` with `ILLEGAL_TRANSITION` and the actions that are allowed; a query whose `when` is false fails the same way. A transition the resource `policy` refuses fails with `FORBIDDEN` and the allowed actions.
+- Tool schemas are emitted in a portable spelling: a nullable field is `anyOf` with one `type` per branch (never a `type` array), and an open record is `additionalProperties: true`. A local kit over MCP and a remote kit built from its manifest list identical schemas. `portableJsonSchema(schema)` is exported for hosts that convert their own.
+- An entitlement `view` is an object (it becomes `entitlement` on the envelope); a `null` or absent view leaves `entitlement` off.
 - `entitlement.assert` runs after the lifecycle check and before `execute` (for `get`, before the load); `settle` runs after, with `success`, even when `execute` throws; a throwing `settle` never fails the call.
 - `ChatKitError.is()` is a brand check, so errors are recognized across the separately bundled entry points and across ESM/CJS copies.
 - MCP error text names the allowed next capabilities (`Allowed next: …`), since `structuredContent` is UI-only for the model.

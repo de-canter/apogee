@@ -32,7 +32,8 @@ export interface Envelope<TView = unknown> {
   data: TView;
   allowed_next_actions: ActionDescriptor[];
   ui?: UiRef | undefined;
-  entitlement?: unknown;
+  /** What the entitlement port reported for this call (usage, limits). Always an object. */
+  entitlement?: Record<string, unknown> | undefined;
   at: ISODate;
 }
 
@@ -53,7 +54,7 @@ export function envelopeSchema<V extends z.ZodType>(view: V) {
     data: view,
     allowed_next_actions: z.array(ActionDescriptorSchema),
     ui: UiRefSchema.optional(),
-    entitlement: z.unknown().optional(),
+    entitlement: z.record(z.string(), z.unknown()).optional(),
     at: ISODateSchema,
   });
 }

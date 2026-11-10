@@ -50,7 +50,7 @@ export interface CapabilitySpec<TCtx, TPrincipal> extends CapabilityInfo {
   run(input: unknown, c: RunContext<TCtx, TPrincipal>): Promise<Envelope | ListEnvelope>;
 }
 
-export interface GuardedResult<T> { result: T; entitlementView: unknown }
+export interface GuardedResult<T> { result: T; entitlementView: Record<string, unknown> | undefined }
 
 /** @internal Pipeline steps 5–7: assert, execute, settle (always, even on throw). */
 export async function guarded<TPrincipal, T>(
@@ -67,7 +67,7 @@ export async function guarded<TPrincipal, T>(
   try {
     const result = await fn();
     success = true;
-    return { result, entitlementView: decision.view };
+    return { result, entitlementView: decision.view ?? undefined };
   } finally {
     if (port.settle) {
       try {

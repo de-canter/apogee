@@ -101,6 +101,11 @@ describe('createKit', () => {
     await expect(kit.call('nope', {}, auth)).rejects.toMatchObject({ code: 'NOT_FOUND' });
   });
 
+  it('a port that reports a null view leaves entitlement off the envelope', async () => {
+    const { kit } = kitFor({ assert: () => Promise.resolve({ ok: true, view: null }) });
+    const e = await kit.call('ticket_get', { id: 't1' }, { token: 'ann' });
+    expect('entitlement' in e).toBe(false);
+  });
   it('runs entitlement assert before execute and settle after, and copies the view', async () => {
     const calls: string[] = [];
     const port: EntitlementPort<Principal> = {
