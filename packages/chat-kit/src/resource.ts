@@ -72,7 +72,7 @@ export interface Resource<TCtx, TPrincipal, TView, S extends string> extends Act
   lifecycle: Lifecycle<S>;
   view: z.ZodType<TView>;
   capabilities(): CapabilitySpec<TCtx, TPrincipal>[];
-  envelope(id: string, current: Current<TView, S>, principal: TPrincipal, extra?: { entitlement?: unknown; ui?: string | undefined }): Envelope<TView>;
+  envelope(id: string, current: Current<TView, S>, principal: TPrincipal, extra?: { entitlement?: Record<string, unknown> | undefined; ui?: string | undefined }): Envelope<TView>;
 }
 
 /** @internal */

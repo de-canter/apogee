@@ -3,6 +3,7 @@ import { registerAppResource, registerAppTool, RESOURCE_MIME_TYPE } from '@model
 import { describeEnvelope, type Envelope, type ListEnvelope } from './contract';
 import { ChatKitError } from './errors';
 import type { Kit } from './kit';
+import { portableStandardSchema } from './manifest';
 import type { AuthInfo } from './ports';
 
 export interface FragmentDef {
@@ -62,8 +63,8 @@ export function registerKit(server: McpServer, kit: Kit, opts: RegisterKitOption
       {
         title: cap.title,
         description: cap.description,
-        inputSchema: cap.input,
-        outputSchema: cap.output,
+        inputSchema: portableStandardSchema(cap.input),
+        outputSchema: portableStandardSchema(cap.output),
         annotations: { title: cap.title, readOnlyHint: cap.annotations.readOnlyHint, destructiveHint: cap.annotations.destructiveHint },
         _meta: cap.ui !== undefined ? { ui: { resourceUri: cap.ui } } : {},
       },
